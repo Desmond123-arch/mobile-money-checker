@@ -25,7 +25,12 @@ export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
           return (
             <View key={d.label} className="h-32 w-10 items-center justify-end gap-[6px]">
               {peak ? (
-                <Text className="font-tight-bold text-caption text-ink">GHS {d.cedis}</Text>
+                <Text
+                  numberOfLines={1}
+                  className="min-w-16 text-center font-tight-bold text-caption text-ink"
+                >
+                  GHS {d.cedis}
+                </Text>
               ) : null}
               <View
                 className={`w-10 rounded-b-[3px] rounded-t-[8px] ${peak ? 'bg-ink' : 'bg-[#DADADA]'}`}
@@ -75,7 +80,10 @@ export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
           return (
             <View key={m.label} className="h-[148px] w-12 items-center justify-end gap-[6px]">
               {isPeak ? (
-                <Text className="font-tight-bold text-caption text-ink">
+                <Text
+                  numberOfLines={1}
+                  className="min-w-16 text-center font-tight-bold text-caption text-ink"
+                >
                   {m.out.toLocaleString('en-GH')}
                 </Text>
               ) : null}
