@@ -5,3 +5,4 @@ ios
 dist
 package-lock.json
 docs
+coverage
