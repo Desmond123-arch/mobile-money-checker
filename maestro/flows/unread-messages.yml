@@ -13,7 +13,16 @@ appId: com.momospend.app
 - assertVisible:
     id: 'unreadMessage-u1'
 - assertVisible:
-    id: 'unreadAction-u2'
+    id: 'unreadAdd-u2'
+- tapOn:
+    label: 'Can ignore a message'
+    id: 'unreadIgnore-u1'
+- assertNotVisible:
+    id: 'unreadMessage-u1'
+- tapOn:
+    id: 'unreadIgnore-u2'
+- assertVisible:
+    id: 'unreadEmpty'
 - tapOn:
     id: 'backBtn'
 - assertVisible:

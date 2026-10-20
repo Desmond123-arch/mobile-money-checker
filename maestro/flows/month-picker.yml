@@ -1,0 +1,16 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    label: 'The month pill opens the month sheet'
+    id: 'homeMonthPill'
+- assertVisible:
+    id: 'monthSheet'
+- tapOn:
+    id: 'monthOption-2026-08'
+- assertVisible: 'August 2026'
+- tapOn:
+    id: 'tabBarInsightsBtn'
+- assertVisible:
+    id: 'insightsMonthPill'
+- assertVisible: 'August 2026'

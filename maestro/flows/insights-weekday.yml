@@ -1,0 +1,17 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarInsightsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'weekdayBar-Sun'
+- tapOn:
+    label: 'Tapping a day shows where that day went'
+    id: 'weekdayBar-Sun'
+- assertVisible: 'Sundays'
+- assertVisible:
+    id: 'weekdayBreakdown'
+- tapOn:
+    id: 'weekdayBar-Mon'
+- assertVisible: 'Mondays'
