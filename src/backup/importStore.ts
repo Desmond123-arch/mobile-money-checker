@@ -1,3 +1,5 @@
+import type { ImportSummary } from '@/ledger/importSummary';
+
 export type ImportPhase = 'idle' | 'running' | 'done' | 'failed' | 'cancelled';
 
 export interface ImportState {
@@ -5,11 +7,11 @@ export interface ImportState {
   read: number;
   total: number;
   payments: number;
-  // True while the parser and ledger are not connected: `payments` is then always 0.
-  ingestIsStub: boolean;
+  /** Set when the phase is 'done'. */
+  summary: ImportSummary | null;
 }
 
-const IDLE: ImportState = { phase: 'idle', read: 0, total: 0, payments: 0, ingestIsStub: false };
+const IDLE: ImportState = { phase: 'idle', read: 0, total: 0, payments: 0, summary: null };
 
 let state: ImportState = IDLE;
 const listeners = new Set<() => void>();

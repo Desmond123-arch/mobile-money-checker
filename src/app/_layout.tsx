@@ -18,6 +18,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { DbProvider } from '@/features/app';
 import { ExpensesProvider } from '@/features/expenses';
 import { PeriodProvider } from '@/features/period';
 import { TransactionFilterProvider } from '@/features/transactions';
@@ -43,24 +44,26 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <PeriodProvider>
-      <ExpensesProvider>
-        <TransactionFilterProvider>
-          <StatusBar style="dark" />
-          <Stack
-            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
-          >
-            <Stack.Screen
-              name="sheets"
-              options={{
-                presentation: 'transparentModal',
-                animation: 'slide_from_bottom',
-                contentStyle: { backgroundColor: 'transparent' },
-              }}
-            />
-          </Stack>
-        </TransactionFilterProvider>
-      </ExpensesProvider>
-    </PeriodProvider>
+    <DbProvider>
+      <PeriodProvider>
+        <ExpensesProvider>
+          <TransactionFilterProvider>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
+            >
+              <Stack.Screen
+                name="sheets"
+                options={{
+                  presentation: 'transparentModal',
+                  animation: 'slide_from_bottom',
+                  contentStyle: { backgroundColor: 'transparent' },
+                }}
+              />
+            </Stack>
+          </TransactionFilterProvider>
+        </ExpensesProvider>
+      </PeriodProvider>
+    </DbProvider>
   );
 }

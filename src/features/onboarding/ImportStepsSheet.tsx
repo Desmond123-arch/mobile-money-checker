@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { pickBackupFile } from '@/backup/pickBackupFile';
 import { startImport } from '@/backup/startImport';
+import { createLedgerSink, useDb } from '@/features/app';
 import { Button, Sheet, SheetTitle } from '@/ui';
 
 const STEPS = [
@@ -15,6 +16,7 @@ const STEPS = [
 
 export function ImportStepsSheet() {
   const router = useRouter();
+  const db = useDb();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -24,7 +26,7 @@ export function ImportStepsSheet() {
     try {
       const uri = await pickBackupFile();
       if (!uri) return;
-      void startImport(uri);
+      void startImport(uri, createLedgerSink(db));
       router.dismiss();
       router.replace('/importing');
     } catch {

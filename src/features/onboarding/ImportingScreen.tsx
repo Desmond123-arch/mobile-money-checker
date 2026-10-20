@@ -1,6 +1,9 @@
+import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { FixedScreen, Hint, hardShadow } from '@/ui';
+import { formatGhs, pesewas } from '@/domain/money';
+import type { ImportSummary } from '@/ledger/importSummary';
+import { Button, FixedScreen, Hint, hardShadow } from '@/ui';
 
 import { useImportState } from './useImportState';
 
@@ -8,7 +11,21 @@ import { useImportState } from './useImportState';
 // which has no scan behind it yet).
 const SAMPLE = { read: 1284, total: 2488, payments: 612 };
 
+const monthLabel = (month: string) =>
+  new Date(`${month}-01T00:00:00Z`).toLocaleDateString('en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+
+export function summaryLine(s: ImportSummary): string {
+  const counts = `${s.transactions.toLocaleString('en-GH')} transactions, ${s.payments.toLocaleString('en-GH')} payments.`;
+  if (s.latestMonth === null) return counts;
+  return `${counts} Spent in ${monthLabel(s.latestMonth)}: ${formatGhs(pesewas(s.monthSpendPesewas))}.`;
+}
+
 export function ImportingScreen() {
+  const router = useRouter();
   const state = useImportState();
   const isSample = state.phase === 'idle';
   const progress = isSample ? SAMPLE : state;
@@ -44,9 +61,7 @@ export function ImportingScreen() {
             </View>
             <View className="flex-row justify-between pt-[6px]">
               <Text className="font-inter text-[14px] leading-[19px] text-ink">
-                {state.ingestIsStub
-                  ? 'Payments are not counted yet'
-                  : `${progress.payments} payments found`}
+                {`${progress.payments} payments found`}
               </Text>
               <Text className="font-inter text-[14px] leading-[19px] text-muted">{percent}%</Text>
             </View>
@@ -56,6 +71,25 @@ export function ImportingScreen() {
           <Text testID="importSampleNote" className="pb-3 font-inter text-caption text-muted">
             Sample numbers. No import is running.
           </Text>
+        ) : null}
+        {state.phase === 'done' && state.summary ? (
+          <View className="gap-4 pb-4">
+            <Text
+              testID="importCompleteTitle"
+              className="font-tight-extrabold text-[24px] text-ink"
+            >
+              Import complete
+            </Text>
+            <Text testID="importSummary" className="font-inter text-[16px] leading-[24px] text-ink">
+              {summaryLine(state.summary)}
+            </Text>
+            <Button
+              testID="importHomeBtn"
+              label="Go to Home"
+              variant="ink"
+              onPress={() => router.replace('/')}
+            />
+          </View>
         ) : null}
         {state.phase === 'failed' ? (
           <Text testID="importFailedNote" className="pb-3 font-inter text-caption text-warn">
