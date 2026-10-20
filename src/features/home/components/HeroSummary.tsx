@@ -74,15 +74,13 @@ function Stat({
   label,
   value,
   tone = 'ground',
-  lane,
 }: {
   label: string;
   value: string;
   tone?: 'ground' | 'in';
-  lane?: boolean;
 }) {
   return (
-    <View className={`gap-[2px] ${lane ? 'w-[72px]' : 'flex-1'}`}>
+    <View className="gap-[2px]">
       <Text className="font-inter text-caption text-white/70">{label}</Text>
       <Text
         className={`font-tight-bold text-[18px] tabular-nums leading-[22px] ${tone === 'in' ? 'text-[#7FE0A8]' : 'text-ground'}`}
@@ -95,9 +93,9 @@ function Stat({
 
 export function TotalsRow({ moneyIn, payments }: { moneyIn: Pesewas; payments: number }) {
   return (
-    <View className="mx-5 mt-6 flex-row border-t border-white/[0.14] pt-5">
+    <View className="mx-5 mt-6 flex-row justify-evenly border-t border-white/[0.14] pt-5">
       <Stat label="Money in" value={`+${formatGhs(moneyIn)}`} tone="in" />
-      <Stat label="Payments" value={String(payments)} lane />
+      <Stat label="Payments" value={String(payments)} />
     </View>
   );
 }

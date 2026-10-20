@@ -1,6 +1,8 @@
+import { weekdayLabel } from '@/domain/calendar/week';
 import { pesewas } from '@/domain/money';
 import { allocate } from '@/domain/category/share';
-import { MONTH_OPTIONS } from '@/features/period';
+import { summaryFor } from '@/features/home';
+import { MONTH_OPTIONS, monthOfIso } from '@/features/period';
 
 export const WEEKDAYS = [
   { label: 'Mon', name: 'Monday', cedis: 42 },
@@ -34,3 +36,11 @@ export const MONTHS = MONTH_OPTIONS.map((m) => ({
   out: Math.round(m.spent / 100),
   in: Math.round(m.moneyIn / 100),
 }));
+
+export function daySpend(iso: string) {
+  const option = monthOfIso(iso);
+  if (!option) return { total: pesewas(0), spend: [] };
+  const day = Number(iso.slice(8, 10));
+  const total = summaryFor(option).daily[day - 1] ?? pesewas(0);
+  return { total, spend: allocate(total, WEEKDAY_WEIGHTS[weekdayLabel(iso)]) };
+}

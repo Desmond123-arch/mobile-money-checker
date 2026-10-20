@@ -1,3 +1,5 @@
-export { MONTH_OPTIONS, type MonthOption } from './months';
+export { CalendarSheet } from './CalendarSheet';
+export { MONTH_OPTIONS, monthOfIso, type MonthOption } from './months';
 export { MonthSheet } from './MonthSheet';
-export { PeriodProvider, usePeriod } from './PeriodProvider';
+export { PeriodProvider, usePeriod, type Period } from './PeriodProvider';
+export { useToday } from './useToday';

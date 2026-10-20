@@ -12,5 +12,5 @@ appId: com.momospend.app
 - tapOn:
     id: 'tabBarInsightsBtn'
 - assertVisible:
-    id: 'insightsMonthPill'
+    id: 'insightsPeriodPill'
 - assertVisible: 'August 2026'

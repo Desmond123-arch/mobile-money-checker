@@ -35,3 +35,7 @@ export const MONTH_OPTIONS: readonly MonthOption[] = [
 ];
 
 export const CURRENT_MONTH = MONTH_OPTIONS[MONTH_OPTIONS.length - 1] as MonthOption;
+
+export function monthOfIso(iso: string): MonthOption | undefined {
+  return MONTH_OPTIONS.find((m) => m.id === iso.slice(0, 7));
+}
