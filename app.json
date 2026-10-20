@@ -10,7 +10,6 @@
     "platforms": ["android"],
     "android": {
       "package": "com.momospend.app",
-      "minSdkVersion": 26,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#14110F",
@@ -22,6 +21,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
