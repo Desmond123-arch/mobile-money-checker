@@ -74,29 +74,24 @@ function Stat({
   label,
   value,
   tone = 'ground',
-  weight,
   divider = false,
   testID,
 }: {
   label: string;
   value: string;
   tone?: 'ground' | 'in';
-  weight: number;
   divider?: boolean;
   testID: string;
 }) {
   return (
     <View
       testID={testID}
-      style={{ flex: weight }}
-      className={`gap-[2px] ${divider ? 'border-l border-white/[0.14] pl-4' : ''}`}
+      className={`w-1/3 items-center gap-[2px] ${divider ? 'border-l border-white/[0.14]' : ''}`}
     >
       <Text className="font-inter text-caption text-white/70">{label}</Text>
       <Text
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.75}
-        className={`font-tight-bold text-[18px] tabular-nums leading-[24px] ${tone === 'in' ? 'text-[#7FE0A8]' : 'text-ground'}`}
+        className={`font-tight-bold text-[16px] tabular-nums leading-[24px] ${tone === 'in' ? 'text-[#7FE0A8]' : 'text-ground'}`}
       >
         {value}
       </Text>
@@ -115,21 +110,9 @@ export function TotalsRow({
 }) {
   return (
     <View className="mx-5 mt-6 flex-row border-t border-white/[0.14] pt-5">
-      <Stat
-        testID="homeMoneyIn"
-        label="Money in"
-        value={`+${formatGhs(moneyIn)}`}
-        tone="in"
-        weight={1.1}
-      />
-      <Stat testID="homePayments" label="Payments" value={String(payments)} weight={0.8} divider />
-      <Stat
-        testID="homeDailyAverage"
-        label="A day"
-        value={formatGhs(average)}
-        weight={1.5}
-        divider
-      />
+      <Stat testID="homeMoneyIn" label="Money in" value={`+${formatGhs(moneyIn)}`} tone="in" />
+      <Stat testID="homePayments" label="Payments" value={String(payments)} divider />
+      <Stat testID="homeDailyAverage" label="A day" value={formatGhs(average)} divider />
     </View>
   );
 }
