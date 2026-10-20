@@ -64,7 +64,8 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
         )}
       </View>
       <Text
-        className={`w-20 shrink-0 text-right font-tight-bold text-body tabular-nums ${incoming ? 'text-income' : 'text-ink'}`}
+        numberOfLines={1}
+        className={`w-[88px] shrink-0 text-right font-tight-bold text-body tabular-nums ${incoming ? 'text-income' : 'text-ink'}`}
       >
         {incoming ? '+' : '−'}
         {formatPlain(row.amount)}

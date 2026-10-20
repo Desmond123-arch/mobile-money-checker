@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Tabs } from 'expo-router';
 
@@ -36,29 +37,39 @@ export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
             });
             if (!focused && !event.defaultPrevented) navigateToTab(route.key);
           };
-          return focused ? (
-            <Pressable
+          return (
+            <Animated.View
               key={route.key}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: true }}
-              onPress={onPress}
-              className="flex-row items-center gap-2 rounded-[28px] bg-signal px-5 py-[14px]"
+              layout={LinearTransition.duration(240)}
+              className={focused ? 'rounded-[28px] bg-signal' : 'rounded-[28px]'}
             >
-              <Icon name={tab.icon} size={22} strokeWidth={2} />
-              <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">
-                {tab.label}
-              </Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              key={route.key}
-              accessibilityRole="tab"
-              accessibilityLabel={tab.label}
-              onPress={onPress}
-              className="size-[52px] items-center justify-center"
-            >
-              <Icon name={tab.icon} color="#FFFFFF" />
-            </Pressable>
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityLabel={tab.label}
+                accessibilityState={{ selected: focused }}
+                onPress={onPress}
+                className={
+                  focused
+                    ? 'h-[52px] flex-row items-center gap-2 px-5'
+                    : 'size-[52px] items-center justify-center'
+                }
+              >
+                <Icon
+                  name={tab.icon}
+                  size={focused ? 22 : 24}
+                  color={focused ? '#14110F' : '#FFFFFF'}
+                />
+                {focused ? (
+                  <Animated.Text
+                    entering={FadeIn.duration(200).delay(60)}
+                    exiting={FadeOut.duration(80)}
+                    className="font-inter-bold text-[14px] leading-[18px] text-ink"
+                  >
+                    {tab.label}
+                  </Animated.Text>
+                ) : null}
+              </Pressable>
+            </Animated.View>
           );
         })}
       </View>

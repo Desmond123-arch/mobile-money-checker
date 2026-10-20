@@ -1,3 +1,4 @@
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { hardShadow } from './hardShadow';
@@ -33,7 +34,8 @@ export function Toggle({
       onPress={() => onChange?.(!value)}
       className={`h-7 w-12 shrink-0 justify-center rounded-[14px] px-[3px] ${value ? 'bg-ink' : 'bg-[#DADADA]'}`}
     >
-      <View
+      <Animated.View
+        layout={LinearTransition.duration(180)}
         className={`size-[22px] rounded-[11px] ${value ? 'self-end bg-signal' : 'self-start bg-ground'}`}
       />
     </Pressable>

@@ -52,7 +52,10 @@ export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[];
             <Text className="w-10 text-right font-inter text-[14px] leading-[18px] text-muted">
               {s.percent}%
             </Text>
-            <Text className="w-24 text-right font-tight-bold text-body tabular-nums text-ink">
+            <Text
+              numberOfLines={1}
+              className="w-[112px] text-right font-tight-bold text-body tabular-nums text-ink"
+            >
               {formatGhs(s.amount)}
             </Text>
           </View>
