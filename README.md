@@ -16,7 +16,7 @@ Start with `docs/`: `spec.md` (what), `categorisation.md` (rules), `design.md` (
 | `npm start`                                          | Starts Metro for the dev client                                                                                                                                    |
 | `npm run start:go`                                   | Starts Metro for Expo Go (no custom native code)                                                                                                                   |
 | `npm run android:local`                              | Builds the app with Gradle and installs it (`expo run:android`)                                                                                                    |
-| `npm run build:dev` / `build:preview` / `build:prod` | EAS builds: dev client APK, internal preview APK, production AAB (`:local` variants build on this machine)                                                         |
+| `npm run build:dev` / `build:preview` / `build:prod` | EAS builds: dev client APK, internal preview APK, production APK (`:local` variants build on this machine)                                                         |
 | `npm run submit:android`                             | Submits the production build to Google Play                                                                                                                        |
 
 ## Conventions
