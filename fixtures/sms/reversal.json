@@ -1,0 +1,221 @@
+{
+  "shape": "reversal",
+  "messages": [
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-reversal-1",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 3.00 to Just4u   has been reversed on 2024-05-29 11:42:21 with transaction ID: 90001522657. Your new balance is GHS7,774.63. Transaction fee is GHS0.",
+        "receivedAt": 1716982942479
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001522657",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 300,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 777463,
+          "counterpartyName": "Just4u",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1716982941000,
+            "source": "body"
+          },
+          "receivedAt": 1716982942479,
+          "androidId": "fx-reversal-1",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-reversal-2",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 3.00 to MTN BUNDLE has been reversed on 2024-07-02 13:33:12 with transaction ID: 90002243286. Your new balance is GHS7,847.72. Transaction fee is GHS0.",
+        "receivedAt": 1719927194326
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002243286",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 300,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 784772,
+          "counterpartyName": "MTN BUNDLE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1719927192000,
+            "source": "body"
+          },
+          "receivedAt": 1719927194326,
+          "androidId": "fx-reversal-2",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-reversal-3",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 46.00 to TENULO VOFASA has been reversed on 2025-09-10 15:21:09 with transaction ID: 90010011825. Your new balance is GHS7,818.35. Transaction fee is GHS0.",
+        "receivedAt": 1757517671935
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010011825",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 4600,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 781835,
+          "counterpartyName": "TENULO VOFASA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1757517669000,
+            "source": "body"
+          },
+          "receivedAt": 1757517671935,
+          "androidId": "fx-reversal-3",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-reversal-4",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 1.00 to Just4u   has been reversed on 2024-05-30 11:42:21 with transaction ID: 90014034677. Your new balance is GHS7,774.63. Transaction fee is GHS0.",
+        "receivedAt": 1717069342479
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014034677",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 100,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 777463,
+          "counterpartyName": "Just4u",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1717069341000,
+            "source": "body"
+          },
+          "receivedAt": 1717069342479,
+          "androidId": "fx-reversal-4",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-reversal-5",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 2.50 to MTN BUNDLE has been reversed on 2024-07-04 13:33:12 with transaction ID: 90014042596. Your new balance is GHS7,847.72. Transaction fee is GHS0.",
+        "receivedAt": 1720099994326
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014042596",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 250,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 784772,
+          "counterpartyName": "MTN BUNDLE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1720099992000,
+            "source": "body"
+          },
+          "receivedAt": 1720099994326,
+          "androidId": "fx-reversal-5",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-reversal-6",
+        "sender": "MobileMoney",
+        "body": "Y'ello Valued Customer, the transfer of GHS 7.00 to TENULO VOFASA has been reversed on 2025-09-13 15:21:09 with transaction ID: 90014050515. Your new balance is GHS7,818.35. Transaction fee is GHS0.",
+        "receivedAt": 1757776871935
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014050515",
+          "kind": "reversal",
+          "direction": "in",
+          "amount": 700,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 781835,
+          "counterpartyName": "TENULO VOFASA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1757776869000,
+            "source": "body"
+          },
+          "receivedAt": 1757776871935,
+          "androidId": "fx-reversal-6",
+          "template": {
+            "name": "reversal",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

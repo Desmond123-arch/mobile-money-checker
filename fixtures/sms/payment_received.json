@@ -1,0 +1,293 @@
+{
+  "shape": "payment_received",
+  "messages": [
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-1",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 100.00 from Zumimi Keloba  Current Balance: GHS 7,871.24 . Available Balance: GHS 7,871.24. Reference: 123456. Transaction ID: 90001221735. TRANSACTION FEE: 0.00",
+        "receivedAt": 1715358592617
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001221735",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 10000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 787124,
+          "counterpartyName": "Zumimi Keloba",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "123456",
+          "occurredAt": {
+            "at": 1715358592617,
+            "source": "received"
+          },
+          "receivedAt": 1715358592617,
+          "androidId": "fx-payment_received-1",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-2",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 6.00 from lofanu bazulo  Current Balance: GHS 7,877.24 . Available Balance: GHS 7,877.24. Reference: mitemi. Transaction ID: 90001229654. TRANSACTION FEE: 0.00",
+        "receivedAt": 1715359146673
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001229654",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 600,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 787724,
+          "counterpartyName": "lofanu bazulo",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "mitemi",
+          "occurredAt": {
+            "at": 1715359146673,
+            "source": "received"
+          },
+          "receivedAt": 1715359146673,
+          "androidId": "fx-payment_received-2",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-3",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 10.00 from Gukeba Lodiba Zukelo  Current Balance: GHS 8,102.62 . Available Balance: GHS 8,102.62. Reference: loteba bread. Transaction ID: 90002076987. TRANSACTION FEE: 0.00",
+        "receivedAt": 1719231269577
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002076987",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 1000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 810262,
+          "counterpartyName": "Gukeba Lodiba Zukelo",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "loteba bread",
+          "occurredAt": {
+            "at": 1719231269577,
+            "source": "received"
+          },
+          "receivedAt": 1719231269577,
+          "androidId": "fx-payment_received-3",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-4",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 500.00 from GCB Bank ova  Current Balance: GHS 8,357.84 . Available Balance: GHS 8,357.84. Reference: BAMILO BAMILO B2VOTETE B2W MoMo:Transfer. Transaction ID: 90002552127. TRANSACTION FEE: 0.00",
+        "receivedAt": 1721191962892
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002552127",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 50000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 835784,
+          "counterpartyName": "GCB Bank ova",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "BAMILO BAMILO B2VOTETE B2W MoMo:Transfer",
+          "occurredAt": {
+            "at": 1721191962892,
+            "source": "received"
+          },
+          "receivedAt": 1721191962892,
+          "androidId": "fx-payment_received-4",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-5",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 10.00 from TENUKE NUSAMI TELONU DIFAKE  Current Balance: GHS 8,165.81 . Available Balance: GHS 8,165.81. Reference: TENUKE NUSAMI TELONU DIFAKE ,233200000007,1 from VODAFONE. Transaction ID: 90002670912. TRANSACTION FEE: 0.00",
+        "receivedAt": 1721576822866
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002670912",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 1000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 816581,
+          "counterpartyName": "TENUKE NUSAMI TELONU DIFAKE",
+          "merchantCode": null,
+          "counterpartyNumber": "233200000007",
+          "reference": "TENUKE NUSAMI TELONU DIFAKE ,233200000007,1 from VODAFONE",
+          "occurredAt": {
+            "at": 1721576822866,
+            "source": "received"
+          },
+          "receivedAt": 1721576822866,
+          "androidId": "fx-payment_received-5",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-6",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 250.00 from MIKETE BAGUBA-KEFANU  Current Balance: GHS 8,331.31 . Available Balance: GHS 8,331.31. Reference: 1. Transaction ID: 90002765940. TRANSACTION FEE: 0.00",
+        "receivedAt": 1721817116078
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002765940",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 25000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 833131,
+          "counterpartyName": "MIKETE BAGUBA-KEFANU",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "1",
+          "occurredAt": {
+            "at": 1721817116078,
+            "source": "received"
+          },
+          "receivedAt": 1721817116078,
+          "androidId": "fx-payment_received-6",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-7",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 400.00 from GCB Bank ova  Current Balance: GHS 8,352.70 . Available Balance: GHS 8,352.70. Reference: BAMILO BAMILO B2VOTETE B2W MoMo:Vobasa. Transaction ID: 90003344027. TRANSACTION FEE: 0.00",
+        "receivedAt": 1724039073067
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90003344027",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 40000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 835270,
+          "counterpartyName": "GCB Bank ova",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "BAMILO BAMILO B2VOTETE B2W MoMo:Vobasa",
+          "occurredAt": {
+            "at": 1724039073067,
+            "source": "received"
+          },
+          "receivedAt": 1724039073067,
+          "androidId": "fx-payment_received-7",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_received-8",
+        "sender": "MobileMoney",
+        "body": "Payment received for GHS 8.00 from LODIKE SAGUMI  Current Balance: GHS 7,959.26 . Available Balance: GHS 7,959.26. Reference: LODIKE SAGUMI ,61badite27,TEZULO Transfer from GCB Bank. Transaction ID: 90007818262. TRANSACTION FEE: 0.00",
+        "receivedAt": 1746798861845
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007818262",
+          "kind": "payment_in",
+          "direction": "in",
+          "amount": 800,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 795926,
+          "counterpartyName": "LODIKE SAGUMI",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "LODIKE SAGUMI ,61badite27,TEZULO Transfer from GCB Bank",
+          "occurredAt": {
+            "at": 1746798861845,
+            "source": "received"
+          },
+          "receivedAt": 1746798861845,
+          "androidId": "fx-payment_received-8",
+          "template": {
+            "name": "payment_received",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

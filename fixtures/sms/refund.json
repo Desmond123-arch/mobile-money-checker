@@ -1,0 +1,221 @@
+{
+  "shape": "refund",
+  "messages": [
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-refund-1",
+        "sender": "MobileMoney",
+        "body": "Hello, MTNBUNDLE . (cis) has successfully refunded GHS 3.00 to your mobile money account at 2024-06-23 03:29:35. Message from refunder: . Your new balance:8,166.12 GHS. Financial Transaction Id: 90002005716. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1719113380254
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002005716",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 300,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 816612,
+          "counterpartyName": "MTNBUNDLE . (cis)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1719113375000,
+            "source": "body"
+          },
+          "receivedAt": 1719113380254,
+          "androidId": "fx-refund-1",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-refund-2",
+        "sender": "MobileMoney",
+        "body": "Hello, Other Networks   (one4all.sp) has successfully refunded GHS 10.00 to your mobile money account at 2025-02-07 12:03:48. Message from refunder: Recharge failed payment reversed. Your new balance:8,868.98 GHS. Financial Transaction Id: 90006076082. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1738929843585
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006076082",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 1000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 886898,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Recharge failed payment reversed",
+          "occurredAt": {
+            "at": 1738929828000,
+            "source": "body"
+          },
+          "receivedAt": 1738929843585,
+          "androidId": "fx-refund-2",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-refund-3",
+        "sender": "MobileMoney",
+        "body": "Hello, Other Networks   (one4all.sp) has successfully refunded GHS 10.00 to your mobile money account at 2025-03-01 14:04:51. Message from refunder: Recharge failed payment reversed. Your new balance:8,459.38 GHS. Financial Transaction Id: 90006408680. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1740837893279
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006408680",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 1000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 845938,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Recharge failed payment reversed",
+          "occurredAt": {
+            "at": 1740837891000,
+            "source": "body"
+          },
+          "receivedAt": 1740837893279,
+          "androidId": "fx-refund-3",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-refund-4",
+        "sender": "MobileMoney",
+        "body": "Hello, MTNBUNDLE . (cis) has successfully refunded GHS 1.00 to your mobile money account at 2024-06-24 03:29:35. Message from refunder: . Your new balance:8,166.12 GHS. Financial Transaction Id: 90014058434. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1719199780254
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014058434",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 100,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 816612,
+          "counterpartyName": "MTNBUNDLE . (cis)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1719199775000,
+            "source": "body"
+          },
+          "receivedAt": 1719199780254,
+          "androidId": "fx-refund-4",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-refund-5",
+        "sender": "MobileMoney",
+        "body": "Hello, Other Networks   (one4all.sp) has successfully refunded GHS 2.50 to your mobile money account at 2025-02-09 12:03:48. Message from refunder: Recharge failed payment reversed. Your new balance:8,868.98 GHS. Financial Transaction Id: 90014066353. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1739102643585
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014066353",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 250,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 886898,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Recharge failed payment reversed",
+          "occurredAt": {
+            "at": 1739102628000,
+            "source": "body"
+          },
+          "receivedAt": 1739102643585,
+          "androidId": "fx-refund-5",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "synthetic",
+      "synthetic": true,
+      "sms": {
+        "androidId": "fx-refund-6",
+        "sender": "MobileMoney",
+        "body": "Hello, Other Networks   (one4all.sp) has successfully refunded GHS 7.00 to your mobile money account at 2025-03-04 14:04:51. Message from refunder: Recharge failed payment reversed. Your new balance:8,459.38 GHS. Financial Transaction Id: 90014074272. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1741097093279
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90014074272",
+          "kind": "refund",
+          "direction": "in",
+          "amount": 700,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 845938,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Recharge failed payment reversed",
+          "occurredAt": {
+            "at": 1741097091000,
+            "source": "body"
+          },
+          "receivedAt": 1741097093279,
+          "androidId": "fx-refund-6",
+          "template": {
+            "name": "refund",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}
