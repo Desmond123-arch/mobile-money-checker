@@ -1,4 +1,4 @@
-import type { Pesewas } from '../money';
+import { pesewas, type Pesewas } from '../money';
 
 export interface MonthSummary {
   label: string;
@@ -12,4 +12,8 @@ export interface MonthSummary {
   daysInMonth: number;
   daily: readonly Pesewas[];
   peakLabel: string | null;
+}
+
+export function dailyAverage(spent: Pesewas, daysElapsed: number): Pesewas {
+  return pesewas(daysElapsed > 0 ? Math.round(spent / daysElapsed) : 0);
 }

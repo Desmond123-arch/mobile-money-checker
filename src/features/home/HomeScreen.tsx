@@ -6,6 +6,7 @@ import { usePeriod } from '@/features/period';
 import { useExpenses } from '@/features/expenses';
 import { pesewas } from '@/domain/money';
 import type { CategorySpend } from '@/domain/category/share';
+import { dailyAverage } from '@/domain/summary/month';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { SAMPLE_RECENT } from '@/features/transactions/sample';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
@@ -56,7 +57,11 @@ export function HomeScreen() {
         delta={{ label: month.deltaLabel, compare: month.deltaCompare }}
       >
         <DailyChart daily={month.daily} today={month.today} peakLabel={month.peakLabel} />
-        <TotalsRow moneyIn={month.moneyIn} payments={month.payments} />
+        <TotalsRow
+          moneyIn={month.moneyIn}
+          payments={month.payments}
+          average={dailyAverage(month.spent, month.today)}
+        />
       </HeroSummary>
 
       {month.needNote > 0 ? (
