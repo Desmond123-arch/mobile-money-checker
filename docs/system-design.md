@@ -443,6 +443,7 @@ The domain package never imports `react-native` or `expo-*`, enforced by an ESLi
 
 - **Language:** TypeScript with `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. Kotlin for the module only.
 - **Package manager:** npm (fewest Metro surprises).
+- **Styling:** NativeWind v4.2 (Tailwind CSS 3.4) with `className` on React Native components. The design tokens from `design.md` (ink, signal yellow, hairline, income, warn, radii, the 2px hard border) live in `tailwind.config.js`; `src/global.css` is imported once in the root layout. Class order is enforced by `prettier-plugin-tailwindcss`. Inter and Inter Tight load through `expo-font` in a later step.
 - **Lint and format:** ESLint (typescript-eslint, `no-restricted-imports` for the domain boundary), Prettier.
 - **Git hooks:** `lefthook` runs lint-staged, `tsc --noEmit` and domain tests on pre-commit, and `commitlint` on `commit-msg`.
 - **Conventional Commits:** `type(scope): subject`, imperative, 72 characters. Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `chore`. Scopes: `sms`, `parser`, `ledger`, `db`, `categorise`, `ui`, `home`, `transactions`, `insights`, `settings`, `app`, `docs`. A parser template change is `feat(parser)` or `fix(parser)` and mentions the template name. Breaking schema changes use `!` and a migration note. Examples: `feat(parser): add cash-out template v1`, `fix(ledger): ignore reversal when original is unlinked`.

@@ -1,14 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 export default function Home() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>momo-spend</Text>
+    <View className="flex-1 items-center justify-center bg-ground">
+      <View className="rounded-chip border-hard border-ink bg-signal px-6 py-4">
+        <Text className="text-2xl font-extrabold text-ink">momo-spend</Text>
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
-  title: { fontSize: 28, fontWeight: '800', color: '#14110F' },
-});
