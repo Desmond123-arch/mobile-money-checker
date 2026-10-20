@@ -6,13 +6,18 @@ Start with `docs/`: `spec.md` (what), `categorisation.md` (rules), `design.md` (
 
 ## Commands
 
-| Command           | What it does                                                                     |
-| ----------------- | -------------------------------------------------------------------------------- |
-| `npm install`     | Installs dependencies and the git hooks (`lefthook`)                             |
-| `npm run check`   | Typecheck, lint and tests, the same as CI                                        |
-| `npm test`        | Jest tests for the pure domain, run in plain Node                                |
-| `npm run android` | Builds and runs the dev build on a connected Android device (`expo run:android`) |
-| `npm start`       | Starts Metro for the dev client                                                  |
+| Command                                              | What it does                                                                                                                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm install`                                        | Installs dependencies and the git hooks (`lefthook`)                                                                                                               |
+| `npm run check`                                      | Typecheck, lint, format check and tests with coverage: the checks CI runs (CI also runs `expo-doctor`, an Android bundle build, and a commit-message check on PRs) |
+| `npm test`                                           | Jest tests for the pure domain, run in plain Node                                                                                                                  |
+| `npm run test:ci`                                    | The same tests with a coverage gate on `src/domain`                                                                                                                |
+| `npm run android`                                    | Starts Metro for the dev client and opens it on the connected Android device                                                                                       |
+| `npm start`                                          | Starts Metro for the dev client                                                                                                                                    |
+| `npm run start:go`                                   | Starts Metro for Expo Go (no custom native code)                                                                                                                   |
+| `npm run android:local`                              | Builds the app with Gradle and installs it (`expo run:android`)                                                                                                    |
+| `npm run build:dev` / `build:preview` / `build:prod` | EAS builds: dev client APK, internal preview APK, production APK (`:local` variants build on this machine)                                                         |
+| `npm run submit:android`                             | Submits the production build to Google Play                                                                                                                        |
 
 ## Conventions
 
