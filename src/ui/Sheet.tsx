@@ -4,12 +4,17 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /** A bottom sheet over a scrim. Presented by a transparent-modal route; the scrim dismisses it. */
-export function Sheet({ children }: { children: ReactNode }) {
+export function Sheet({ children, testID }: { children: ReactNode; testID?: string }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
-    <View className="flex-1 justify-end bg-black/50">
-      <Pressable accessibilityLabel="Close" className="flex-1" onPress={() => router.back()} />
+    <View testID={testID} className="flex-1 justify-end bg-black/50">
+      <Pressable
+        testID="sheetScrim"
+        accessibilityLabel="Close"
+        className="flex-1"
+        onPress={() => router.back()}
+      />
       <View className="max-h-[88%] rounded-t-sheet border-t-hard border-ink bg-ground">
         <View className="items-center pb-1 pt-3">
           <View className="h-[5px] w-11 rounded-[3px] bg-[#CFCFCF]" />

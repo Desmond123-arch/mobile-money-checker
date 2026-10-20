@@ -8,13 +8,14 @@ interface AmountProps {
   sign?: string;
   /** `inverse` is for the dark hero. */
   tone?: 'ink' | 'inverse';
+  testID?: string;
 }
 
 /** The big number: whole cedis heavy, pesewas lighter (design.md 2). */
-export function Amount({ amount, sign = '', tone = 'ink' }: AmountProps) {
+export function Amount({ amount, sign = '', tone = 'ink', testID }: AmountProps) {
   const { whole, fraction } = splitGhs(amount);
   return (
-    <View className="flex-row items-baseline gap-1">
+    <View testID={testID} className="flex-row items-baseline gap-1">
       <Text
         className={`font-tight-extrabold text-[54px] tabular-nums leading-[60px] tracking-[-0.03em] ${tone === 'ink' ? 'text-ink' : 'text-ground'}`}
       >

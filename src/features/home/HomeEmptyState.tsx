@@ -8,7 +8,7 @@ import { HeroSummary } from './components/HeroSummary';
 /** Nothing parsed yet: a flat hero with ghost columns and a prompt to check for messages. */
 export function HomeEmptyState({ month }: { month: MonthSummary }) {
   return (
-    <Screen safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
+    <Screen testID="homeEmptyState" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary monthLabel={month.label} spent={month.spent}>
         <View className="mx-5 mt-7 h-16 flex-row items-end justify-between">
           {Array.from({ length: month.daysInMonth }, (_, i) => (
@@ -25,7 +25,13 @@ export function HomeEmptyState({ month }: { month: MonthSummary }) {
           someone this month? Check for new messages.
         </Text>
         <View className="mt-3">
-          <Button label="Check for new messages" size="md" variant="signal" block={false} />
+          <Button
+            testID="checkMessagesBtn"
+            label="Check for new messages"
+            size="md"
+            variant="signal"
+            block={false}
+          />
         </View>
       </View>
     </Screen>

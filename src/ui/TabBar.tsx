@@ -8,11 +8,11 @@ import { Icon, type IconName } from './Icon';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
-const TABS: Record<string, { label: string; icon: IconName }> = {
-  index: { label: 'Home', icon: 'home' },
-  transactions: { label: 'Transactions', icon: 'list' },
-  insights: { label: 'Insights', icon: 'pie' },
-  settings: { label: 'Settings', icon: 'gear' },
+const TABS: Record<string, { testID: string; label: string; icon: IconName }> = {
+  index: { testID: 'tabBarHomeBtn', label: 'Home', icon: 'home' },
+  transactions: { testID: 'tabBarTransactionsBtn', label: 'Transactions', icon: 'list' },
+  insights: { testID: 'tabBarInsightsBtn', label: 'Insights', icon: 'pie' },
+  settings: { testID: 'tabBarSettingsBtn', label: 'Settings', icon: 'gear' },
 };
 
 /** The floating black bar: the active tab is a yellow pill with a label, the rest are icons. */
@@ -44,6 +44,7 @@ export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
               className={focused ? 'rounded-[28px] bg-signal' : 'rounded-[28px]'}
             >
               <Pressable
+                testID={tab.testID}
                 accessibilityRole="tab"
                 accessibilityLabel={tab.label}
                 accessibilityState={{ selected: focused }}

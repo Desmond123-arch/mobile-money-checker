@@ -17,6 +17,7 @@ interface ButtonProps {
   size?: 'lg' | 'md';
   /** Fill the width (the default for sheet and screen actions). */
   block?: boolean;
+  testID?: string;
 }
 
 export function Button({
@@ -25,10 +26,12 @@ export function Button({
   variant = 'signal',
   size = 'lg',
   block = true,
+  testID,
 }: ButtonProps) {
   const pad = size === 'lg' ? 'p-4' : 'px-6 py-[14px]';
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       className={`items-center justify-center rounded-[14px] border-hard border-ink ${SURFACE[variant]} ${pad} ${block ? '' : 'self-start'}`}
@@ -47,13 +50,16 @@ export function TextLink({
   label,
   onPress,
   className = '',
+  testID,
 }: {
   label: string;
   onPress?: () => void;
   className?: string;
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="link"
       onPress={onPress}
       className="items-center justify-center p-[6px]"

@@ -36,6 +36,7 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
 
   return (
     <Pressable
+      testID={`transactionRow-${row.id}`}
       accessibilityRole="button"
       onPress={onPress}
       className={`flex-row items-center gap-[14px] ${padding}`}
@@ -52,6 +53,7 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
         </Text>
         {needsNote ? (
           <Text
+            testID={`addNoteLink-${row.id}`}
             onPress={onAddNote}
             className="font-inter-semibold text-[13px] leading-[18px] text-ink underline"
           >

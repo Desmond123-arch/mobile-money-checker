@@ -14,7 +14,7 @@ const PROMISES = [
 export function PermissionScreen() {
   const router = useRouter();
   return (
-    <FixedScreen>
+    <FixedScreen testID="permissionScreen">
       <View className="flex-1 justify-between px-5 pb-1 pt-6">
         <View className="gap-5">
           <IconTile icon="message" tone="signal" />
@@ -36,11 +36,16 @@ export function PermissionScreen() {
         </View>
         <View className="gap-4">
           <Button
+            testID="allowSmsBtn"
             label="Allow SMS access"
             variant="ink"
             onPress={() => router.replace('/importing')}
           />
-          <TextLink label="Not now" onPress={() => router.replace('/permission-denied')} />
+          <TextLink
+            testID="notNowLink"
+            label="Not now"
+            onPress={() => router.replace('/permission-denied')}
+          />
         </View>
       </View>
     </FixedScreen>

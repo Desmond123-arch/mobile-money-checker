@@ -8,8 +8,11 @@ import { MONTHS, WEEKDAYS } from './sample';
 
 export function InsightsScreen() {
   return (
-    <Screen bottomPad={TAB_BAR_CLEARANCE}>
-      <ScreenTitle title="Insights" trailing={<MonthPill label="October 2026" tone="light" />} />
+    <Screen testID="insightsScreen" bottomPad={TAB_BAR_CLEARANCE}>
+      <ScreenTitle
+        title="Insights"
+        trailing={<MonthPill testID="insightsMonthPill" label="October 2026" tone="light" />}
+      />
 
       <View className="px-5 pt-9">
         <View className="pb-4">

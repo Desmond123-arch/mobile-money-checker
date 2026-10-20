@@ -13,7 +13,8 @@
     "test": "jest",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test:ci",
     "prepare": "lefthook install",
-    "test:ci": "jest --ci --coverage"
+    "test:ci": "jest --ci --coverage",
+    "e2e": "maestro test maestro"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

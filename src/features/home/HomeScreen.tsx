@@ -19,7 +19,7 @@ export function HomeScreen() {
   if (month.payments === 0) return <HomeEmptyState month={month} />;
 
   return (
-    <Screen safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
+    <Screen testID="homeScreen" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary
         monthLabel={month.label}
         spent={month.spent}
@@ -42,6 +42,7 @@ export function HomeScreen() {
           <SectionHeader
             title="Where it went"
             link="See insights"
+            linkTestID="homeSeeInsightsLink"
             onLinkPress={() => router.push('/insights')}
           />
         </View>
@@ -54,6 +55,7 @@ export function HomeScreen() {
           <SectionHeader
             title="Recent"
             link={`See all ${month.payments}`}
+            linkTestID="homeSeeAllLink"
             onLinkPress={() => router.push('/transactions')}
           />
         </View>

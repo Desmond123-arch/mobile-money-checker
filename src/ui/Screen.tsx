@@ -10,12 +10,14 @@ interface ScreenProps {
   /** Pad the top by the status bar. Off when a dark hero draws behind it. */
   safeTop?: boolean;
   bottomPad?: number;
+  testID?: string;
 }
 
-export function Screen({ children, safeTop = true, bottomPad = 32 }: ScreenProps) {
+export function Screen({ children, safeTop = true, bottomPad = 32, testID }: ScreenProps) {
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
+      testID={testID}
       className="flex-1 bg-ground"
       contentContainerStyle={{
         paddingTop: safeTop ? insets.top : 0,
@@ -29,10 +31,11 @@ export function Screen({ children, safeTop = true, bottomPad = 32 }: ScreenProps
 }
 
 /** A fixed (non-scrolling) screen for onboarding: content grows, actions pin to the bottom. */
-export function FixedScreen({ children }: { children: ReactNode }) {
+export function FixedScreen({ children, testID }: { children: ReactNode; testID?: string }) {
   const insets = useSafeAreaInsets();
   return (
     <View
+      testID={testID}
       className="flex-1 bg-ground"
       style={{ paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 12) }}
     >

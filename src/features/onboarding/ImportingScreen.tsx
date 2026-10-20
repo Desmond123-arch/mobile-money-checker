@@ -7,7 +7,7 @@ const PROGRESS = { read: 1284, total: 2488, payments: 612 };
 export function ImportingScreen() {
   const percent = Math.round((PROGRESS.read * 100) / PROGRESS.total);
   return (
-    <FixedScreen>
+    <FixedScreen testID="importingScreen">
       <View className="flex-1 px-5 pb-1 pt-6">
         <View className="flex-1 justify-center gap-4">
           <Text className="font-tight-extrabold text-[44px] leading-[46px] tracking-[-0.03em] text-ink">
@@ -26,6 +26,7 @@ export function ImportingScreen() {
               </Text>
             </View>
             <View
+              testID="importProgressBar"
               className="h-6 flex-row overflow-hidden rounded-chip border-hard border-ink bg-ground"
               style={hardShadow()}
             >

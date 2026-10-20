@@ -17,7 +17,7 @@ export function DailyChart({ daily, today, peakLabel }: Props) {
   const peakDay = max > 0 ? daily.indexOf(max as Pesewas) + 1 : 0;
 
   return (
-    <View className="gap-[10px] px-5 pt-7">
+    <View testID="dailyChart" className="gap-[10px] px-5 pt-7">
       <View className="h-24 flex-row items-end justify-between">
         {daily.map((amount, i) => {
           const day = i + 1;

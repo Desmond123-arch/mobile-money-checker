@@ -23,7 +23,11 @@ export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
         {days.map((d) => {
           const peak = d.cedis === max;
           return (
-            <View key={d.label} className="h-32 w-10 items-center justify-end gap-[6px]">
+            <View
+              key={d.label}
+              testID={`weekdayBar-${d.label}`}
+              className="h-32 w-10 items-center justify-end gap-[6px]"
+            >
               {peak ? (
                 <Text
                   numberOfLines={1}
@@ -78,7 +82,11 @@ export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
         {months.map((m) => {
           const isPeak = m.out === peak;
           return (
-            <View key={m.label} className="h-[148px] w-12 items-center justify-end gap-[6px]">
+            <View
+              key={m.label}
+              testID={`monthBar-${m.label}`}
+              className="h-[148px] w-12 items-center justify-end gap-[6px]"
+            >
               {isPeak ? (
                 <Text
                   numberOfLines={1}

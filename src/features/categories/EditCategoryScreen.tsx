@@ -45,7 +45,7 @@ export function EditCategoryScreen() {
   if (!category) return null;
 
   return (
-    <Screen>
+    <Screen testID="editCategoryScreen">
       <View className="flex-row items-center justify-between px-5 pt-2">
         <BackButton onPress={() => router.back()} />
         <Text className="font-inter-semibold text-[14px] leading-[18px] text-muted">Category</Text>
@@ -69,6 +69,7 @@ export function EditCategoryScreen() {
         <View className="flex-row gap-[10px]">
           <View className="flex-1">
             <TextField
+              testID="editCategoryWordInput"
               value={word}
               onChangeText={setWord}
               placeholder="fried rice"
@@ -77,7 +78,13 @@ export function EditCategoryScreen() {
             />
           </View>
           <View className="justify-center">
-            <Button label="Add" size="md" block={false} onPress={() => add(word)} />
+            <Button
+              testID="editCategoryAddWordBtn"
+              label="Add"
+              size="md"
+              block={false}
+              onPress={() => add(word)}
+            />
           </View>
         </View>
         <Text className="pt-1 font-inter text-caption leading-[18px] text-muted">
@@ -91,12 +98,13 @@ export function EditCategoryScreen() {
           {words.map((w) => (
             <WordChip
               key={w}
+              testID={`categoryWord-${w}`}
               label={w}
               tint={category.tint}
               onRemove={() => setWords(words.filter((x) => x !== w))}
             />
           ))}
-          <DashedChip label="Show all 64" />
+          <DashedChip testID="editCategoryShowAllBtn" label="Show all 64" />
         </View>
       </View>
 
@@ -106,12 +114,13 @@ export function EditCategoryScreen() {
         </Text>
         <View className="flex-row flex-wrap gap-2">
           {SUGGESTIONS.map((s) => (
-            <SuggestionChip key={s} label={s} onPress={() => add(s)} />
+            <SuggestionChip key={s} testID={`suggestion-${s}`} label={s} onPress={() => add(s)} />
           ))}
         </View>
       </View>
 
       <Pressable
+        testID="deleteCategoryBtn"
         accessibilityRole="button"
         className="mx-5 mt-10 items-center border-t border-hairline p-[14px]"
       >

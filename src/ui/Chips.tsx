@@ -9,6 +9,7 @@ interface CategoryChipProps {
   onPress?: () => void;
   /** `lg` is the sheet size, `md` the inline size. */
   size?: 'lg' | 'md';
+  testID?: string;
 }
 
 /** A category picker chip: 2px ink border, no shadow (design.md 4.1). */
@@ -18,11 +19,13 @@ export function CategoryChip({
   selected = false,
   onPress,
   size = 'md',
+  testID,
 }: CategoryChipProps) {
   const pad = size === 'lg' ? 'py-[10px]' : 'py-[9px]';
   const text = size === 'lg' ? 'text-[15px]' : 'text-[14px]';
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -43,18 +46,26 @@ export function WordChip({
   label,
   tint,
   onRemove,
+  testID,
 }: {
   label: string;
   tint: string;
   onRemove?: () => void;
+  testID?: string;
 }) {
   return (
     <View
+      testID={testID}
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink py-2 pl-[14px] pr-2"
       style={{ backgroundColor: tint }}
     >
       <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink">{label}</Text>
-      <Pressable accessibilityLabel={`Remove ${label}`} onPress={onRemove} hitSlop={8}>
+      <Pressable
+        testID={testID ? `${testID}Remove` : undefined}
+        accessibilityLabel={`Remove ${label}`}
+        onPress={onRemove}
+        hitSlop={8}
+      >
         <Icon name="close" size={14} strokeWidth={2} />
       </Pressable>
     </View>
@@ -66,13 +77,16 @@ export function DashedChip({
   label,
   icon = false,
   onPress,
+  testID,
 }: {
   label: string;
   icon?: boolean;
   onPress?: () => void;
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       className="flex-row items-center gap-[6px] rounded-full border-hard border-dashed border-ink bg-ground px-[14px] py-2"
@@ -84,9 +98,18 @@ export function DashedChip({
 }
 
 /** A solid outlined suggestion with a leading plus. */
-export function SuggestionChip({ label, onPress }: { label: string; onPress?: () => void }) {
+export function SuggestionChip({
+  label,
+  onPress,
+  testID,
+}: {
+  label: string;
+  onPress?: () => void;
+  testID?: string;
+}) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink bg-ground py-2 pl-[10px] pr-[14px]"
@@ -103,14 +126,17 @@ export function FilterPill({
   active = false,
   dropdown = false,
   onPress,
+  testID,
 }: {
   label: string;
   active?: boolean;
   dropdown?: boolean;
   onPress?: () => void;
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       onPress={onPress}

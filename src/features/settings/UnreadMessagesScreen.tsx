@@ -5,9 +5,9 @@ import { BackButton, Hint, Screen } from '@/ui';
 
 import { UNREAD_MESSAGES } from './sample';
 
-function Action({ label }: { label: string }) {
+function Action({ label, testID }: { label: string; testID: string }) {
   return (
-    <Pressable accessibilityRole="button">
+    <Pressable testID={testID} accessibilityRole="button">
       <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink underline">
         {label}
       </Text>
@@ -18,7 +18,7 @@ function Action({ label }: { label: string }) {
 export function UnreadMessagesScreen() {
   const router = useRouter();
   return (
-    <Screen>
+    <Screen testID="unreadMessagesScreen">
       <View className="px-5 pt-2">
         <BackButton onPress={() => router.back()} />
       </View>
@@ -35,6 +35,7 @@ export function UnreadMessagesScreen() {
         {UNREAD_MESSAGES.map((m, i) => (
           <View
             key={m.id}
+            testID={`unreadMessage-${m.id}`}
             className={`gap-[10px] border-t border-hairline py-[18px] ${i === UNREAD_MESSAGES.length - 1 ? 'border-b' : ''}`}
           >
             <View className="flex-row justify-between">
@@ -43,8 +44,8 @@ export function UnreadMessagesScreen() {
             </View>
             <Text className="font-inter text-[15px] leading-[22px] text-ink">{m.body}</Text>
             <View className="flex-row gap-5">
-              <Action label="Copy text" />
-              <Action label={m.action} />
+              <Action testID={`unreadCopy-${m.id}`} label="Copy text" />
+              <Action testID={`unreadAction-${m.id}`} label={m.action} />
             </View>
           </View>
         ))}

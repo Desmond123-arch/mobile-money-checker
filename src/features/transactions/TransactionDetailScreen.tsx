@@ -60,7 +60,7 @@ export function TransactionDetailScreen() {
   const category = categoryById(categoryId);
 
   return (
-    <Screen>
+    <Screen testID="transactionDetailScreen">
       <View className="flex-row items-center justify-between px-5 pt-2">
         <BackButton onPress={() => router.back()} />
         <Text className="font-inter-semibold text-[14px] leading-[18px] text-muted">
@@ -80,7 +80,7 @@ export function TransactionDetailScreen() {
             {tx.counterparty}
           </Text>
         </View>
-        <Amount amount={tx.amount} sign="−" />
+        <Amount testID="detailAmount" amount={tx.amount} sign="−" />
         <Text className="font-inter text-[14px] leading-5 text-muted">{tx.kindLabel}</Text>
       </View>
 
@@ -101,7 +101,12 @@ export function TransactionDetailScreen() {
           title="What was it for?"
           aside={tx.noteSource === 'sms' ? 'From the SMS' : 'Entered by you'}
         />
-        <TextField value={note} onChangeText={setNote} placeholder="Add a note" />
+        <TextField
+          testID="detailNoteInput"
+          value={note}
+          onChangeText={setNote}
+          placeholder="Add a note"
+        />
       </View>
 
       <View className="gap-3 px-5 pt-8">
@@ -110,16 +115,22 @@ export function TransactionDetailScreen() {
           {VISIBLE_CATEGORIES.map((c) => (
             <CategoryChip
               key={c.id}
+              testID={`detailCategory-${c.id}`}
               label={c.name}
               color={c.color}
               selected={c.id === categoryId}
               onPress={() => setCategoryId(c.id)}
             />
           ))}
-          <DashedChip label={`All ${SEED_CATEGORIES.length}`} />
+          <DashedChip testID="detailAllCategoriesBtn" label={`All ${SEED_CATEGORIES.length}`} />
         </View>
         <View className="flex-row items-center gap-3 pt-4">
-          <Toggle label="Always tag this recipient" value={alwaysTag} onChange={setAlwaysTag} />
+          <Toggle
+            testID="detailAlwaysTagToggle"
+            label="Always tag this recipient"
+            value={alwaysTag}
+            onChange={setAlwaysTag}
+          />
           <Text className="flex-1 font-inter text-[15px] leading-[22px] text-ink">
             Always tag {tx.counterparty} as {category?.name ?? 'this category'}
           </Text>
@@ -127,6 +138,7 @@ export function TransactionDetailScreen() {
       </View>
 
       <Pressable
+        testID="detailOriginalMessageToggle"
         accessibilityRole="button"
         onPress={() => setShowOriginal((v) => !v)}
         className="mx-5 mt-8 flex-row items-center justify-between border-y border-hairline py-4"
@@ -135,13 +147,16 @@ export function TransactionDetailScreen() {
         <Icon name="chevronDownLarge" size={20} strokeWidth={2} />
       </Pressable>
       {showOriginal ? (
-        <Text className="mx-5 pt-3 font-inter text-[14px] leading-5 text-muted">
+        <Text
+          testID="detailOriginalMessage"
+          className="mx-5 pt-3 font-inter text-[14px] leading-5 text-muted"
+        >
           {tx.originalMessage}
         </Text>
       ) : null}
 
       <View className="px-5 pb-2 pt-7">
-        <Button label="Save changes" onPress={() => router.back()} />
+        <Button testID="detailSaveBtn" label="Save changes" onPress={() => router.back()} />
       </View>
     </Screen>
   );

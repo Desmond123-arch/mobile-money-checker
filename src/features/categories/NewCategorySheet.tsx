@@ -11,13 +11,18 @@ export function NewCategorySheet() {
   const [color, setColor] = useState<string>(CATEGORY_SWATCHES[0]);
 
   return (
-    <Sheet>
+    <Sheet testID="newCategorySheet">
       <Text className="font-tight-extrabold text-[28px] leading-8 tracking-[-0.02em] text-ink">
         New category
       </Text>
       <View className="gap-2">
         <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">Name</Text>
-        <TextField value={name} onChangeText={setName} placeholder="Church" />
+        <TextField
+          testID="newCategoryNameInput"
+          value={name}
+          onChangeText={setName}
+          placeholder="Church"
+        />
       </View>
       <View className="gap-[10px]">
         <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">Colour</Text>
@@ -25,6 +30,7 @@ export function NewCategorySheet() {
           {CATEGORY_SWATCHES.map((c) => (
             <Pressable
               key={c}
+              testID={`newCategorySwatch-${c.slice(1)}`}
               accessibilityRole="radio"
               accessibilityState={{ selected: c === color }}
               onPress={() => setColor(c)}
@@ -42,12 +48,12 @@ export function NewCategorySheet() {
           <Text className="font-inter text-caption text-muted">Optional</Text>
         </View>
         <View className="flex-row flex-wrap gap-2">
-          <WordChip label="tithe" tint="#E6E1FA" />
-          <WordChip label="offering" tint="#E6E1FA" />
-          <DashedChip label="Add word" icon />
+          <WordChip testID="newCategoryWord-tithe" label="tithe" tint="#E6E1FA" />
+          <WordChip testID="newCategoryWord-offering" label="offering" tint="#E6E1FA" />
+          <DashedChip testID="newCategoryAddWordBtn" label="Add word" icon />
         </View>
       </View>
-      <Button label="Create category" onPress={() => router.back()} />
+      <Button testID="createCategoryBtn" label="Create category" onPress={() => router.back()} />
     </Sheet>
   );
 }

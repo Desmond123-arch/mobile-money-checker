@@ -21,13 +21,16 @@ export function Toggle({
   value,
   onChange,
   label,
+  testID,
 }: {
   value: boolean;
   onChange?: (next: boolean) => void;
   label: string;
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="switch"
       accessibilityLabel={label}
       accessibilityState={{ checked: value }}
@@ -45,6 +48,7 @@ export function Toggle({
 export function BackButton({ onPress }: { onPress: () => void }) {
   return (
     <Pressable
+      testID="backBtn"
       accessibilityRole="button"
       accessibilityLabel="Back"
       onPress={onPress}
@@ -70,16 +74,18 @@ export function SectionHeader({
   title,
   link,
   onLinkPress,
+  linkTestID,
 }: {
   title: string;
   link?: string;
   onLinkPress?: () => void;
+  linkTestID?: string;
 }) {
   return (
     <View className="flex-row items-baseline justify-between">
       <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
       {link ? (
-        <Pressable accessibilityRole="link" onPress={onLinkPress}>
+        <Pressable testID={linkTestID} accessibilityRole="link" onPress={onLinkPress}>
           <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink underline">
             {link}
           </Text>

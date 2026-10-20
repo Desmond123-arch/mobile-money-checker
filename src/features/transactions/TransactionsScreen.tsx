@@ -15,11 +15,12 @@ export function TransactionsScreen() {
   const [filter, setFilter] = useState<Filter>('all');
 
   return (
-    <Screen bottomPad={TAB_BAR_CLEARANCE}>
+    <Screen testID="transactionsScreen" bottomPad={TAB_BAR_CLEARANCE}>
       <ScreenTitle
         title="Transactions"
         trailing={
           <Pressable
+            testID="transactionsSearchBtn"
             accessibilityRole="button"
             accessibilityLabel="Search"
             className="size-10 items-center justify-center rounded-[20px] bg-hairline"
@@ -29,10 +30,25 @@ export function TransactionsScreen() {
         }
       />
       <View className="flex-row items-center gap-2 px-5 pt-5">
-        <FilterPill label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
-        <FilterPill label="Out" active={filter === 'out'} onPress={() => setFilter('out')} />
-        <FilterPill label="In" active={filter === 'in'} onPress={() => setFilter('in')} />
-        <FilterPill label="Category" dropdown />
+        <FilterPill
+          testID="transactionsFilterAll"
+          label="All"
+          active={filter === 'all'}
+          onPress={() => setFilter('all')}
+        />
+        <FilterPill
+          testID="transactionsFilterOut"
+          label="Out"
+          active={filter === 'out'}
+          onPress={() => setFilter('out')}
+        />
+        <FilterPill
+          testID="transactionsFilterIn"
+          label="In"
+          active={filter === 'in'}
+          onPress={() => setFilter('in')}
+        />
+        <FilterPill testID="transactionsFilterCategory" label="Category" dropdown />
       </View>
       <View className="px-5 pt-2">
         {SAMPLE_DAYS.map((day) => {

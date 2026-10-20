@@ -32,7 +32,7 @@ export function SettingsScreen() {
   const [locked, setLocked] = useState(false);
 
   return (
-    <Screen bottomPad={TAB_BAR_CLEARANCE}>
+    <Screen testID="settingsScreen" bottomPad={TAB_BAR_CLEARANCE}>
       <ScreenTitle title="Settings" />
 
       <View className="px-5 pt-7">
@@ -43,6 +43,7 @@ export function SettingsScreen() {
         {LISTED.map((c) => (
           <Row
             key={c.id}
+            testID={`categoryRow-${c.id}`}
             swatch={c.color}
             title={c.name}
             aside={CATEGORY_WORD_COUNTS[c.id]}
@@ -54,6 +55,7 @@ export function SettingsScreen() {
           last
         />
         <Pressable
+          testID="settingsNewCategoryBtn"
           accessibilityRole="button"
           onPress={() => router.push('/sheets/new-category')}
           className="mt-5 flex-row items-center justify-center gap-2 rounded-[14px] border-hard border-ink bg-ground p-[14px]"
@@ -72,16 +74,16 @@ export function SettingsScreen() {
         <Text className="pt-1 font-inter-bold text-[14px] leading-[18px] text-ink">Family</Text>
         <View className="flex-row flex-wrap gap-2">
           {FAMILY_NAMES.map((n) => (
-            <WordChip key={n} label={n} tint="#FBEBC4" />
+            <WordChip key={n} testID={`familyName-${n}`} label={n} tint="#FBEBC4" />
           ))}
-          <DashedChip label="Add name" icon />
+          <DashedChip testID="addFamilyNameBtn" label="Add name" icon />
         </View>
         <Text className="pt-2 font-inter-bold text-[14px] leading-[18px] text-ink">Friends</Text>
         <View className="flex-row flex-wrap gap-2">
           {FRIEND_NAMES.map((n) => (
-            <WordChip key={n} label={n} tint="#D9E8FA" />
+            <WordChip key={n} testID={`friendName-${n}`} label={n} tint="#D9E8FA" />
           ))}
-          <DashedChip label="Add name" icon />
+          <DashedChip testID="addFriendNameBtn" label="Add name" icon />
         </View>
       </View>
 
@@ -90,16 +92,30 @@ export function SettingsScreen() {
           <Heading>More</Heading>
         </View>
         <Row
+          testID="settingsUnreadRow"
           title="Messages we couldn't read"
           subtitle={`${UNREAD_MESSAGES.length} messages`}
           onPress={() => router.push('/unread-messages')}
         />
         <Row
+          testID="settingsLockRow"
           title="Lock the app"
           subtitle="Fingerprint or PIN to open"
-          trailing={<Toggle label="Lock the app" value={locked} onChange={setLocked} />}
+          trailing={
+            <Toggle
+              testID="settingsLockToggle"
+              label="Lock the app"
+              value={locked}
+              onChange={setLocked}
+            />
+          }
         />
-        <Row title="Privacy" subtitle="Everything stays on this phone" last />
+        <Row
+          testID="settingsPrivacyRow"
+          title="Privacy"
+          subtitle="Everything stays on this phone"
+          last
+        />
       </View>
     </Screen>
   );

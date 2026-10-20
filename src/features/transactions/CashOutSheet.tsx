@@ -15,7 +15,7 @@ export function CashOutSheet() {
   const [note, setNote] = useState('');
 
   return (
-    <Sheet>
+    <Sheet testID="cashOutSheet">
       <SheetTitle
         title="What was this cash for?"
         body="You took out GHS 200.00 at Inmuel Ventures on Mon 19 Oct. MoMo doesn't say what happens next, so tell us."
@@ -24,6 +24,7 @@ export function CashOutSheet() {
         {CHOICES.map((c) => (
           <CategoryChip
             key={c.id}
+            testID={`cashOutCategory-${c.id}`}
             size="lg"
             label={c.name}
             color={c.color}
@@ -31,17 +32,22 @@ export function CashOutSheet() {
             onPress={() => setCategoryId(c.id)}
           />
         ))}
-        <DashedChip label="More" />
+        <DashedChip testID="cashOutMoreBtn" label="More" />
       </View>
       <View className="gap-2">
         <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">
           A note, if you like
         </Text>
-        <TextField value={note} onChangeText={setNote} placeholder="October rent, part one" />
+        <TextField
+          testID="cashOutNoteInput"
+          value={note}
+          onChangeText={setNote}
+          placeholder="October rent, part one"
+        />
       </View>
-      <Button label="Save" onPress={() => router.back()} />
+      <Button testID="cashOutSaveBtn" label="Save" onPress={() => router.back()} />
       <View className="items-center">
-        <TextLink label="Ask me later" onPress={() => router.back()} />
+        <TextLink testID="cashOutAskLaterLink" label="Ask me later" onPress={() => router.back()} />
       </View>
     </Sheet>
   );

@@ -11,15 +11,22 @@ export function AddNoteSheet() {
   const filedUnder = categoryById('shopping');
 
   return (
-    <Sheet>
+    <Sheet testID="addNoteSheet">
       <SheetTitle
         title="What did you buy?"
         body="GHS 45.00 to Circle Mart, yesterday. One or two words is enough."
       />
-      <TextField autoFocus value={note} onChangeText={setNote} placeholder="soap and tissue" />
+      <TextField
+        testID="addNoteInput"
+        autoFocus
+        value={note}
+        onChangeText={setNote}
+        placeholder="soap and tissue"
+      />
       <View className="flex-row items-center gap-[10px]">
         <Text className="font-inter text-[14px] leading-[18px] text-muted">Filed under</Text>
         <Pressable
+          testID="addNoteCategoryBtn"
           accessibilityRole="button"
           className="flex-row items-center gap-2 rounded-full border-hard border-ink bg-ground px-3 py-[6px]"
         >
@@ -33,7 +40,7 @@ export function AddNoteSheet() {
         </Pressable>
         <Text className="font-inter text-caption text-muted">tap to change</Text>
       </View>
-      <Button label="Save note" onPress={() => router.back()} />
+      <Button testID="addNoteSaveBtn" label="Save note" onPress={() => router.back()} />
       <Hint title="Tip">
         Next time, type the note in MoMo when you pay. It shows up in the message and we file it
         automatically.

@@ -6,6 +6,7 @@ import { Icon, hardShadow } from '@/ui';
 export function NeedsNoteCard({ count, onPress }: { count: number; onPress: () => void }) {
   return (
     <Pressable
+      testID="needsNoteCard"
       accessibilityRole="button"
       onPress={onPress}
       className="mx-5 mt-5 flex-row items-center gap-[14px] rounded-2xl border-hard border-ink bg-signal p-4"

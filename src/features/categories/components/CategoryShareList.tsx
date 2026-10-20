@@ -9,7 +9,7 @@ import { categoryById } from '../lookup';
 export function ShareBar({ spend }: { spend: readonly CategorySpend[] }) {
   const shares = categoryShares(spend);
   return (
-    <View className="h-4 flex-row gap-[2px]">
+    <View testID="shareBar" className="h-4 flex-row gap-[2px]">
       {shares.map((s, i) => {
         const last = shares.length - 1;
         return (
@@ -40,6 +40,7 @@ export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[];
         return (
           <View
             key={s.categoryId}
+            testID={`legendRow-${s.categoryId}`}
             className={`flex-row items-center gap-3 py-3 ${i < rows.length - 1 ? 'border-b border-hairline' : ''}`}
           >
             <View

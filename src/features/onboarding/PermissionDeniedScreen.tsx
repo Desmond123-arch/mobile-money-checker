@@ -14,7 +14,7 @@ const STEPS = [
 export function PermissionDeniedScreen() {
   const router = useRouter();
   return (
-    <FixedScreen>
+    <FixedScreen testID="permissionDeniedScreen">
       <View className="flex-1 justify-between px-5 pb-1 pt-6">
         <View className="gap-5">
           <IconTile icon="messageOff" tone="warn" />
@@ -37,8 +37,16 @@ export function PermissionDeniedScreen() {
           </View>
         </View>
         <View className="gap-4">
-          <Button label="Open phone settings" onPress={() => void Linking.openSettings()} />
-          <TextLink label="Keep looking around without it" onPress={() => router.replace('/')} />
+          <Button
+            testID="openPhoneSettingsBtn"
+            label="Open phone settings"
+            onPress={() => void Linking.openSettings()}
+          />
+          <TextLink
+            testID="keepLookingLink"
+            label="Keep looking around without it"
+            onPress={() => router.replace('/')}
+          />
         </View>
       </View>
     </FixedScreen>

@@ -14,6 +14,7 @@ interface RowProps {
   chevron?: boolean;
   last?: boolean;
   onPress?: () => void;
+  testID?: string;
 }
 
 /** A hairline-separated settings row. Rows own their top border; the last one also closes the list. */
@@ -26,9 +27,11 @@ export function Row({
   chevron = true,
   last = false,
   onPress,
+  testID,
 }: RowProps) {
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       onPress={onPress}
       className={`flex-row items-center gap-3 border-t border-hairline py-[14px] ${last ? 'border-b' : ''}`}

@@ -19,8 +19,9 @@ export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
   return (
     <View className="rounded-b-[32px] bg-ink pb-6" style={{ paddingTop: insets.top + 8 }}>
       <View className="flex-row items-center justify-between px-5">
-        <MonthPill label={monthLabel} />
+        <MonthPill testID="homeMonthPill" label={monthLabel} />
         <Pressable
+          testID="homeFilterBtn"
           accessibilityRole="button"
           accessibilityLabel="Filter"
           className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
@@ -32,7 +33,7 @@ export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
         <Text className="font-inter-medium text-[14px] leading-[18px] text-white/70">
           Spent so far this month
         </Text>
-        <Amount amount={spent} tone="inverse" />
+        <Amount testID="homeSpentAmount" amount={spent} tone="inverse" />
         {delta ? (
           <View className="flex-row items-center gap-2">
             <View className="flex-row items-center gap-1 rounded-full bg-signal py-1 pl-2 pr-[10px]">
