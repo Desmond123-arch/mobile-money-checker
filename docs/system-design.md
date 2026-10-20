@@ -177,6 +177,8 @@ A labelled body is never ignored by a promo rule. Curly apostrophes are normalis
 
 ## 6. Data model
 
+> Superseded by [`data-model.md`](data-model.md) and `src/data/migrations/0001_init.ts`. The SQL below is the original sketch and no longer matches the schema.
+
 SQLite, `PRAGMA user_version` for migrations, `PRAGMA foreign_keys = ON`, WAL mode. All money INTEGER pesewas, all times INTEGER epoch milliseconds UTC. Ghana is UTC+0 with no daylight saving, so body timestamps are parsed as UTC and month boundaries are UTC.
 
 ```sql
