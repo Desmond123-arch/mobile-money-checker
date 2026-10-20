@@ -100,3 +100,14 @@ Contrast at least 4.5:1 for body text on the ground; yellow is never used as tex
 ## 7. Build order in Paper
 
 All screens are designed in the Paper file "Xenodochial willow", one artboard each: Home, Transactions, Insights, Transaction detail, Settings, Edit category, Unread messages, Permission, Permission denied, Importing, Home (empty), and three sheets (Cash-out "What was this cash for?", Add a note, New category). Not designed: a reversed or self-transfer row, error banners, and a light/dark toggle (light only for the POC).
+
+## 8. Changes after the first device review
+
+These are the current behaviours. Paper has not been updated for items 3 to 6 yet (its weekly limit was hit); this section is the source of truth until it is.
+
+1. **Month picker.** The month pill on Home and Insights opens a sheet listing the months. The choice drives both screens.
+2. **Filters and search.** The Home filter button and the Category pill open a category sheet. Transactions has a search field. When a category filter is on, the row shows "Showing Food only" with a Clear button.
+3. **No fees and tax in the UI.** Home shows Money in and Payments only. Transaction detail shows Amount and Balance after.
+4. **Add an expense.** A yellow "+" on Home and on Transactions opens a sheet: amount, what it was for, category, and Today or Yesterday. Added expenses are tagged "Added by you" and count towards Home's totals.
+5. **Insights by day (planned).** A day strip (this week, Mon to Sun) next to the month pill filters the whole page. Choosing a day replaces the "Where it went" content with that date's spending. A day that has not happened yet says so and shows what an average day of that name looks like. The weekday bar chart goes away; the month chart stays.
+6. **Messages we couldn't read.** Each message has Copy text and Ignore, payment-looking ones also have Add by hand. Ignoring the last one shows an empty state.

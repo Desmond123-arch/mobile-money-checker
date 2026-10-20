@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -37,8 +36,13 @@ export function UnreadMessagesScreen() {
   const messages = UNREAD_MESSAGES.filter((m) => !ignored.includes(m.id));
 
   const copy = async (id: string, body: string) => {
-    await Clipboard.setStringAsync(body);
-    setCopied(id);
+    try {
+      const Clipboard = await import('expo-clipboard');
+      await Clipboard.setStringAsync(body);
+      setCopied(id);
+    } catch {
+      setCopied(`failed-${id}`);
+    }
   };
 
   return (
@@ -70,7 +74,13 @@ export function UnreadMessagesScreen() {
             <View className="flex-row gap-5">
               <Action
                 testID={`unreadCopy-${m.id}`}
-                label={copied === m.id ? 'Copied' : 'Copy text'}
+                label={
+                  copied === m.id
+                    ? 'Copied'
+                    : copied === `failed-${m.id}`
+                      ? 'Could not copy'
+                      : 'Copy text'
+                }
                 onPress={() => void copy(m.id, m.body)}
               />
               {m.looksLikePayment ? (

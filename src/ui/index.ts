@@ -1,6 +1,13 @@
 export { Amount } from './Amount';
 export { Button, TextLink } from './Button';
-export { CategoryChip, DashedChip, FilterPill, SuggestionChip, WordChip } from './Chips';
+export {
+  CategoryChip,
+  ClearButton,
+  DashedChip,
+  FilterPill,
+  SuggestionChip,
+  WordChip,
+} from './Chips';
 export { BackButton, Hint, SectionHeader, SubHeading, TextField, Toggle } from './Controls';
 export { ScreenTitle } from './Header';
 export { hardShadow } from './hardShadow';

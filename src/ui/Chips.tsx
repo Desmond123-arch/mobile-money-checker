@@ -145,3 +145,26 @@ export function FilterPill({
     </Pressable>
   );
 }
+
+export function ClearButton({
+  onPress,
+  testID,
+  label = 'Clear',
+}: {
+  onPress?: () => void;
+  testID?: string;
+  label?: string;
+}) {
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      className="flex-row items-center gap-[6px] rounded-full border-hard border-ink bg-ground py-[6px] pl-[10px] pr-3"
+    >
+      <Icon name="close" size={14} strokeWidth={2} />
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
+    </Pressable>
+  );
+}

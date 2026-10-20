@@ -4,17 +4,27 @@ import { Pressable, Text, View } from 'react-native';
 
 import { formatPlain, pesewas } from '@/domain/money';
 import { categoryById } from '@/features/categories';
-import { FilterPill, Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, TextField } from '@/ui';
+import { useExpenses } from '@/features/expenses';
+import {
+  ClearButton,
+  FilterPill,
+  Icon,
+  Screen,
+  ScreenTitle,
+  TAB_BAR_CLEARANCE,
+  TextField,
+} from '@/ui';
 
 import { TransactionRow } from './components/TransactionRow';
 import { useTransactionFilter } from './filterContext';
-import { SAMPLE_DAYS } from './sample';
+import { daysWithAdded } from './days';
 
 type Direction = 'all' | 'out' | 'in';
 
 export function TransactionsScreen() {
   const router = useRouter();
   const { categoryId, setCategoryId } = useTransactionFilter();
+  const { added } = useExpenses();
   const [direction, setDirection] = useState<Direction>('all');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
@@ -22,16 +32,18 @@ export function TransactionsScreen() {
   const needle = query.trim().toLowerCase();
   const category = categoryById(categoryId);
 
-  const days = SAMPLE_DAYS.map((day) => ({
-    ...day,
-    rows: day.rows.filter((r) => {
-      if (direction !== 'all' && r.direction !== direction) return false;
-      if (categoryId !== null && r.categoryId !== categoryId) return false;
-      if (needle === '') return true;
-      const haystack = `${r.counterparty} ${r.note ?? ''} ${categoryById(r.categoryId)?.name ?? ''}`;
-      return haystack.toLowerCase().includes(needle);
-    }),
-  })).filter((day) => day.rows.length > 0);
+  const days = daysWithAdded(added)
+    .map((day) => ({
+      ...day,
+      rows: day.rows.filter((r) => {
+        if (direction !== 'all' && r.direction !== direction) return false;
+        if (categoryId !== null && r.categoryId !== categoryId) return false;
+        if (needle === '') return true;
+        const haystack = `${r.counterparty} ${r.note ?? ''} ${categoryById(r.categoryId)?.name ?? ''}`;
+        return haystack.toLowerCase().includes(needle);
+      }),
+    }))
+    .filter((day) => day.rows.length > 0);
 
   const toggleSearch = () => {
     if (searching) setQuery('');
@@ -43,20 +55,31 @@ export function TransactionsScreen() {
       <ScreenTitle
         title="Transactions"
         trailing={
-          <Pressable
-            testID="transactionsSearchBtn"
-            accessibilityRole="button"
-            accessibilityLabel={searching ? 'Close search' : 'Search'}
-            onPress={toggleSearch}
-            className={`size-10 items-center justify-center rounded-[20px] ${searching ? 'bg-ink' : 'bg-hairline'}`}
-          >
-            <Icon
-              name={searching ? 'close' : 'search'}
-              size={20}
-              color={searching ? '#FFFFFF' : '#14110F'}
-              strokeWidth={1.8}
-            />
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              testID="addExpenseBtn"
+              accessibilityRole="button"
+              accessibilityLabel="Add an expense"
+              onPress={() => router.push('/sheets/add-expense')}
+              className="size-10 items-center justify-center rounded-[20px] bg-signal"
+            >
+              <Icon name="plusLarge" size={20} strokeWidth={2.2} />
+            </Pressable>
+            <Pressable
+              testID="transactionsSearchBtn"
+              accessibilityRole="button"
+              accessibilityLabel={searching ? 'Close search' : 'Search'}
+              onPress={toggleSearch}
+              className={`size-10 items-center justify-center rounded-[20px] ${searching ? 'bg-ink' : 'bg-hairline'}`}
+            >
+              <Icon
+                name={searching ? 'close' : 'search'}
+                size={20}
+                color={searching ? '#FFFFFF' : '#14110F'}
+                strokeWidth={1.8}
+              />
+            </Pressable>
+          </View>
         }
       />
       {searching ? (
@@ -99,16 +122,12 @@ export function TransactionsScreen() {
         />
       </View>
       {category !== null ? (
-        <Pressable
-          testID="transactionsClearCategory"
-          accessibilityRole="button"
-          onPress={() => setCategoryId(null)}
-          className="px-5 pt-3"
-        >
-          <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink underline">
-            Clear the {category.name} filter
+        <View className="flex-row items-center gap-3 px-5 pt-3">
+          <Text className="font-inter text-[14px] leading-[19px] text-muted">
+            Showing {category.name} only
           </Text>
-        </Pressable>
+          <ClearButton testID="transactionsClearCategory" onPress={() => setCategoryId(null)} />
+        </View>
       ) : null}
       <View className="px-5 pt-2">
         {days.map((day) => {

@@ -12,6 +12,7 @@ interface HeroProps {
   children?: ReactNode;
   onMonthPress?: (() => void) | undefined;
   onFilterPress?: (() => void) | undefined;
+  onAddPress?: (() => void) | undefined;
 }
 
 export function HeroSummary({
@@ -21,21 +22,33 @@ export function HeroSummary({
   children,
   onMonthPress,
   onFilterPress,
+  onAddPress,
 }: HeroProps) {
   const insets = useSafeAreaInsets();
   return (
     <View className="rounded-b-[32px] bg-ink pb-6" style={{ paddingTop: insets.top + 8 }}>
       <View className="flex-row items-center justify-between px-5">
         <MonthPill testID="homeMonthPill" label={monthLabel} onPress={onMonthPress} />
-        <Pressable
-          testID="homeFilterBtn"
-          onPress={onFilterPress}
-          accessibilityRole="button"
-          accessibilityLabel="Filter"
-          className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
-        >
-          <Icon name="filter" size={20} color="#FFFFFF" strokeWidth={1.75} />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            testID="homeAddExpenseBtn"
+            onPress={onAddPress}
+            accessibilityRole="button"
+            accessibilityLabel="Add an expense"
+            className="size-10 items-center justify-center rounded-[20px] bg-signal"
+          >
+            <Icon name="plusLarge" size={20} strokeWidth={2.2} />
+          </Pressable>
+          <Pressable
+            testID="homeFilterBtn"
+            onPress={onFilterPress}
+            accessibilityRole="button"
+            accessibilityLabel="Filter"
+            className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
+          >
+            <Icon name="filter" size={20} color="#FFFFFF" strokeWidth={1.75} />
+          </Pressable>
+        </View>
       </View>
       <View className="gap-2 px-5 pt-7">
         <Text className="font-inter-medium text-[14px] leading-[19px] text-white/70">
@@ -80,19 +93,10 @@ function Stat({
   );
 }
 
-export function TotalsRow({
-  moneyIn,
-  feesAndTax,
-  payments,
-}: {
-  moneyIn: Pesewas;
-  feesAndTax: Pesewas;
-  payments: number;
-}) {
+export function TotalsRow({ moneyIn, payments }: { moneyIn: Pesewas; payments: number }) {
   return (
     <View className="mx-5 mt-6 flex-row border-t border-white/[0.14] pt-5">
       <Stat label="Money in" value={`+${formatGhs(moneyIn)}`} tone="in" />
-      <Stat label="Fees and tax" value={formatGhs(feesAndTax)} />
       <Stat label="Payments" value={String(payments)} lane />
     </View>
   );

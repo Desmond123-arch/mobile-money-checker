@@ -17,7 +17,7 @@ const SECTIONS = [
     id: 'keep',
     title: 'What we keep',
     points: [
-      'The amount, fee, tax, balance, who you paid and when, for each payment.',
+      'The amount, balance, who you paid and when, for each payment.',
       'The notes and categories you choose, and the words and names you add.',
       'We do not copy the message text. When we need it, we read it from your inbox and show it, never save it.',
     ],

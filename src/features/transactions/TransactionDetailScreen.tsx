@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { SEED_CATEGORIES } from '@/domain/category/seed';
-import { formatGhs, totalDebited } from '@/domain/money';
+import { formatGhs } from '@/domain/money';
 import {
   Amount,
   BackButton,
@@ -23,27 +23,11 @@ import { SAMPLE_DETAIL } from './sample';
 
 const VISIBLE_CATEGORIES = SEED_CATEGORIES.slice(0, 5);
 
-function BreakdownRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
+function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
-    <View
-      className={`flex-row justify-between py-3 ${strong ? 'border-t-2 border-ink' : 'border-t border-hairline'}`}
-    >
-      <Text
-        className={`text-body leading-[21px] ${strong ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
-      >
-        {label}
-      </Text>
-      <Text
-        className={`text-body tabular-nums leading-[21px] text-ink ${strong ? 'font-tight-extrabold' : 'font-tight-semibold'}`}
-      >
+    <View className="flex-row justify-between border-t border-hairline py-3">
+      <Text className="font-inter text-body leading-[21px] text-muted">{label}</Text>
+      <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
         {value}
       </Text>
     </View>
@@ -86,13 +70,6 @@ export function TransactionDetailScreen() {
 
       <View className="px-5 pt-7">
         <BreakdownRow label="Amount" value={formatGhs(tx.amount)} />
-        <BreakdownRow label="Fee" value={formatGhs(tx.fee)} />
-        <BreakdownRow label="Tax" value={formatGhs(tx.tax)} />
-        <BreakdownRow
-          label="Total taken"
-          value={formatGhs(totalDebited(tx.amount, tx.fee, tx.tax))}
-          strong
-        />
         <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
       </View>
 

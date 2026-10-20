@@ -6,7 +6,6 @@ export interface MonthSummary {
   deltaLabel: string;
   deltaCompare: string;
   moneyIn: Pesewas;
-  feesAndTax: Pesewas;
   payments: number;
   needNote: number;
   today: number;
