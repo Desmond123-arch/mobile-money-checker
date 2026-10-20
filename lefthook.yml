@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: false
+  commands:
+    typecheck:
+      glob: '*.{ts,tsx}'
+      run: npm run typecheck
+    lint:
+      glob: '*.{ts,tsx,js}'
+      run: npx eslint {staged_files}
+    test:
+      glob: 'src/**/*.ts'
+      run: npm test --silent
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
