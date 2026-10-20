@@ -1,0 +1,27 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsNewCategoryBtn'
+- tapOn:
+    id: 'settingsNewCategoryBtn'
+- assertVisible:
+    id: 'newCategorySheet'
+- tapOn:
+    id: 'newCategoryNameInput'
+- inputText: 'Church'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    label: 'Can pick a colour'
+    id: 'newCategorySwatch-2A78D6'
+- tapOn:
+    id: 'createCategoryBtn'
+- assertVisible:
+    id: 'settingsScreen'

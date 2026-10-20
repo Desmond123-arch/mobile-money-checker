@@ -1,0 +1,26 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarTransactionsBtn'
+- tapOn:
+    label: 'Opens a transaction from the list'
+    id: 'transactionRow-t3'
+- assertVisible:
+    id: 'transactionDetailScreen'
+- assertVisible:
+    id: 'detailAmount'
+- tapOn:
+    label: 'Can change the category'
+    id: 'detailCategory-transport'
+- tapOn:
+    id: 'detailAlwaysTagToggle'
+- tapOn:
+    label: 'Can reveal the original message'
+    id: 'detailOriginalMessageToggle'
+- assertVisible:
+    id: 'detailOriginalMessage'
+- tapOn:
+    id: 'backBtn'
+- assertVisible:
+    id: 'transactionsScreen'

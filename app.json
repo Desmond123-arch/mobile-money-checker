@@ -10,7 +10,6 @@
     "platforms": ["android"],
     "android": {
       "package": "com.momospend.app",
-      "minSdkVersion": 26,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#14110F",
@@ -23,6 +22,14 @@
     "plugins": [
       "expo-router",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#14110F",
@@ -33,6 +40,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "985a69f4-bdab-456c-8271-f817ff07ad73"
+      }
+    },
+    "owner": "desmends"
   }
 }

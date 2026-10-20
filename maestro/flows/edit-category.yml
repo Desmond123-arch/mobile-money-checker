@@ -1,0 +1,33 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- tapOn:
+    label: 'Opens a category from Settings'
+    id: 'categoryRow-food'
+- assertVisible:
+    id: 'editCategoryScreen'
+- tapOn:
+    id: 'editCategoryWordInput'
+- inputText: 'fried rice'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    label: 'Can add a word'
+    id: 'editCategoryAddWordBtn'
+- assertVisible:
+    id: 'categoryWord-fried rice'
+- tapOn:
+    label: 'Can remove a word'
+    id: 'categoryWord-fried riceRemove'
+- assertNotVisible:
+    id: 'categoryWord-fried rice'
+- tapOn:
+    label: 'Can add a suggested word'
+    id: 'suggestion-shawarma'
+- assertVisible:
+    id: 'categoryWord-shawarma'

@@ -1,0 +1,23 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    label: 'Can go to Transactions from the tab bar'
+    id: 'tabBarTransactionsBtn'
+- assertVisible:
+    id: 'transactionsScreen'
+- tapOn:
+    label: 'Can go to Insights from the tab bar'
+    id: 'tabBarInsightsBtn'
+- assertVisible:
+    id: 'insightsScreen'
+- tapOn:
+    label: 'Can go to Settings from the tab bar'
+    id: 'tabBarSettingsBtn'
+- assertVisible:
+    id: 'settingsScreen'
+- tapOn:
+    label: 'Can go back Home from the tab bar'
+    id: 'tabBarHomeBtn'
+- assertVisible:
+    id: 'homeScreen'

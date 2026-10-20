@@ -1,0 +1,53 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-US
+early_access: false
+reviews:
+  profile: chill
+  high_level_summary: true
+  request_changes_workflow: false
+  auto_review:
+    enabled: true
+    drafts: false
+    # PRs target `dev`, which is not the default branch.
+    base_branches:
+      - '^dev$'
+      - '^main$'
+  path_filters:
+    - '!package-lock.json'
+    - '!coverage/**'
+    - '!artifacts/**'
+    - '!.expo/**'
+    - '!assets/**'
+  path_instructions:
+    - path: 'src/domain/**'
+      instructions: >-
+        The domain is pure TypeScript: no react, react-native, expo, SQLite or app-layer imports.
+        Money is integer pesewas end to end. Flag any float arithmetic or parseFloat on amounts.
+        New behaviour needs a Jest test; the domain coverage threshold is 95%.
+    - path: 'src/ui/**'
+      instructions: >-
+        Shared primitives. Check that interactive elements accept and forward a testID, that
+        colours and spacing come from the Tailwind tokens, and that amounts and labels cannot wrap
+        onto two lines.
+    - path: 'src/features/**'
+      instructions: >-
+        One folder per bounded context. Screens must not touch SQL or the parser directly. Every
+        element a Maestro flow touches needs a camelCase testID following maestro/README.md.
+    - path: 'src/app/**'
+      instructions: 'Route files should only re-export a screen from src/features.'
+    - path: 'maestro/**'
+      instructions: >-
+        Flows tap by testID (`id:`), not visible text. The app id is com.momospend.app.
+    - path: '.eas/**'
+      instructions: >-
+        Android only. `dev` builds the development profile, `main` builds production. Flag any
+        iOS job.
+    - path: '.github/workflows/**'
+      instructions: 'Check the workflow runs the same checks as `npm run check` and pins action versions.'
+  tools:
+    eslint:
+      enabled: true
+    gitleaks:
+      enabled: true
+chat:
+  auto_reply: true

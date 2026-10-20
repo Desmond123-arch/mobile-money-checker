@@ -1,0 +1,9 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- openLink: 'momospend://importing'
+- assertVisible:
+    id: 'importingScreen'
+- assertVisible:
+    id: 'importProgressBar'
+- assertVisible: 'Reading your messages.'

@@ -1,0 +1,13 @@
+appId: com.momospend.app
+---
+# Name the permissions to grant instead of relying on launchApp's default (all).
+- launchApp:
+    appId: 'com.momospend.app'
+    clearState: true
+    permissions:
+      notifications: allow
+- extendedWaitUntil:
+    visible:
+      id: 'homeScreen'
+    timeout: 120000
+- waitForAnimationToEnd
