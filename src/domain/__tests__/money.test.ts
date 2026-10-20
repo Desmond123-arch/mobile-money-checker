@@ -34,6 +34,14 @@ describe('parseAmount', () => {
     ['1,24'],
     ['1,2345.00'],
     ['99999999999999999999'],
+    // Adjacent or repeated amounts must never be glued together into one (found by CodeRabbit).
+    ['GHS 10 GHS 20'],
+    ['GHS 10 GHS'],
+    ['GHS10GHS'],
+    ['GHS GHS 10'],
+    ['10 20'],
+    ['1 000'],
+    ['GHS 10 20'],
   ])('returns null for %j', (text) => {
     expect(parseAmount(text)).toBeNull();
   });

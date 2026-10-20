@@ -12,7 +12,12 @@ export function pesewas(n: number): Pesewas {
   return n as Pesewas;
 }
 
-const AMOUNT = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?$/;
+const NUMBER = String.raw`(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?`;
+const CURRENCY = String.raw`GH[SC]`;
+// One number, with at most one currency token before it OR after it, and an optional sentence-final dot.
+// Spaces are only allowed around the currency token, never inside the number, so "10 20" is not 1020.
+const PREFIXED = new RegExp(String.raw`^${CURRENCY}\s*(${NUMBER})\.*$`, 'i');
+const SUFFIXED = new RegExp(String.raw`^(${NUMBER})\s*(?:${CURRENCY})?\.*$`, 'i');
 
 /**
  * Parse an amount token as it appears in an MTN MoMo SMS into pesewas.
@@ -24,13 +29,12 @@ const AMOUNT = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?$/;
  * template; a null fee or tax means the message did not say.
  */
 export function parseAmount(text: string): Pesewas | null {
-  const cleaned = text
-    .replace(/GH[SC]/gi, '')
-    .replace(/\s+/g, '')
-    .replace(/\.+$/, '');
-  if (!AMOUNT.test(cleaned)) return null;
+  const trimmed = text.trim();
+  const match = PREFIXED.exec(trimmed) ?? SUFFIXED.exec(trimmed);
+  const digits = match?.[1];
+  if (digits === undefined) return null;
 
-  const [whole = '', fraction = ''] = cleaned.replace(/,/g, '').split('.');
+  const [whole = '', fraction = ''] = digits.replace(/,/g, '').split('.');
   const total = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   return Number.isSafeInteger(total) ? (total as Pesewas) : null;
 }
