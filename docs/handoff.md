@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built and run on sample data. There is no SMS module, no SQLite, no ledger and no scan. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built and run on sample data. There is no SMS module, no ledger and no scan. The SQLite layer exists in `src/data` but nothing imports it yet. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
 
 ## 2. Real versus stand-in
 
@@ -46,12 +46,32 @@ These hold user input in memory only. They reset on reload.
 
 `Save changes` (`detailSaveBtn`), `Save note` (`addNoteSaveBtn`), `Save` (`cashOutSaveBtn`), `Create category` (`createCategoryBtn`), `Add by hand` (`unreadAdd-*`), `Copy text` only copies, `Delete this category` only closes. `Add expense` does keep its result, but only in memory.
 
-## 5. Not built yet (from `docs/system-design.md`)
+## 5. Data layer, and what is not built yet
 
-`modules/momo-sms` (Kotlin module), `src/data` (SQLite, migrations, repos), `src/ledger` (ingest, project, recategorise), `src/scan`, the parser templates, reversal linking. The folders do not exist.
+`src/data` holds the schema and nothing else. Nothing in `src/app`, `src/features` or `src/ui` imports it, so every screen still runs on the stand-ins in section 2.
+
+- `db.ts` defines the async `Db` interface (`exec`, `run`, `all`, `get`, `transaction`) and `openDatabase(name?)`, the only file that imports `expo-sqlite`. `transaction` is exclusive and a nested call joins the open one.
+- `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0002_*.ts` and append it to `migrations/index.ts`.
+- `seed.ts` creates the system categories (the UI seed plus Cash, with the UI's `other` becoming `misc`/Misc) and no keywords. `seedDatabase(db)` is safe to call on every launch.
+- Tests run in plain Node against `node:sqlite` through `src/data/__tests__/nodeDb.ts`, which implements `Db`.
+
+Differences from `docs/system-design.md` section 6 are listed in `CHANGELOG.md`: `categories.tint`, `transactions.source` with nullable template columns, `occurred_at_source` also allows `user`, a `reversed_by` foreign key, and CHECK constraints throughout.
+
+Before connecting screens: the UI uses string category ids (`food`), the database uses integer ids with the string in `system_key`. `categoryById` in `src/features/categories/lookup.ts` needs a map between them. User-made categories have no `system_key` and no string id today.
+
+Manual expenses are rows with `source = 'manual'`, a `momo_txn_id` of `manual:<uuid>` made by the caller, `occurred_at_source = 'user'`, `kind = 'payment_out'`, and NULL template columns.
+
+### How budgets will plug in
+
+Budgets arrive as migration `0002` with one new table, `budgets(category_id, month, limit_pesewas)`. The primary key is `(category_id, month)`, `category_id` references `categories(id)` with `ON DELETE CASCADE`, `month` is the UTC month start as epoch milliseconds, and `limit_pesewas` is a non-negative integer. `transactions` does not change.
+
+Spend against a limit is the existing summary query filtered to one category and the month's `[start, end)` range. It is answered by `txn_cat_time (category_id, occurred_at)`, so no new index is needed. Category ids are `AUTOINCREMENT` integers, so an id is never reused after its category is deleted, and nothing renumbers them, which is what lets a budget row point at them. `deleteCategory` (system design 7.8) must add the budget count to its confirmation, because the cascade removes those rows.
+
+Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` and `queries`, `src/ledger` (ingest, project, recategorise), `src/scan`, the parser templates, reversal linking.
 
 ## 6. Things that will bite
 
+- **Exclusive transactions open a new connection.** `expo-sqlite`'s `withExclusiveTransactionAsync` runs on a fresh native connection where `foreign_keys` is OFF and `BEGIN` is deferred. `db.ts` closes that `BEGIN`, sets the pragma, and reopens with `BEGIN IMMEDIATE`, then throws if the pragma did not stick. This is only exercised by the Node tests through a stand-in; run a RESTRICT delete inside `transaction` on a device before relying on it.
 - **Maestro flows depend on sample ids** (`t1` to `t6`, category ids, `2026-10-*` dates). When data is real they need a seeded fixture or a test mode. They have never been run (Maestro is not installed in the WSL environment).
 - **Privacy screen copy** says the app does not ask for internet access. That is only true once `INTERNET` is stripped from release builds (design requires it; not done). Dev builds need it for Metro.
 - **Typed routes:** `.expo/types/router.d.ts` goes stale after adding routes and then `tsc` rejects new `router.push` paths locally. Delete the file; CI never has it.

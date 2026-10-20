@@ -10,6 +10,7 @@ Everything below is in PR #7 (into `dev`) unless noted.
 
 ### Added
 
+- **SQLite layer (`src/data`, not wired into any screen yet).** `Db` interface and `openDatabase` over `expo-sqlite` (WAL, foreign keys on, exclusive transactions), a `PRAGMA user_version` migrator, migration `0001_init` with the system-design schema, and an idempotent `seedDatabase` for the system categories. Deliberate changes to the design: `categories.tint`, `transactions.source` (`sms` or `manual`) with nullable template columns for manual rows, `occurred_at_source` may be `user`, a `reversed_by` foreign key, and CHECK constraints on money and enums. The UI's `other` category is seeded as Misc, and Cash is added. Tests run on Node's `node:sqlite`.
 - **Insights calendar.** The period pill opens a sheet with a Day and a Month switch. A day replaces "Where it went" with that date's spending, an empty state for days without payments, and a "not happened yet" state with an average day of that name. Pure helpers in `src/domain/calendar/week.ts`.
 - **Add an expense.** A "+" on Home and Transactions opens a sheet (amount, what for, category, Today or Yesterday). Expenses are tagged "Added by you" and count towards Home's totals, categories and recent list. State lives in `ExpensesProvider`.
 - **Month picker.** The month pill on Home opens a sheet; the choice drives Home and Insights (`PeriodProvider`).
