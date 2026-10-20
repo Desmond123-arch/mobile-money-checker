@@ -22,7 +22,7 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Categories | Seed only. `src/domain/category/seed.ts`, resolved by `src/features/categories/lookup.ts` | `categories` table; `categoryById` reads from it |
 | Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view |
 | "Today" | Device clock via `useToday()` | Keep; sample data assumes Tue 20 Oct 2026 |
-| Permission, importing | Screens only. Reachable at `/permission`, `/permission-denied`, `/importing` | Wire to the `momo-sms` module and the first-run flow |
+| Permission, importing | Screens. Importing shows real progress for a picked backup file (payments stubbed, see section 5); the "Allow SMS access" path is still sample | Wire to the `momo-sms` module and the first-run flow |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
 
@@ -57,7 +57,17 @@ These hold user input in memory only. They reset on reload.
 
 Reading the data: totals come from the view `ledger_lines` (one SUM each for spend, income and fees; refunds and reversals are already netted), lists and detail from `transaction_list`. Both expose the effective category: the user's tag, else the categoriser's, else Misc. Writers: the ledger writes `sms_*`, SMS `transactions` and `auto_category_*`; the user's tag, note and snooze go only in `transaction_annotations`.
 
-Backup import (first load from an SMS Backup & Restore XML file, `system-design.md` 7.9) is specified but not built. It needs a `source` column on `sms_messages` and a nullable `android_sms_id` before the importer is written, a new migration or an edit to `0001` while it is unreleased. The Permission screen has no "Import a backup file" option yet, and `ImportingScreen` still shows fixed numbers.
+### Backup import
+
+The schema (`sms_messages.source`, nullable `android_sms_id`, `backup_key`), the reader, the Expo adapters, the `importBackup` orchestrator and the UI are built. The parser and ledger are not, so the import reads the whole file and stores nothing. What is stubbed:
+
+- `ingestBatch` in `src/backup/startImport.ts` (`pendingIngest`) returns `{ payments: 0 }`. This is the seam. Pass a real function to `startImport(uri, ingestBatch)`: parse each `BackupMessage { body, receivedAt, address }`, write fragments and transactions in one transaction, set `sms_messages.source = 'backup'` with `backup_key = '<received_at>:<momo_txn_id>:<template_name>'` (only for parsed messages), and return how many payments the batch made. A key hit means the message is already stored, so the insert should be `ON CONFLICT DO NOTHING`.
+- `ImportState.ingestIsStub` is true while the stub runs, and the Importing screen then says "Payments are not counted yet". Drop the flag when the real ingest lands.
+- `meta.first_import_done` is not set and nothing navigates after `phase === 'done'`. The caller of the ingest step should set the flag, then route to Home and ask once for SMS access.
+- "Allow SMS access" still goes to Importing with no scan behind it, so the screen shows labelled sample numbers (`importSampleNote`).
+- Nothing here has run on a device. The file picker, the `expo-file-system` handle reads (`src/backup/expoFileSource.ts`) and the cache deletion are untested; the reader itself is tested in Node, including against a real 2.4 MB export.
+- Only `expoFileSource.ts` and `pickBackupFile.ts` may import Expo inside `src/backup` (ESLint enforces it, and bans `console` there because message bodies flow through).
+- The picker filters on `text/xml` and `application/xml`. Some file managers label the export differently and will grey it out; widen the filter if that shows up.
 
 Before connecting screens: the UI uses string category ids (`food`), the database uses integer ids with the string in `system_key`. `categoryById` in `src/features/categories/lookup.ts` needs a map between them. User-made categories have no `system_key` and no string id today.
 

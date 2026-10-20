@@ -20,7 +20,11 @@ Everything below is in PR #7 (into `dev`) unless noted.
 - **Home totals row:** Money in, Payments and A day (average spend per day so far), three equal centered columns. `dailyAverage` in `src/domain/summary/month.ts`.
 - `allocate` (splits a total by weights so the parts sum exactly) in `src/domain/category/share.ts`.
 - Maestro flows for each interaction (`maestro/flows`), project verification skill (`.claude/skills/verify-momo-spend`).
-- **Backup import specified** (spec 5.1a, FR-19; design 3.1; system design 7.9). Not built.
+- **Backup import, everything except the parser and ledger** (spec 5.1a, FR-19; design 3.1; system design 7.9).
+  - `sms_messages` gets `source` (`inbox` or `backup`), a nullable `android_sms_id` and a `backup_key` identity (`<received_at>:<momo_txn_id>:<template_name>`). Edited into `0001_init` because it is unreleased. `source_on_phone` and `unread_messages` count inbox rows only.
+  - `src/backup`: a streaming reader for SMS Backup & Restore XML (`readBackupMessages`, `countBackupMessages`) that runs on any byte source, Expo adapters (`pickBackupFile`, `openExpoFile`), the `importBackup` orchestrator with an injected `ingestBatch`, and a progress store.
+  - Permission screen has "Import a backup file", which opens the steps sheet (`/sheets/import-steps`) and its "Choose file" button. Importing shows real read and total counts. Payments are not counted until the parser is connected.
+  - New dependencies `expo-document-picker` and `expo-file-system`; Maestro flow `import-backup.yml`.
 
 ### Changed
 
