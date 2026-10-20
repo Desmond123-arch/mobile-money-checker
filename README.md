@@ -2,7 +2,7 @@
 
 Android app that reads MTN MoMo confirmation SMS on the device and turns them into a categorised monthly spending history. Everything stays on the phone: no backend, no network calls. Expo dev build (a custom Kotlin module reads the SMS, so Expo Go cannot run it), expo-sqlite for storage.
 
-Start with `docs/`: `spec.md` (what), `categorisation.md` (rules), `design.md` (screens), `system-design.md` (how it is built), `design-review.md` (what an adversarial review changed).
+Start with `docs/`: `spec.md` (what), `categorisation.md` (rules), `design.md` (screens), `system-design.md` (how it is built), `design-review.md` (what an adversarial review changed), and `handoff.md` (what is sample data today and where the real data layer plugs in). Changes are tracked in `CHANGELOG.md`.
 
 ## Commands
 

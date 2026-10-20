@@ -28,7 +28,7 @@ export function PermissionDeniedScreen() {
               items={STEPS}
               lead={(i) => (
                 <View className="size-7 items-center justify-center rounded-[14px] bg-ink">
-                  <Text className="font-tight-extrabold text-[14px] leading-[18px] text-ground">
+                  <Text className="font-tight-extrabold text-[14px] leading-[19px] text-ground">
                     {i + 1}
                   </Text>
                 </View>

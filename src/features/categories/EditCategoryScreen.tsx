@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 
 import {
   BackButton,
@@ -48,12 +48,12 @@ export function EditCategoryScreen() {
     <Screen testID="editCategoryScreen">
       <View className="flex-row items-center justify-between px-5 pt-2">
         <BackButton onPress={() => router.back()} />
-        <Text className="font-inter-semibold text-[14px] leading-[18px] text-muted">Category</Text>
+        <Text className="font-inter-semibold text-[14px] leading-[19px] text-muted">Category</Text>
       </View>
 
       <View className="flex-row items-center gap-3 px-5 pt-6">
         <View className="size-5 rounded-[6px]" style={{ backgroundColor: category.color }} />
-        <Text className="font-tight-extrabold text-[40px] leading-[44px] tracking-[-0.03em] text-ink">
+        <Text className="font-tight-extrabold text-[40px] leading-[52px] tracking-[-0.03em] text-ink">
           {category.name}
         </Text>
       </View>
@@ -121,10 +121,16 @@ export function EditCategoryScreen() {
 
       <Pressable
         testID="deleteCategoryBtn"
+        onPress={() =>
+          Alert.alert(`Delete ${category.name}?`, 'Payments filed under it move to Other.', [
+            { text: 'Keep it', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => router.back() },
+          ])
+        }
         accessibilityRole="button"
         className="mx-5 mt-10 items-center border-t border-hairline p-[14px]"
       >
-        <Text className="font-inter-semibold text-[15px] leading-[18px] text-warn">
+        <Text className="font-inter-semibold text-[15px] leading-[20px] text-warn">
           Delete this category
         </Text>
       </Pressable>

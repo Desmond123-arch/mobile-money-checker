@@ -38,14 +38,14 @@ export function Row({
       ) : null}
       <View className="flex-1 gap-[2px]">
         <Text
-          className={`font-inter-medium text-body leading-5 ${swatch || subtitle ? 'text-ink' : 'text-muted'}`}
+          className={`font-inter-medium text-body leading-[21px] ${swatch || subtitle ? 'text-ink' : 'text-muted'}`}
         >
           {title}
         </Text>
         {subtitle ? <Text className="font-inter text-caption text-muted">{subtitle}</Text> : null}
       </View>
       {aside ? (
-        <Text className="font-inter text-[14px] leading-[18px] text-muted">{aside}</Text>
+        <Text className="font-inter text-[14px] leading-[19px] text-muted">{aside}</Text>
       ) : null}
       {trailing}
       {chevron && !trailing ? <Icon name="chevronRight" size={16} strokeWidth={1.75} /> : null}

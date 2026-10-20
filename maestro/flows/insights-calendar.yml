@@ -1,0 +1,36 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarInsightsBtn'
+- tapOn:
+    label: 'The period pill opens the calendar'
+    id: 'insightsPeriodPill'
+- assertVisible:
+    id: 'calendarSheet'
+- tapOn:
+    label: 'Can pick a day that has passed'
+    id: 'calendarDay-2026-10-19'
+- assertVisible:
+    id: 'insightsDayLabel'
+- assertVisible: 'Monday 19 Oct'
+- tapOn:
+    label: 'Whole month returns to the month view'
+    id: 'insightsWholeMonth'
+- assertNotVisible:
+    id: 'insightsDayLabel'
+- tapOn:
+    id: 'insightsPeriodPill'
+- tapOn:
+    label: 'Can pick a day that has not happened yet'
+    id: 'calendarDay-2026-10-28'
+- assertVisible:
+    id: 'insightsDayFuture'
+- tapOn:
+    id: 'insightsPeriodPill'
+- tapOn:
+    id: 'calendarModeMonth'
+- tapOn:
+    label: 'Can switch to a whole month'
+    id: 'calendarMonth-2026-08'
+- assertVisible: 'August 2026'

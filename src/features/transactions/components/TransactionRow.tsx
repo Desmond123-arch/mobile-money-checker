@@ -30,7 +30,9 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
           width: 1.8,
         };
 
-  const subtitle = [category?.name, row.note, when].filter(Boolean).join(' · ');
+  const subtitle = [category?.name, row.note, when, row.manual ? 'Added by you' : null]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <Pressable

@@ -9,13 +9,12 @@ export interface TransactionRow {
   note: string | null;
   direction: Direction;
   amount: Pesewas;
+  manual?: boolean;
 }
 
 export interface TransactionDetail extends TransactionRow {
   occurredAtLabel: string;
   kindLabel: string;
-  fee: Pesewas;
-  tax: Pesewas;
   balanceAfter: Pesewas;
   noteSource: 'sms' | 'user';
   originalMessage: string;

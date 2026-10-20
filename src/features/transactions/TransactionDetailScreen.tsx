@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { SEED_CATEGORIES } from '@/domain/category/seed';
-import { formatGhs, totalDebited } from '@/domain/money';
+import { formatGhs } from '@/domain/money';
 import {
   Amount,
   BackButton,
@@ -23,27 +23,11 @@ import { SAMPLE_DETAIL } from './sample';
 
 const VISIBLE_CATEGORIES = SEED_CATEGORIES.slice(0, 5);
 
-function BreakdownRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
+function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
-    <View
-      className={`flex-row justify-between py-3 ${strong ? 'border-t-2 border-ink' : 'border-t border-hairline'}`}
-    >
-      <Text
-        className={`text-body leading-5 ${strong ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
-      >
-        {label}
-      </Text>
-      <Text
-        className={`text-body tabular-nums leading-5 text-ink ${strong ? 'font-tight-extrabold' : 'font-tight-semibold'}`}
-      >
+    <View className="flex-row justify-between border-t border-hairline py-3">
+      <Text className="font-inter text-body leading-[21px] text-muted">{label}</Text>
+      <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
         {value}
       </Text>
     </View>
@@ -63,7 +47,7 @@ export function TransactionDetailScreen() {
     <Screen testID="transactionDetailScreen">
       <View className="flex-row items-center justify-between px-5 pt-2">
         <BackButton onPress={() => router.back()} />
-        <Text className="font-inter-semibold text-[14px] leading-[18px] text-muted">
+        <Text className="font-inter-semibold text-[14px] leading-[19px] text-muted">
           {tx.occurredAtLabel}
         </Text>
       </View>
@@ -76,7 +60,7 @@ export function TransactionDetailScreen() {
           >
             <Icon name={categoryIcon(categoryId)} size={22} strokeWidth={1.8} />
           </View>
-          <Text className="flex-1 font-inter-semibold text-[18px] leading-[22px] text-ink">
+          <Text className="flex-1 font-inter-semibold text-[18px] leading-[24px] text-ink">
             {tx.counterparty}
           </Text>
         </View>
@@ -86,13 +70,6 @@ export function TransactionDetailScreen() {
 
       <View className="px-5 pt-7">
         <BreakdownRow label="Amount" value={formatGhs(tx.amount)} />
-        <BreakdownRow label="Fee" value={formatGhs(tx.fee)} />
-        <BreakdownRow label="Tax" value={formatGhs(tx.tax)} />
-        <BreakdownRow
-          label="Total taken"
-          value={formatGhs(totalDebited(tx.amount, tx.fee, tx.tax))}
-          strong
-        />
         <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
       </View>
 
@@ -143,7 +120,9 @@ export function TransactionDetailScreen() {
         onPress={() => setShowOriginal((v) => !v)}
         className="mx-5 mt-8 flex-row items-center justify-between border-y border-hairline py-4"
       >
-        <Text className="font-inter-semibold text-body leading-5 text-ink">Original message</Text>
+        <Text className="font-inter-semibold text-body leading-[21px] text-ink">
+          Original message
+        </Text>
         <Icon name="chevronDownLarge" size={20} strokeWidth={2} />
       </Pressable>
       {showOriginal ? (

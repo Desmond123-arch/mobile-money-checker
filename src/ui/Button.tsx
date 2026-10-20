@@ -17,6 +17,7 @@ interface ButtonProps {
   size?: 'lg' | 'md';
   block?: boolean;
   testID?: string;
+  disabled?: boolean;
 }
 
 export function Button({
@@ -26,14 +27,17 @@ export function Button({
   size = 'lg',
   block = true,
   testID,
+  disabled = false,
 }: ButtonProps) {
   const pad = size === 'lg' ? 'p-4' : 'px-6 py-[14px]';
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       onPress={onPress}
-      className={`items-center justify-center rounded-[14px] border-hard border-ink ${SURFACE[variant]} ${pad} ${block ? '' : 'self-start'}`}
+      className={`items-center justify-center rounded-[14px] border-hard border-ink ${SURFACE[variant]} ${pad} ${block ? '' : 'self-start'} ${disabled ? 'opacity-40' : ''}`}
       style={hardShadow(variant === 'ink' ? '#F5B800' : '#14110F')}
     >
       <Text

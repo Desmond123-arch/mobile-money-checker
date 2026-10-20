@@ -1,0 +1,16 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    label: 'The filter button opens the category filter'
+    id: 'homeFilterBtn'
+- assertVisible:
+    id: 'categoryFilterSheet'
+- tapOn:
+    id: 'categoryFilter-transport'
+- assertVisible:
+    id: 'transactionsScreen'
+- assertVisible:
+    id: 'transactionRow-t2'
+- assertNotVisible:
+    id: 'transactionRow-t1'

@@ -12,11 +12,11 @@ export function NewCategorySheet() {
 
   return (
     <Sheet testID="newCategorySheet">
-      <Text className="font-tight-extrabold text-[28px] leading-8 tracking-[-0.02em] text-ink">
+      <Text className="font-tight-extrabold text-[28px] leading-[37px] tracking-[-0.02em] text-ink">
         New category
       </Text>
       <View className="gap-2">
-        <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">Name</Text>
+        <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">Name</Text>
         <TextField
           testID="newCategoryNameInput"
           value={name}
@@ -25,7 +25,7 @@ export function NewCategorySheet() {
         />
       </View>
       <View className="gap-[10px]">
-        <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">Colour</Text>
+        <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">Colour</Text>
         <View className="flex-row gap-3">
           {CATEGORY_SWATCHES.map((c) => (
             <Pressable
@@ -42,7 +42,7 @@ export function NewCategorySheet() {
       </View>
       <View className="gap-2">
         <View className="flex-row items-baseline justify-between">
-          <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">
+          <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">
             Words that file payments here
           </Text>
           <Text className="font-inter text-caption text-muted">Optional</Text>
