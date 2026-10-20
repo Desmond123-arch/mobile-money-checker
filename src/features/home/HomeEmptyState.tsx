@@ -16,7 +16,7 @@ export function HomeEmptyState({ month }: { month: MonthSummary }) {
         </View>
       </HeroSummary>
       <View className="items-start gap-3 px-5 pt-10">
-        <Text className="font-tight-extrabold text-[28px] leading-8 tracking-[-0.02em] text-ink">
+        <Text className="font-tight-extrabold text-[28px] leading-[37px] tracking-[-0.02em] text-ink">
           Nothing here yet.
         </Text>
         <Text className="font-inter text-body leading-6 text-muted">

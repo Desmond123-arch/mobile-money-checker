@@ -48,7 +48,7 @@ export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[];
             <Text className="flex-1 font-inter-medium text-body text-ink">
               {category?.name ?? 'Other'}
             </Text>
-            <Text className="w-10 text-right font-inter text-[14px] leading-[18px] text-muted">
+            <Text className="w-10 text-right font-inter text-[14px] leading-[19px] text-muted">
               {s.percent}%
             </Text>
             <Text

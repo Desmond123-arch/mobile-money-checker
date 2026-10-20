@@ -1,5 +1,6 @@
-import { pesewas } from '@/domain/money';
+import { formatGhs, pesewas } from '@/domain/money';
 import type { MonthSummary } from '@/domain/summary/month';
+import { MONTH_OPTIONS, type MonthOption } from '@/features/period';
 
 const cedis = (n: number) => pesewas(n * 100);
 
@@ -31,3 +32,49 @@ export const EMPTY_MONTH: MonthSummary = {
   peakLabel: null,
   daily: Array.from({ length: 31 }, () => pesewas(0)),
 };
+
+const DAILY_PATTERN = SAMPLE_MONTH.daily.slice(0, 20);
+
+function daysIn(monthId: string): number {
+  const [year = 0, month = 1] = monthId.split('-').map(Number);
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+export function summaryFor(option: MonthOption): MonthSummary {
+  if (option.isCurrent) return SAMPLE_MONTH;
+
+  const days = daysIn(option.id);
+  const weights: number[] = Array.from(
+    { length: days },
+    (_, i) => DAILY_PATTERN[i % DAILY_PATTERN.length] ?? 0,
+  );
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  const daily = weights.map((w) => pesewas(Math.round((w * option.spent) / total)));
+  const peak = Math.max(...daily);
+  const peakDay = daily.indexOf(pesewas(peak)) + 1;
+
+  const index = MONTH_OPTIONS.findIndex((m) => m.id === option.id);
+  const previous = MONTH_OPTIONS[index - 1];
+  const delta =
+    previous === undefined
+      ? { label: 'First month', compare: 'on record' }
+      : {
+          label: `${Math.round((Math.abs(option.spent - previous.spent) * 100) / previous.spent)}% ${option.spent < previous.spent ? 'less' : 'more'}`,
+          compare: `than ${previous.short}`,
+        };
+
+  return {
+    label: option.label,
+    spent: option.spent,
+    deltaLabel: delta.label,
+    deltaCompare: delta.compare,
+    moneyIn: option.moneyIn,
+    feesAndTax: pesewas(Math.round(option.spent / 200)),
+    payments: Math.round(option.spent / 3300),
+    needNote: 0,
+    today: days,
+    daysInMonth: days,
+    peakLabel: `Day ${peakDay}, ${formatGhs(pesewas(peak))}`,
+    daily,
+  };
+}

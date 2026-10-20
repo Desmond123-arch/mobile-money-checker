@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 interface WeekdayBar {
   label: string;
@@ -14,17 +14,29 @@ interface MonthBar {
 const WEEKDAY_MAX_HEIGHT = 92;
 const MONTH_MAX_HEIGHT = 114;
 
-export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
+export function WeekdayChart({
+  days,
+  selected,
+  onSelect,
+}: {
+  days: readonly WeekdayBar[];
+  selected: string;
+  onSelect: (label: string) => void;
+}) {
   const max = Math.max(...days.map((d) => d.cedis));
   return (
     <View>
       <View className="mt-5 h-32 flex-row items-end justify-between">
         {days.map((d) => {
-          const peak = d.cedis === max;
+          const peak = d.label === selected;
           return (
-            <View
+            <Pressable
               key={d.label}
               testID={`weekdayBar-${d.label}`}
+              accessibilityRole="button"
+              accessibilityLabel={`${d.label}, GHS ${d.cedis} on average`}
+              accessibilityState={{ selected: peak }}
+              onPress={() => onSelect(d.label)}
               className="h-32 w-10 items-center justify-end gap-[6px]"
             >
               {peak ? (
@@ -39,7 +51,7 @@ export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
                 className={`w-10 rounded-b-[3px] rounded-t-[8px] ${peak ? 'bg-ink' : 'bg-[#DADADA]'}`}
                 style={{ height: Math.max(4, Math.round((d.cedis / max) * WEEKDAY_MAX_HEIGHT)) }}
               />
-            </View>
+            </Pressable>
           );
         })}
       </View>
@@ -47,7 +59,7 @@ export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
         {days.map((d) => (
           <Text
             key={d.label}
-            className={`w-10 text-center text-caption ${d.cedis === max ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
+            className={`w-10 text-center text-caption ${d.label === selected ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
           >
             {d.label}
           </Text>

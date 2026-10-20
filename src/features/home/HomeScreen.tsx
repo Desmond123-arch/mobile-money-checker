@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { ShareBar, ShareLegend, SAMPLE_SPEND } from '@/features/categories';
+import { usePeriod } from '@/features/period';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { SAMPLE_RECENT } from '@/features/transactions/sample';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
@@ -10,11 +11,12 @@ import { DailyChart } from './components/DailyChart';
 import { HeroSummary, TotalsRow } from './components/HeroSummary';
 import { NeedsNoteCard } from './components/NeedsNoteCard';
 import { HomeEmptyState } from './HomeEmptyState';
-import { SAMPLE_MONTH } from './sample';
+import { summaryFor } from './sample';
 
 export function HomeScreen() {
   const router = useRouter();
-  const month = SAMPLE_MONTH;
+  const { month: selected } = usePeriod();
+  const month = summaryFor(selected);
 
   if (month.payments === 0) return <HomeEmptyState month={month} />;
 
@@ -22,6 +24,8 @@ export function HomeScreen() {
     <Screen testID="homeScreen" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary
         monthLabel={month.label}
+        onMonthPress={() => router.push('/sheets/month')}
+        onFilterPress={() => router.push('/sheets/category-filter?goTo=transactions')}
         spent={month.spent}
         delta={{ label: month.deltaLabel, compare: month.deltaCompare }}
       >

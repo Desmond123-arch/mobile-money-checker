@@ -10,7 +10,7 @@ export function ImportingScreen() {
     <FixedScreen testID="importingScreen">
       <View className="flex-1 px-5 pb-1 pt-6">
         <View className="flex-1 justify-center gap-4">
-          <Text className="font-tight-extrabold text-[44px] leading-[46px] tracking-[-0.03em] text-ink">
+          <Text className="font-tight-extrabold text-[44px] leading-[58px] tracking-[-0.03em] text-ink">
             Reading your messages.
           </Text>
           <Text className="font-inter text-[17px] leading-[26px] text-muted">
@@ -18,10 +18,10 @@ export function ImportingScreen() {
           </Text>
           <View className="gap-[14px] pt-6">
             <View className="flex-row items-baseline gap-2">
-              <Text className="font-tight-extrabold text-[54px] tabular-nums leading-[56px] tracking-[-0.03em] text-ink">
+              <Text className="font-tight-extrabold text-[54px] tabular-nums leading-[71px] tracking-[-0.03em] text-ink">
                 {PROGRESS.read.toLocaleString('en-GH')}
               </Text>
-              <Text className="font-inter text-body leading-5 text-muted">
+              <Text className="font-inter text-body leading-[21px] text-muted">
                 of {PROGRESS.total.toLocaleString('en-GH')}
               </Text>
             </View>
@@ -36,10 +36,10 @@ export function ImportingScreen() {
               />
             </View>
             <View className="flex-row justify-between pt-[6px]">
-              <Text className="font-inter text-[14px] leading-[18px] text-ink">
+              <Text className="font-inter text-[14px] leading-[19px] text-ink">
                 {PROGRESS.payments} payments found
               </Text>
-              <Text className="font-inter text-[14px] leading-[18px] text-muted">{percent}%</Text>
+              <Text className="font-inter text-[14px] leading-[19px] text-muted">{percent}%</Text>
             </View>
           </View>
         </View>

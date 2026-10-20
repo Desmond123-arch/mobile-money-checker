@@ -62,7 +62,7 @@ export function BackButton({ onPress }: { onPress: () => void }) {
 export function Hint({ title, children }: { title: string; children: string }) {
   return (
     <View className="gap-[6px] rounded-chip bg-[#F4F4F4] px-[14px] py-3">
-      <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">{title}</Text>
+      <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">{title}</Text>
       <Text className="font-inter text-[14px] leading-5 text-muted">{children}</Text>
     </View>
   );
@@ -84,7 +84,7 @@ export function SectionHeader({
       <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
       {link ? (
         <Pressable testID={linkTestID} accessibilityRole="link" onPress={onLinkPress}>
-          <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink underline">
+          <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink underline">
             {link}
           </Text>
         </Pressable>

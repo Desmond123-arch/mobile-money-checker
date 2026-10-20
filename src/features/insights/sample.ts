@@ -1,18 +1,36 @@
+import { pesewas } from '@/domain/money';
+import { allocate } from '@/domain/category/share';
+import { MONTH_OPTIONS } from '@/features/period';
+
 export const WEEKDAYS = [
-  { label: 'Mon', cedis: 42 },
-  { label: 'Tue', cedis: 36 },
-  { label: 'Wed', cedis: 44 },
-  { label: 'Thu', cedis: 54 },
-  { label: 'Fri', cedis: 94 },
-  { label: 'Sat', cedis: 54 },
-  { label: 'Sun', cedis: 26 },
+  { label: 'Mon', name: 'Monday', cedis: 42 },
+  { label: 'Tue', name: 'Tuesday', cedis: 36 },
+  { label: 'Wed', name: 'Wednesday', cedis: 44 },
+  { label: 'Thu', name: 'Thursday', cedis: 54 },
+  { label: 'Fri', name: 'Friday', cedis: 94 },
+  { label: 'Sat', name: 'Saturday', cedis: 54 },
+  { label: 'Sun', name: 'Sunday', cedis: 26 },
 ] as const;
 
-export const MONTHS = [
-  { label: 'May', out: 1180, in: 960 },
-  { label: 'Jun', out: 1330, in: 1060 },
-  { label: 'Jul', out: 1450, in: 810 },
-  { label: 'Aug', out: 1610, in: 1270 },
-  { label: 'Sep', out: 1570, in: 990 },
-  { label: 'Oct', out: 1320, in: 850 },
-] as const;
+export type WeekdayLabel = (typeof WEEKDAYS)[number]['label'];
+
+const WEEKDAY_WEIGHTS: Record<WeekdayLabel, Record<string, number>> = {
+  Mon: { food: 30, transport: 35, airtime: 10, family: 10, other: 15 },
+  Tue: { food: 35, transport: 30, airtime: 5, family: 10, other: 20 },
+  Wed: { food: 40, transport: 25, rent: 5, family: 10, other: 20 },
+  Thu: { food: 35, transport: 20, airtime: 20, family: 10, other: 15 },
+  Fri: { food: 40, rent: 10, transport: 15, family: 20, other: 15 },
+  Sat: { food: 30, transport: 15, family: 30, other: 25 },
+  Sun: { food: 25, transport: 10, family: 45, other: 20 },
+};
+
+export function weekdaySpend(label: WeekdayLabel) {
+  const day = WEEKDAYS.find((d) => d.label === label);
+  return allocate(pesewas((day?.cedis ?? 0) * 100), WEEKDAY_WEIGHTS[label]);
+}
+
+export const MONTHS = MONTH_OPTIONS.map((m) => ({
+  label: m.short,
+  out: Math.round(m.spent / 100),
+  in: Math.round(m.moneyIn / 100),
+}));

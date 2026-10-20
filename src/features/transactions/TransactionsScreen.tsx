@@ -2,17 +2,41 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formatPlain } from '@/domain/money';
-import { FilterPill, Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE } from '@/ui';
+import { formatPlain, pesewas } from '@/domain/money';
+import { categoryById } from '@/features/categories';
+import { FilterPill, Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, TextField } from '@/ui';
 
 import { TransactionRow } from './components/TransactionRow';
+import { useTransactionFilter } from './filterContext';
 import { SAMPLE_DAYS } from './sample';
 
-type Filter = 'all' | 'out' | 'in';
+type Direction = 'all' | 'out' | 'in';
 
 export function TransactionsScreen() {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>('all');
+  const { categoryId, setCategoryId } = useTransactionFilter();
+  const [direction, setDirection] = useState<Direction>('all');
+  const [searching, setSearching] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const needle = query.trim().toLowerCase();
+  const category = categoryById(categoryId);
+
+  const days = SAMPLE_DAYS.map((day) => ({
+    ...day,
+    rows: day.rows.filter((r) => {
+      if (direction !== 'all' && r.direction !== direction) return false;
+      if (categoryId !== null && r.categoryId !== categoryId) return false;
+      if (needle === '') return true;
+      const haystack = `${r.counterparty} ${r.note ?? ''} ${categoryById(r.categoryId)?.name ?? ''}`;
+      return haystack.toLowerCase().includes(needle);
+    }),
+  })).filter((day) => day.rows.length > 0);
+
+  const toggleSearch = () => {
+    if (searching) setQuery('');
+    setSearching(!searching);
+  };
 
   return (
     <Screen testID="transactionsScreen" bottomPad={TAB_BAR_CLEARANCE}>
@@ -22,48 +46,85 @@ export function TransactionsScreen() {
           <Pressable
             testID="transactionsSearchBtn"
             accessibilityRole="button"
-            accessibilityLabel="Search"
-            className="size-10 items-center justify-center rounded-[20px] bg-hairline"
+            accessibilityLabel={searching ? 'Close search' : 'Search'}
+            onPress={toggleSearch}
+            className={`size-10 items-center justify-center rounded-[20px] ${searching ? 'bg-ink' : 'bg-hairline'}`}
           >
-            <Icon name="search" size={20} strokeWidth={1.8} />
+            <Icon
+              name={searching ? 'close' : 'search'}
+              size={20}
+              color={searching ? '#FFFFFF' : '#14110F'}
+              strokeWidth={1.8}
+            />
           </Pressable>
         }
       />
+      {searching ? (
+        <View className="px-5 pt-4">
+          <TextField
+            testID="transactionsSearchInput"
+            autoFocus
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search by name, note or category"
+            returnKeyType="search"
+          />
+        </View>
+      ) : null}
       <View className="flex-row items-center gap-2 px-5 pt-5">
         <FilterPill
           testID="transactionsFilterAll"
           label="All"
-          active={filter === 'all'}
-          onPress={() => setFilter('all')}
+          active={direction === 'all'}
+          onPress={() => setDirection('all')}
         />
         <FilterPill
           testID="transactionsFilterOut"
           label="Out"
-          active={filter === 'out'}
-          onPress={() => setFilter('out')}
+          active={direction === 'out'}
+          onPress={() => setDirection('out')}
         />
         <FilterPill
           testID="transactionsFilterIn"
           label="In"
-          active={filter === 'in'}
-          onPress={() => setFilter('in')}
+          active={direction === 'in'}
+          onPress={() => setDirection('in')}
         />
-        <FilterPill testID="transactionsFilterCategory" label="Category" dropdown />
+        <FilterPill
+          testID="transactionsFilterCategory"
+          label={category?.name ?? 'Category'}
+          active={category !== null}
+          dropdown
+          onPress={() => router.push('/sheets/category-filter')}
+        />
       </View>
+      {category !== null ? (
+        <Pressable
+          testID="transactionsClearCategory"
+          accessibilityRole="button"
+          onPress={() => setCategoryId(null)}
+          className="px-5 pt-3"
+        >
+          <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink underline">
+            Clear the {category.name} filter
+          </Text>
+        </Pressable>
+      ) : null}
       <View className="px-5 pt-2">
-        {SAMPLE_DAYS.map((day) => {
-          const rows = day.rows.filter((r) => filter === 'all' || r.direction === filter);
-          if (rows.length === 0) return null;
+        {days.map((day) => {
+          const total = pesewas(
+            day.rows.reduce((sum, r) => sum + (r.direction === 'in' ? r.amount : -r.amount), 0),
+          );
           return (
             <View key={day.label}>
               <View className="flex-row items-baseline justify-between pb-1 pt-5">
                 <Text className="font-inter-bold text-caption text-muted">{day.label}</Text>
                 <Text className="font-inter-medium text-caption text-muted">
-                  {day.total < 0 ? '−' : '+'}
-                  {formatPlain(day.total)}
+                  {total < 0 ? '−' : '+'}
+                  {formatPlain(total)}
                 </Text>
               </View>
-              {rows.map((row) => (
+              {day.rows.map((row) => (
                 <TransactionRow
                   key={row.id}
                   row={row}
@@ -74,6 +135,16 @@ export function TransactionsScreen() {
             </View>
           );
         })}
+        {days.length === 0 ? (
+          <View testID="transactionsEmpty" className="items-start gap-2 pt-10">
+            <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">
+              No payments match.
+            </Text>
+            <Text className="font-inter text-body leading-6 text-muted">
+              Try a different word, or clear the filters.
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Screen>
   );

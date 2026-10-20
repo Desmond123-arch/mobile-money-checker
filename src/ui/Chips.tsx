@@ -56,7 +56,7 @@ export function WordChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink py-2 pl-[14px] pr-2"
       style={{ backgroundColor: tint }}
     >
-      <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
       <Pressable
         testID={testID ? `${testID}Remove` : undefined}
         accessibilityLabel={`Remove ${label}`}
@@ -88,7 +88,7 @@ export function DashedChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-dashed border-ink bg-ground px-[14px] py-2"
     >
       {icon ? <Icon name="plusSmall" size={14} strokeWidth={2.2} /> : null}
-      <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
     </Pressable>
   );
 }
@@ -110,7 +110,7 @@ export function SuggestionChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink bg-ground py-2 pl-[10px] pr-[14px]"
     >
       <Icon name="plusSmall" size={14} strokeWidth={2.2} />
-      <Text className="font-inter-medium text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-medium text-[14px] leading-[19px] text-ink">{label}</Text>
     </Pressable>
   );
 }

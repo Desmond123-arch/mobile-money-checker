@@ -35,7 +35,7 @@ export function CashOutSheet() {
         <DashedChip testID="cashOutMoreBtn" label="More" />
       </View>
       <View className="gap-2">
-        <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">
+        <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">
           A note, if you like
         </Text>
         <TextField

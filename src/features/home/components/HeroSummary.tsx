@@ -10,16 +10,26 @@ interface HeroProps {
   spent: Pesewas;
   delta?: { label: string; compare: string };
   children?: ReactNode;
+  onMonthPress?: (() => void) | undefined;
+  onFilterPress?: (() => void) | undefined;
 }
 
-export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
+export function HeroSummary({
+  monthLabel,
+  spent,
+  delta,
+  children,
+  onMonthPress,
+  onFilterPress,
+}: HeroProps) {
   const insets = useSafeAreaInsets();
   return (
     <View className="rounded-b-[32px] bg-ink pb-6" style={{ paddingTop: insets.top + 8 }}>
       <View className="flex-row items-center justify-between px-5">
-        <MonthPill testID="homeMonthPill" label={monthLabel} />
+        <MonthPill testID="homeMonthPill" label={monthLabel} onPress={onMonthPress} />
         <Pressable
           testID="homeFilterBtn"
+          onPress={onFilterPress}
           accessibilityRole="button"
           accessibilityLabel="Filter"
           className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
@@ -28,7 +38,7 @@ export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
         </Pressable>
       </View>
       <View className="gap-2 px-5 pt-7">
-        <Text className="font-inter-medium text-[14px] leading-[18px] text-white/70">
+        <Text className="font-inter-medium text-[14px] leading-[19px] text-white/70">
           Spent so far this month
         </Text>
         <Amount testID="homeSpentAmount" amount={spent} tone="inverse" />
