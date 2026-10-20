@@ -42,6 +42,9 @@ describe('parseAmount', () => {
     ['10 20'],
     ['1 000'],
     ['GHS 10 20'],
+    // Only one optional sentence-final dot is allowed.
+    ['GHS 10..'],
+    ['10.00..'],
   ])('returns null for %j', (text) => {
     expect(parseAmount(text)).toBeNull();
   });

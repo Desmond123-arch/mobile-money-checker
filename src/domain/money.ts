@@ -16,8 +16,8 @@ const NUMBER = String.raw`(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?`;
 const CURRENCY = String.raw`GH[SC]`;
 // One number, with at most one currency token before it OR after it, and an optional sentence-final dot.
 // Spaces are only allowed around the currency token, never inside the number, so "10 20" is not 1020.
-const PREFIXED = new RegExp(String.raw`^${CURRENCY}\s*(${NUMBER})\.*$`, 'i');
-const SUFFIXED = new RegExp(String.raw`^(${NUMBER})\s*(?:${CURRENCY})?\.*$`, 'i');
+const PREFIXED = new RegExp(String.raw`^${CURRENCY}\s*(${NUMBER})\.?$`, 'i');
+const SUFFIXED = new RegExp(String.raw`^(${NUMBER})\s*(?:${CURRENCY})?\.?$`, 'i');
 
 /**
  * Parse an amount token as it appears in an MTN MoMo SMS into pesewas.
