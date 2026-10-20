@@ -11,7 +11,21 @@ module.exports = [
         'error',
         {
           patterns: [
-            { group: ['react', 'react-native', 'react-native/*', 'expo', 'expo-*', '@/data/*', '@/ledger/*', '@/scan/*', '@/features/*', '@/ui/*'], message: 'src/domain must stay pure (no RN, Expo, SQLite or app layers).' },
+            {
+              group: [
+                'react',
+                'react-native',
+                'react-native/*',
+                'expo',
+                'expo-*',
+                '@/data/*',
+                '@/ledger/*',
+                '@/scan/*',
+                '@/features/*',
+                '@/ui/*',
+              ],
+              message: 'src/domain must stay pure (no RN, Expo, SQLite or app layers).',
+            },
           ],
         },
       ],
@@ -27,8 +41,17 @@ module.exports = [
     files: ['src/domain/**/*.ts'],
     ignores: ['**/__tests__/**'],
     rules: {
-      'no-restricted-globals': ['error', { name: 'parseFloat', message: 'Do not parse money with floats. Use parseAmount (string -> integer pesewas).' }],
-      'no-restricted-properties': ['error', { object: 'Number', property: 'parseFloat', message: 'Do not parse money with floats.' }],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'parseFloat',
+          message: 'Do not parse money with floats. Use parseAmount (string -> integer pesewas).',
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        { object: 'Number', property: 'parseFloat', message: 'Do not parse money with floats.' },
+      ],
     },
   },
 ];
