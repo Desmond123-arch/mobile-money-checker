@@ -64,6 +64,9 @@ Each template has a name and a version. A wording change becomes a new template,
 ### 5.1 Scan
 Read the inbox from the `MobileMoney` sender only. Each scan lists the inbox's message ids and diffs them against the ids already seen, then reads only the new ones (no date cursor, so restored or back-dated messages are caught; ingestion is idempotent). Runs on app open and when the app returns to the foreground. First import of 2,000 messages under 10 s; incremental scan under 1 s. Detail in `system-design.md` 7.1.
 
+### 5.1a Backup import (first-run alternative)
+The first load can also come from an SMS Backup & Restore XML export instead of the inbox. This covers phones where the SMS permission is blocked or hidden (Android 13+ restricted settings, MIUI and similar ROMs) and keeps the app usable if `READ_SMS` is ever refused. The user picks the file; the app streams it, keeps only `address="MobileMoney"` messages, and sends them through the same parse and ingest path as the inbox scan. The file is read once and no message text is stored. Backup messages have no Android id, so they carry no live message to show under "Original message". Re-importing a newer backup is safe because transactions dedupe on `momo_txn_id`. Once the user grants SMS access, the inbox scan takes over for new payments. Detail in `system-design.md` 7.9.
+
 ### 5.2 Deduplication
 Key: `momo_txn_id`. When several messages share an ID, merge them into one row with a commutative per-field rule (a non-null value beats null, a body time beats a received time, a real name beats `Merchant NNNNNN`; `system-design.md` section 5), so the order the messages arrive in never changes the result. A message without an ID is not turned into a transaction.
 
@@ -111,6 +114,7 @@ Order: manual tag → recipient rule → reference (family and friends names, th
 | FR-14 | Filter list by month, category, direction | Should |
 | FR-15 | View unparsed messages | Should |
 | FR-16 | "Needs a reference" list on open; cash-out "what was this for?" prompt | Must |
+| FR-19 | Import the first load from an SMS Backup & Restore XML file (section 5.1a); show steps to export it | Should |
 | FR-17 | Opt-in sync to Go backend | Could |
 | FR-18 | Export CSV | Could |
 
@@ -144,7 +148,7 @@ Order: manual tag → recipient rule → reference (family and friends names, th
 | M0 | Samples collected (done: one export; need a second phone for the 70% test) |
 | M1 | Expo dev build, Kotlin module, permission flow, raw messages listed |
 | M2 | Templates for each shape, dedupe, unparsed table, fixture tests |
-| M3 | SQLite schema, incremental scan, list and detail |
+| M3 | SQLite schema, incremental scan, list and detail, backup import |
 | M4 | Categorisation, re-tag, names and keywords, monthly summary |
 | M5 (stretch) | Go sync |
 

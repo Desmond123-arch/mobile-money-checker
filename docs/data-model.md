@@ -108,7 +108,7 @@ Spend against a limit is `SELECT SUM(pesewas) FROM ledger_lines WHERE bucket = '
 ## Riskiest assumptions
 
 1. **`momo_txn_id` is unique per wallet and shared by every message of one transaction.** The whole merge rests on it. If MTN reuses an id, or a dual-SIM phone has two wallets with colliding ids, two payments merge. `has_conflict` catches it only when amount or kind differ.
-2. **`(android_sms_id, received_at)` identifies a message.** A backup restore that rewrites dates creates a duplicate message row. That is harmless, since it folds into the same transaction.
+2. **`(android_sms_id, received_at)` identifies an inbox message.** Backup-import messages (system-design 7.9) have no Android id and need a `source` column plus a `(received_at, momo_txn_id)` identity; that is a pending schema change. A backup restore that rewrites dates creates a duplicate message row. That is harmless, since it folds into the same transaction.
 3. **The bundled SQLite supports STRICT.** Verified in node:sqlite 3.51, not yet on a device.
 4. **Three flows cover the accounting, and a credit belongs to its original's month and category.** A reversal restates a past month. A flow outside the three needs a table rebuild, because `flow` has a CHECK.
 5. **Manual expenses do not overlap SMS spend.** Cash spent from a cash-out is counted twice, once as the cash-out and once as the manual expense. Only "Add by hand" is de-duplicated, through `source_message_id`. A "paid from this cash-out" feature would add a table and change `ledger_lines`.

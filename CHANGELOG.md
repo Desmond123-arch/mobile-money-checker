@@ -20,6 +20,7 @@ Everything below is in PR #7 (into `dev`) unless noted.
 - **Home totals row:** Money in, Payments and A day (average spend per day so far), three equal centered columns. `dailyAverage` in `src/domain/summary/month.ts`.
 - `allocate` (splits a total by weights so the parts sum exactly) in `src/domain/category/share.ts`.
 - Maestro flows for each interaction (`maestro/flows`), project verification skill (`.claude/skills/verify-momo-spend`).
+- **Backup import specified** (spec 5.1a, FR-19; design 3.1; system design 7.9). Not built.
 
 ### Changed
 

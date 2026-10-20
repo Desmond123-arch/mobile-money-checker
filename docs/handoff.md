@@ -57,6 +57,8 @@ These hold user input in memory only. They reset on reload.
 
 Reading the data: totals come from the view `ledger_lines` (one SUM each for spend, income and fees; refunds and reversals are already netted), lists and detail from `transaction_list`. Both expose the effective category: the user's tag, else the categoriser's, else Misc. Writers: the ledger writes `sms_*`, SMS `transactions` and `auto_category_*`; the user's tag, note and snooze go only in `transaction_annotations`.
 
+Backup import (first load from an SMS Backup & Restore XML file, `system-design.md` 7.9) is specified but not built. It needs a `source` column on `sms_messages` and a nullable `android_sms_id` before the importer is written, a new migration or an edit to `0001` while it is unreleased. The Permission screen has no "Import a backup file" option yet, and `ImportingScreen` still shows fixed numbers.
+
 Before connecting screens: the UI uses string category ids (`food`), the database uses integer ids with the string in `system_key`. `categoryById` in `src/features/categories/lookup.ts` needs a map between them. User-made categories have no `system_key` and no string id today.
 
 Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` NULL, `occurred_at_source = 'user'`, `flow = 'spend'` and no auto category. The "what was it for" title goes in `counterparty_name` and the chosen category in `transaction_annotations.category_id`.

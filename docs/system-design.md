@@ -374,6 +374,18 @@ Five things write: scan on open, the foreground observer, the manual "Check for 
 
 `deleteCategory(id)` is a ledger function, not a raw DELETE. System categories (those with a `system_key`) cannot be deleted. For a user category, in one transaction: move its transactions to Misc, delete the `overrides` rows that pointed at it (so no stale `manual` remains), delete its keywords and any recipient rules for it (after a confirmation that shows the counts, because those cascade), delete the category, then `recategorise()` the moved rows. Family and Friends name lists resolve through `system_key`, so renaming the categories does not break them.
 
+### 7.9 Backup import
+
+A second source for the first load, feeding the same `ingest(batch)` as the scan (7.2).
+
+- **Input.** The user picks an SMS Backup & Restore XML file through the system document picker (`expo-document-picker`, copied to cache and deleted after). The reader streams it in chunks, so a 2.4 MB file (or a much larger one) never sits in memory as a string, and keeps only `<sms>` elements whose `address` is `MobileMoney`. Other senders are skipped before their body is read into a message object.
+- **Fields.** `body`, `date` (epoch ms, the received time) and `address`. The export has no Android `_id`, so identity cannot be `(android_sms_id, received_at)`.
+- **Identity (schema change needed).** `sms_messages` gets `source` (`inbox` or `backup`); `android_sms_id` is NULL for `backup` rows. A backup row is identified by `(received_at, momo_txn_id)`, so re-importing the same or a newer backup converges. A backup message that parses as unparsed or ignored is counted for the Importing screen but is not stored, because it has no stable identity. `gone_at` never applies to backup rows, and `source_on_phone` is false for transactions whose fragments are all from a backup.
+- **Overlap with the scan.** When the user later grants SMS access, the scan reads the inbox and its fragments join the same transactions by `momo_txn_id`; `mergeAll` is commutative, so the result does not depend on which source arrived first. Old messages the phone still holds simply add inbox fragments next to the backup ones.
+- **Progress.** The same events as the scan (`read`, `total`, `payments`) drive the Importing screen. The total comes from a first counting pass over the `address` attributes.
+- **Privacy.** The file is read once, no text is stored, and the cached copy is deleted when the import ends or fails. Importing never needs `READ_SMS`.
+- **After the import.** `meta.first_import_done` is set, then Home asks once for SMS access. If the user declines, new payments need a fresh import, and Home shows the "SMS access is off" banner with an "Import a newer backup" action.
+
 ## 8. Native module contract
 
 `modules/momo-sms` is a local Expo module (`create-expo-module --local`). The JS surface is small and stateless:
