@@ -1,0 +1,22 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- openLink: 'momospend://permission'
+- assertVisible:
+    id: 'permissionScreen'
+- tapOn:
+    label: 'Import a backup file opens the steps'
+    id: 'importBackupBtn'
+- assertVisible:
+    id: 'importStepsSheet'
+- assertVisible:
+    id: 'importStep-1'
+- assertVisible:
+    id: 'importStep-4'
+- assertVisible:
+    id: 'chooseFileBtn'
+- tapOn:
+    label: 'Tapping outside closes the sheet'
+    id: 'sheetScrim'
+- assertVisible:
+    id: 'permissionScreen'

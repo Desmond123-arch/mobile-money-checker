@@ -2,10 +2,17 @@ import { Text, View } from 'react-native';
 
 import { FixedScreen, Hint, hardShadow } from '@/ui';
 
-const PROGRESS = { read: 1284, total: 2488, payments: 612 };
+import { useImportState } from './useImportState';
+
+// Shown only when the screen is opened without an import (deep link, or "Allow SMS access",
+// which has no scan behind it yet).
+const SAMPLE = { read: 1284, total: 2488, payments: 612 };
 
 export function ImportingScreen() {
-  const percent = Math.round((PROGRESS.read * 100) / PROGRESS.total);
+  const state = useImportState();
+  const isSample = state.phase === 'idle';
+  const progress = isSample ? SAMPLE : state;
+  const percent = progress.total > 0 ? Math.round((progress.read * 100) / progress.total) : 0;
   return (
     <FixedScreen testID="importingScreen">
       <View className="flex-1 px-5 pb-1 pt-6">
@@ -19,10 +26,10 @@ export function ImportingScreen() {
           <View className="gap-[14px] pt-6">
             <View className="flex-row items-baseline gap-2">
               <Text className="font-tight-extrabold text-[54px] tabular-nums leading-[71px] tracking-[-0.03em] text-ink">
-                {PROGRESS.read.toLocaleString('en-GH')}
+                {progress.read.toLocaleString('en-GH')}
               </Text>
               <Text className="font-inter text-body leading-[21px] text-muted">
-                of {PROGRESS.total.toLocaleString('en-GH')}
+                of {progress.total.toLocaleString('en-GH')}
               </Text>
             </View>
             <View
@@ -37,12 +44,24 @@ export function ImportingScreen() {
             </View>
             <View className="flex-row justify-between pt-[6px]">
               <Text className="font-inter text-[14px] leading-[19px] text-ink">
-                {PROGRESS.payments} payments found
+                {state.ingestIsStub
+                  ? 'Payments are not counted yet'
+                  : `${progress.payments} payments found`}
               </Text>
               <Text className="font-inter text-[14px] leading-[19px] text-muted">{percent}%</Text>
             </View>
           </View>
         </View>
+        {isSample ? (
+          <Text testID="importSampleNote" className="pb-3 font-inter text-caption text-muted">
+            Sample numbers. No import is running.
+          </Text>
+        ) : null}
+        {state.phase === 'failed' ? (
+          <Text testID="importFailedNote" className="pb-3 font-inter text-caption text-warn">
+            We could not read that file. Go back and pick it again.
+          </Text>
+        ) : null}
         <Hint title="You can leave this screen">
           It keeps going in the background. We skip login codes and anything that isn’t from
           MobileMoney.

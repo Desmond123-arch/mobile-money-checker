@@ -41,6 +41,12 @@ export function PermissionScreen() {
             variant="ink"
             onPress={() => router.replace('/importing')}
           />
+          <Button
+            testID="importBackupBtn"
+            label="Import a backup file"
+            variant="outline"
+            onPress={() => router.push('/sheets/import-steps')}
+          />
           <TextLink
             testID="notNowLink"
             label="Not now"
