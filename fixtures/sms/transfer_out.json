@@ -1,0 +1,221 @@
+{
+  "shape": "transfer_out",
+  "messages": [
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-1",
+        "sender": "MobileMoney",
+        "body": "You have transferred 10.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2025-04-25 10:00:29. Your new balance: 7,877.46 GHS. Message from sender: airtime:Telecel:0200000017:6. Message to receiver: . Financial Transaction Id: 90007461907.",
+        "receivedAt": 1745575230615
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007461907",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 787746,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000017:6",
+          "occurredAt": {
+            "at": 1745575229000,
+            "source": "body"
+          },
+          "receivedAt": 1745575230615,
+          "androidId": "fx-transfer_out-1",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-2",
+        "sender": "MobileMoney",
+        "body": "You have transferred 5.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2025-05-03 21:28:58. Your new balance: 8,159.20 GHS. Message from sender: airtime:Telecel:0200000019:6. Message to receiver: . Financial Transaction Id: 90007699477.",
+        "receivedAt": 1746307751195
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007699477",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 500,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 815920,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000019:6",
+          "occurredAt": {
+            "at": 1746307738000,
+            "source": "body"
+          },
+          "receivedAt": 1746307751195,
+          "androidId": "fx-transfer_out-2",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-3",
+        "sender": "MobileMoney",
+        "body": "You have transferred 10.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2025-05-04 11:15:21. Your new balance: 8,141.20 GHS. Message from sender: airtime:Telecel:0200000019:6. Message to receiver: . Financial Transaction Id: 90007723234.",
+        "receivedAt": 1746357322377
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007723234",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 814120,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000019:6",
+          "occurredAt": {
+            "at": 1746357321000,
+            "source": "body"
+          },
+          "receivedAt": 1746357322377,
+          "androidId": "fx-transfer_out-3",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-4",
+        "sender": "MobileMoney",
+        "body": "You have transferred 5.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2025-05-04 12:40:14. Your new balance: 8,136.20 GHS. Message from sender: airtime:Telecel:0200000019:6. Message to receiver: . Financial Transaction Id: 90007731153.",
+        "receivedAt": 1746362414976
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007731153",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 500,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 813620,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000019:6",
+          "occurredAt": {
+            "at": 1746362414000,
+            "source": "body"
+          },
+          "receivedAt": 1746362414976,
+          "androidId": "fx-transfer_out-4",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-5",
+        "sender": "MobileMoney",
+        "body": "You have transferred 5.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2026-02-18 19:51:47. Your new balance: 7,773.63 GHS. Message from sender: airtime:Telecel:0200000017:6. Message to receiver: . Financial Transaction Id: 90012252902.",
+        "receivedAt": 1771444308471
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90012252902",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 500,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 777363,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000017:6",
+          "occurredAt": {
+            "at": 1771444307000,
+            "source": "body"
+          },
+          "receivedAt": 1771444308471,
+          "androidId": "fx-transfer_out-5",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-transfer_out-6",
+        "sender": "MobileMoney",
+        "body": "You have transferred 30.00 GHS to Other Networks   (one4all.sp) from your mobile money account 999000000 at 2026-05-16 10:55:51. Your new balance: 7,798.09 GHS. Message from sender: airtime:Telecel:0200000017:6. Message to receiver: . Financial Transaction Id: 90013448671.",
+        "receivedAt": 1778928952488
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90013448671",
+          "kind": "transfer_out",
+          "direction": "out",
+          "amount": 3000,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 779809,
+          "counterpartyName": "Other Networks (one4all.sp)",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "airtime:Telecel:0200000017:6",
+          "occurredAt": {
+            "at": 1778928951000,
+            "source": "body"
+          },
+          "receivedAt": 1778928952488,
+          "androidId": "fx-transfer_out-6",
+          "template": {
+            "name": "transfer_out",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

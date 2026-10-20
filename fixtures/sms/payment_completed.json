@@ -1,0 +1,509 @@
+{
+  "shape": "payment_completed",
+  "messages": [
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-1",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 3.00 to MTN AIRTIME has been completed at 2024-04-13 15:46:23. Your new balance: GHS 7,771.25. Fee was GHS 0.00 Tax was GHS -. Reference: -. Financial Transaction Id: 90001000003. External Transaction Id: 90001000003.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1713023234366
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001000003",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 300,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 777125,
+          "counterpartyName": "MTN AIRTIME",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "-",
+          "occurredAt": {
+            "at": 1713023183000,
+            "source": "body"
+          },
+          "receivedAt": 1713023234366,
+          "androidId": "fx-payment_completed-1",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-2",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 14.00 to BANKPUSH has been completed at 2024-06-05 12:29:36. Your new balance: GHS 8,707.75. Fee was GHS 0.38 Tax was GHS -. Reference: LODIKE NUTENU SAGUMI,0200000003000,Sagumi. Financial Transaction Id: 90001641442. External Transaction Id: 90001641442.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1717590579406
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001641442",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1400,
+          "fee": 38,
+          "tax": 0,
+          "balanceAfter": 870775,
+          "counterpartyName": "BANKPUSH",
+          "merchantCode": null,
+          "counterpartyNumber": "0200000003000",
+          "reference": "LODIKE NUTENU SAGUMI,0200000003000,Sagumi",
+          "occurredAt": {
+            "at": 1717590576000,
+            "source": "body"
+          },
+          "receivedAt": 1717590579406,
+          "androidId": "fx-payment_completed-2",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-3",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to DIFAMI LODITE has been completed at 2024-06-08 13:17:27. Reference: bread. Your new balance: GHS 8,638.32. Fee was GHS 0.05 Tax charged: GHS0. Financial Transaction Id: 90001744389. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1717852665582
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001744389",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": 5,
+          "tax": 0,
+          "balanceAfter": 863832,
+          "counterpartyName": "DIFAMI LODITE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "bread",
+          "occurredAt": {
+            "at": 1717852647000,
+            "source": "body"
+          },
+          "receivedAt": 1717852665582,
+          "androidId": "fx-payment_completed-3",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-4",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 32.00 to DIFAMI LODITE has been completed at 2024-06-12 10:41:21. Reference: dinumi. Your new balance: GHS 8,350.86. Fee was GHS 0.16 Tax charged: GHS0. Financial Transaction Id: 90001839417. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1718188901902
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001839417",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 3200,
+          "fee": 16,
+          "tax": 0,
+          "balanceAfter": 835086,
+          "counterpartyName": "DIFAMI LODITE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "dinumi",
+          "occurredAt": {
+            "at": 1718188881000,
+            "source": "body"
+          },
+          "receivedAt": 1718188901902,
+          "androidId": "fx-payment_completed-4",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-5",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to FAFAMI SASAKE ENTERPRISE has been completed at 2024-06-16 15:12:46. Reference: soup. Your new balance: GHS 8,240.26. Fee was GHS 0.05 Tax charged: GHS0. Financial Transaction Id: 90001918607. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1718550772534
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001918607",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": 5,
+          "tax": 0,
+          "balanceAfter": 824026,
+          "counterpartyName": "FAFAMI SASAKE ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "soup",
+          "occurredAt": {
+            "at": 1718550766000,
+            "source": "body"
+          },
+          "receivedAt": 1718550772534,
+          "androidId": "fx-payment_completed-5",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-6",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 9.00 to FAFAMI SASAKE  ENTERPRISE has been completed at 2024-06-26 13:37:14. Reference: water. Your new balance: GHS 8,036.20. Fee was GHS 0.04 Tax charged: GHS0. Financial Transaction Id: 90002148258. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1719409081115
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002148258",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 900,
+          "fee": 4,
+          "tax": 0,
+          "balanceAfter": 803620,
+          "counterpartyName": "FAFAMI SASAKE ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "water",
+          "occurredAt": {
+            "at": 1719409034000,
+            "source": "body"
+          },
+          "receivedAt": 1719409081115,
+          "androidId": "fx-payment_completed-6",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-7",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 15.00 to BANKPUSH has been completed at 2024-07-07 13:39:52. Your new balance: GHS 7,948.01. Fee was GHS 0.38 Tax was GHS -. Reference: LODIKE NUTENU SAGUMI,0200000003000,Spotify. Financial Transaction Id: 90002377909. External Transaction Id: 90002377909.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1720359596319
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002377909",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1500,
+          "fee": 38,
+          "tax": 0,
+          "balanceAfter": 794801,
+          "counterpartyName": "BANKPUSH",
+          "merchantCode": null,
+          "counterpartyNumber": "0200000003000",
+          "reference": "LODIKE NUTENU SAGUMI,0200000003000,Spotify",
+          "occurredAt": {
+            "at": 1720359592000,
+            "source": "body"
+          },
+          "receivedAt": 1720359596319,
+          "androidId": "fx-payment_completed-7",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-8",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 20.00 to BAMISA SAMINU has been completed at 2024-07-19 22:33:05. Reference: rice. Your new balance: GHS 8,192.51. Fee was GHS 0.10 Tax charged: GHS0. Financial Transaction Id: 90002607560. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1721428392232
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002607560",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 2000,
+          "fee": 10,
+          "tax": 0,
+          "balanceAfter": 819251,
+          "counterpartyName": "BAMISA SAMINU",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "rice",
+          "occurredAt": {
+            "at": 1721428385000,
+            "source": "body"
+          },
+          "receivedAt": 1721428392232,
+          "androidId": "fx-payment_completed-8",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-9",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 8.00 to FAFAMI SASAKE  ENTERPRISE has been completed at 2025-02-02 15:53:00. Reference: milk. Your new balance: GHS 9,144.21. Fee was GHS 0.04 Tax charged: GHS0. Financial Transaction Id: 90005988973. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1738511584236
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90005988973",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 800,
+          "fee": 4,
+          "tax": 0,
+          "balanceAfter": 914421,
+          "counterpartyName": "FAFAMI SASAKE ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "milk",
+          "occurredAt": {
+            "at": 1738511580000,
+            "source": "body"
+          },
+          "receivedAt": 1738511584236,
+          "androidId": "fx-payment_completed-9",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-10",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 41.00 to DIFAMI LODITE has been completed at 2025-02-04 12:07:43. Reference: diminu vodike. Your new balance: GHS 8,953.94. Fee was GHS 0.20 Tax charged: GHS0. Financial Transaction Id: 90006028568. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1738670869676
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006028568",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 4100,
+          "fee": 20,
+          "tax": 0,
+          "balanceAfter": 895394,
+          "counterpartyName": "DIFAMI LODITE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "diminu vodike",
+          "occurredAt": {
+            "at": 1738670863000,
+            "source": "body"
+          },
+          "receivedAt": 1738670869676,
+          "androidId": "fx-payment_completed-10",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-11",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 11.00 to FAFAMI SASAKE  ENTERPRISE has been completed at 2025-02-11 22:30:04. Reference: lotete. Your new balance: GHS 8,642.14. Fee was GHS 0.05 Tax charged: GHS0.11. Financial Transaction Id: 90006163191. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1739313019030
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006163191",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1100,
+          "fee": 5,
+          "tax": 11,
+          "balanceAfter": 864214,
+          "counterpartyName": "FAFAMI SASAKE ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "lotete",
+          "occurredAt": {
+            "at": 1739313004000,
+            "source": "body"
+          },
+          "receivedAt": 1739313019030,
+          "androidId": "fx-payment_completed-11",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-12",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 7.50 to DIFAMI LODITE has been completed at 2025-02-14 19:12:11. Reference: egg. Your new balance: GHS 8,582.61. Fee was GHS 0.03 Tax charged: GHS0. Financial Transaction Id: 90006194867. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1739560367427
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006194867",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 750,
+          "fee": 3,
+          "tax": 0,
+          "balanceAfter": 858261,
+          "counterpartyName": "DIFAMI LODITE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "egg",
+          "occurredAt": {
+            "at": 1739560331000,
+            "source": "body"
+          },
+          "receivedAt": 1739560367427,
+          "androidId": "fx-payment_completed-12",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-13",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 40.00 to FAFAMI SASAKE ENTERPRISE has been completed at 2025-04-29 19:04:21. Reference: . Your new balance: GHS 8,353.26. Fee was GHS 0.20 Tax charged: GHS0. Financial Transaction Id: 90007541097. External Transaction Id: -.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1745953494397
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007541097",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 4000,
+          "fee": 20,
+          "tax": 0,
+          "balanceAfter": 835326,
+          "counterpartyName": "FAFAMI SASAKE ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1745953461000,
+            "source": "body"
+          },
+          "receivedAt": 1745953494397,
+          "androidId": "fx-payment_completed-13",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_completed-14",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 25.00 to TELECEL PUSH has been completed at 2025-06-20 18:44:55. Your new balance: GHS 8,249.38. Fee was GHS 0.38 Tax was GHS -. Reference: -. Financial Transaction Id: 90008317159. External Transaction Id: 90008317159.Download the MoMo App for a Faster & Easier Experience Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1750445097542
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90008317159",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 2500,
+          "fee": 38,
+          "tax": 0,
+          "balanceAfter": 824938,
+          "counterpartyName": "TELECEL PUSH",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "-",
+          "occurredAt": {
+            "at": 1750445095000,
+            "source": "body"
+          },
+          "receivedAt": 1750445097542,
+          "androidId": "fx-payment_completed-14",
+          "template": {
+            "name": "payment_completed",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

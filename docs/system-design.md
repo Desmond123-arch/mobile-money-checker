@@ -449,7 +449,7 @@ No keyset paging is needed now: the id list is cheap and bodies are read by id i
 | Native module | Manual on a real phone, plus an emulator inbox seeded from the anonymised fixtures with `adb shell content insert --uri content://sms/inbox --bind address:s:MobileMoney …` so restore, delete-newest and clock-skew cases can be scripted. Also install the release APK through a file manager on an Android 13+ phone (restricted settings) | M1 exit criterion |
 | UI | Minimal `jest-expo` render tests for the screens with logic (needs-reference list, cash-out sheet) | Not a gate for the POC |
 | Real-data check | A dev-only script runs the parser over a user-supplied XML export (the export has no `_id`, so the script assigns synthetic ids in file order and runs the messages through `Ledger.ingest` on `better-sqlite3`) and prints parse rate against messages with a transaction-id label, unparsed shapes, ignored counts and the reconciliation result | Target: ≥95% parse |
-| Fixtures | One fixture per layout variant, not per shape (two "Payment made" layouts, trailing promo text present or absent, failed, reversal, refund with lowercase `transaction ID`) | ≥5 per shape plus variants |
+| Fixtures | One fixture per layout variant, not per shape (two "Payment made" layouts, trailing promo text present or absent, failed, reversal with its lowercase `transaction ID`, refund) | ≥5 per shape plus variants |
 
 The domain package never imports `react-native` or `expo-*`, enforced by an ESLint `no-restricted-imports` rule. That is what keeps the fast tests possible.
 
