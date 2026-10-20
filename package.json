@@ -4,8 +4,10 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start --dev-client",
-    "android": "expo run:android",
+    "start": "expo start --dev-client --scheme momospend",
+    "start:go": "expo start --go --scheme momospend",
+    "android": "expo start --android --dev-client --scheme momospend",
+    "android:local": "expo run:android",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -14,7 +16,15 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test:ci",
     "prepare": "lefthook install",
     "test:ci": "jest --ci --coverage",
-    "e2e": "maestro test maestro"
+    "e2e": "maestro test maestro",
+    "doctor": "eas doctor",
+    "doctor:expo": "npx expo-doctor",
+    "build:dev": "eas build -p android --profile development",
+    "build:dev:local": "eas build --local -p android --profile development",
+    "build:preview": "eas build -p android --profile preview",
+    "build:prod": "eas build -p android --profile production",
+    "build:prod:local": "eas build --local -p android --profile production",
+    "submit:android": "eas submit -p android"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
@@ -23,6 +33,7 @@
     "expo": "~58.0.16",
     "expo-build-properties": "~58.0.11",
     "expo-constants": "~58.0.12",
+    "expo-dev-client": "~58.0.14",
     "expo-font": "~58.0.9",
     "expo-linking": "~58.0.13",
     "expo-router": "~58.0.24",
