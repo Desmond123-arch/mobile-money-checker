@@ -5,6 +5,8 @@ Usage: momo.py <command> [args]
   doctor                     read-only: adb device, Metro on 8081, Expo Go installed, foreground app
   texts                      print every visible text / content-desc, one per line
   has <text>                 exit 0 if the text is visible, 1 if not
+  tap-id <testID>            tap the element with that testID (Android resource-id)
+  has-id <testID>            exit 0 if an element with that testID is on screen
   tap <text>                 tap the element whose text or content-desc equals <text>
   tap-xy <x> <y>             tap raw pixels (last resort)
   type <text>                type into the focused field (spaces allowed)
@@ -64,6 +66,13 @@ def state(text):
     for n in dump().iter("node"):
         if (n.get("text") or n.get("content-desc")) == text:
             return {k: n.get(k) for k in ("checked", "selected", "enabled")}
+    return None
+
+
+def find_id(test_id):
+    for n in dump().iter("node"):
+        if n.get("resource-id") == test_id:
+            return center(n)
     return None
 
 
@@ -128,6 +137,13 @@ def main():
         if not xy:
             sys.exit(f"not visible: {args[0]}")
         tap_xy(*xy)
+    elif cmd == "tap-id":
+        xy = find_id(args[0])
+        if not xy:
+            sys.exit(f"no element with testID: {args[0]}")
+        tap_xy(*xy)
+    elif cmd == "has-id":
+        sys.exit(0 if find_id(args[0]) else 1)
     elif cmd == "tap-xy":
         tap_xy(args[0], args[1])
     elif cmd == "type":

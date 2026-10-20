@@ -23,6 +23,7 @@ If the user is already running Metro and the app, skip the launch and go to Doct
 
 Elements are found by accessibility text or content-description, never by coordinates.
 
+- `tap-id <testID>` and `has-id <testID>` use the element's `testID`, the same ids the Maestro flows use. Prefer them to text.
 - `tap "<text>"` taps the element whose text or label matches exactly. Tabs are labelled `Home`, `Transactions`, `Insights`, `Settings`.
 - `wait "<text>" [seconds]` blocks until that text is visible.
 - `has "<text>"` exits 0 when visible.

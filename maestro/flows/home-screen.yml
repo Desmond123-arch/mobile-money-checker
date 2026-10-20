@@ -1,0 +1,25 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- assertVisible:
+    id: 'homeSpentAmount'
+- assertVisible: 'Spent so far this month'
+- assertVisible:
+    id: 'dailyChart'
+- tapOn:
+    label: 'The needs-a-note card opens the add-note sheet'
+    id: 'needsNoteCard'
+- assertVisible:
+    id: 'addNoteSheet'
+- tapOn:
+    id: 'sheetScrim'
+- assertVisible:
+    id: 'homeScreen'
+- scrollUntilVisible:
+    element:
+      id: 'homeSeeInsightsLink'
+- tapOn:
+    label: 'See insights opens Insights'
+    id: 'homeSeeInsightsLink'
+- assertVisible:
+    id: 'insightsScreen'
