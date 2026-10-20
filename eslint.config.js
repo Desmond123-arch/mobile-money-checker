@@ -33,6 +33,25 @@ module.exports = [
     },
   },
   {
+    // Message bodies flow through here, so nothing may log; Expo stays behind two adapters.
+    files: ['src/backup/**/*.ts'],
+    ignores: ['src/backup/expoFileSource.ts', 'src/backup/pickBackupFile.ts'],
+    rules: {
+      'no-console': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-native', 'expo', 'expo-*'],
+              message: 'Only expoFileSource.ts and pickBackupFile.ts may import Expo.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['src/ledger/**/*.ts', 'src/scan/**/*.ts'],
     rules: { 'no-console': 'error' },
   },

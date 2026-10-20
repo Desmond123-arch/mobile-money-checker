@@ -8,6 +8,10 @@ export interface ByteSource {
   read(offset: number, length: number): Promise<Uint8Array>;
 }
 
+export interface DisposableSource extends ByteSource {
+  dispose(): void;
+}
+
 export interface BackupMessage {
   body: string;
   receivedAt: number;
@@ -21,10 +25,10 @@ export interface BackupProgress {
 }
 
 export interface ReadOptions {
-  signal?: AbortSignal;
-  onProgress?: (progress: BackupProgress) => void;
-  chunkSize?: number;
-  batchSize?: number;
+  signal?: AbortSignal | undefined;
+  onProgress?: ((progress: BackupProgress) => void) | undefined;
+  chunkSize?: number | undefined;
+  batchSize?: number | undefined;
 }
 
 export class BackupCancelledError extends Error {
