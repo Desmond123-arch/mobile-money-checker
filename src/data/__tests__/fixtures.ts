@@ -27,6 +27,7 @@ let seq = 0;
 export const addMessage = (db: Db, over: Row = {}) => {
   seq += 1;
   return insert(db, 'sms_messages', {
+    source: 'inbox',
     android_sms_id: seq,
     received_at: 1_000 + seq,
     sender: 'MobileMoney',
@@ -38,6 +39,15 @@ export const addMessage = (db: Db, over: Row = {}) => {
     ...over,
   });
 };
+
+export const addFragment = (db: Db, messageId: number, momoTxnId: string) =>
+  db
+    .run(
+      `INSERT INTO sms_fragments (message_id, momo_txn_id, flow, kind, amount_pesewas, occurred_at,
+         occurred_at_source, template_name, template_version) VALUES (?, ?, 'spend', 'payment_out', 1000, 1000, 'body', 't', 1)`,
+      [messageId, momoTxnId],
+    )
+    .then(() => messageId);
 
 export const addTxn = async (db: Db, over: Row = {}) => {
   seq += 1;

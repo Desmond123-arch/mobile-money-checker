@@ -1,4 +1,14 @@
-import { addLink, addMessage, addTxn, annotate, categoryId, month, setup, sum } from './fixtures';
+import {
+  addFragment,
+  addLink,
+  addMessage,
+  addTxn,
+  annotate,
+  categoryId,
+  month,
+  setup,
+  sum,
+} from './fixtures';
 
 const M = month(10);
 const IN_M = [M.start, M.end] as const;
@@ -111,6 +121,36 @@ describe('sms identity', () => {
     expect(reuse).not.toBe(old);
   });
 
+  it('identifies a backup message by backup_key and rejects a re-import', async () => {
+    const db = await setup();
+    const row = { source: 'backup', android_sms_id: null, backup_key: '5:TX1:payment_out' };
+    await addMessage(db, row);
+    await expect(addMessage(db, row)).rejects.toThrow(/UNIQUE/);
+    await expect(addMessage(db, { ...row, backup_key: '5:TX1:fee' })).resolves.toBeGreaterThan(0);
+  });
+
+  it('ties android_sms_id and backup_key to the source', async () => {
+    const db = await setup();
+    const backup = { source: 'backup', android_sms_id: null, backup_key: 'k' };
+    await expect(addMessage(db, { ...backup, android_sms_id: 7 })).rejects.toThrow(/CHECK/);
+    await expect(addMessage(db, { ...backup, backup_key: null })).rejects.toThrow(/CHECK/);
+    await expect(addMessage(db, { android_sms_id: null })).rejects.toThrow(/CHECK/);
+    await expect(addMessage(db, { backup_key: 'k' })).rejects.toThrow(/CHECK/);
+    await expect(addMessage(db, { ...backup, status: 'unparsed' })).rejects.toThrow(/CHECK/);
+    await expect(addMessage(db, { ...backup, gone_at: 3 })).rejects.toThrow(/CHECK/);
+  });
+
+  it('keeps backup identity immutable', async () => {
+    const db = await setup();
+    const id = await addMessage(db, { source: 'backup', android_sms_id: null, backup_key: 'k' });
+    await expect(
+      db.run(`UPDATE sms_messages SET backup_key = 'z' WHERE id = ?`, [id]),
+    ).rejects.toThrow(/immutable/);
+    await expect(db.run('DELETE FROM sms_messages WHERE id = ?', [id])).rejects.toThrow(
+      /never deleted/,
+    );
+  });
+
   it('keeps message identity immutable', async () => {
     const db = await setup();
     const id = await addMessage(db);
@@ -146,6 +186,26 @@ describe('sms identity', () => {
     await addTxn(db, { origin: 'manual', source_message_id: c });
     const ids = await db.all<{ id: number }>('SELECT id FROM unread_messages');
     expect(ids.map((r) => r.id)).toEqual([a]);
+  });
+
+  it('reports source_on_phone false when every fragment came from a backup', async () => {
+    const db = await setup();
+    const t = await addTxn(db, { momo_txn_id: 'TXB' });
+    const row = (id: number) =>
+      db.get<{ source_on_phone: number }>(
+        'SELECT source_on_phone FROM transaction_list WHERE id = ?',
+        [id],
+      );
+    const backup = await addMessage(db, {
+      source: 'backup',
+      android_sms_id: null,
+      backup_key: 'b',
+    });
+    await addFragment(db, backup, 'TXB');
+    expect((await row(t))!.source_on_phone).toBe(0);
+    const inbox = await addMessage(db);
+    await addFragment(db, inbox, 'TXB');
+    expect((await row(t))!.source_on_phone).toBe(1);
   });
 });
 

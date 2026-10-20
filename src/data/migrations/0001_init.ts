@@ -81,12 +81,22 @@ CREATE TABLE recipient_rules (
 ) STRICT;
 CREATE INDEX recipient_rules_category ON recipient_rules(category_id);
 
--- One row per inbox message identity. No message text, ever. Android can reuse the id of a
--- deleted newest SMS, so identity is (android_sms_id, received_at). Rows are never deleted: a
--- message that leaves the inbox gets gone_at, and a reused id gets a new row.
+-- One row per message identity. No message text, ever. Two sources:
+--   'inbox': read from the phone. Android can reuse the id of a deleted newest SMS, so identity is
+--     (android_sms_id, received_at). A message that leaves the inbox gets gone_at, and a reused id
+--     gets a new row.
+--   'backup': read from an SMS Backup & Restore file, which has no Android id. Identity is
+--     backup_key = '<received_at>:<momo_txn_id>:<template_name>', built by the importer from the
+--     parse result. The txn id alone is shared by every message of a payment, and the time alone
+--     can collide, so the key combines both plus the template that matched. Re-importing a
+--     backup hits the same keys and converges. Only parsed messages get a row (CHECK), because
+--     an unparsed or ignored one has no txn id to key on.
+-- Rows are never deleted.
 CREATE TABLE sms_messages (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  android_sms_id INTEGER NOT NULL CHECK (android_sms_id > 0),
+  source         TEXT NOT NULL CHECK (source IN ('inbox','backup')),
+  android_sms_id INTEGER CHECK (android_sms_id > 0),
+  backup_key     TEXT CHECK (length(backup_key) > 0),
   received_at    INTEGER NOT NULL,
   sender         TEXT NOT NULL,
   status         TEXT NOT NULL CHECK (status IN ('parsed','ignored','unparsed','error')),
@@ -96,8 +106,12 @@ CREATE TABLE sms_messages (
   parsed_at      INTEGER NOT NULL,
   gone_at        INTEGER,
   UNIQUE (android_sms_id, received_at),
+  CHECK ((source = 'inbox') = (android_sms_id IS NOT NULL)),
+  CHECK ((source = 'backup') = (backup_key IS NOT NULL)),
+  CHECK (source = 'inbox' OR (gone_at IS NULL AND status = 'parsed')),
   CHECK ((status IN ('ignored','error')) = (reason IS NOT NULL))
 ) STRICT;
+CREATE UNIQUE INDEX sms_messages_backup_key ON sms_messages(backup_key) WHERE backup_key IS NOT NULL;
 CREATE UNIQUE INDEX sms_messages_live_id ON sms_messages(android_sms_id) WHERE gone_at IS NULL;
 CREATE INDEX sms_messages_review ON sms_messages(status) WHERE status IN ('unparsed','error');
 
@@ -108,8 +122,9 @@ BEGIN
 END;
 
 CREATE TRIGGER sms_messages_identity_immutable
-BEFORE UPDATE OF android_sms_id, received_at ON sms_messages
-WHEN OLD.android_sms_id IS NOT NEW.android_sms_id OR OLD.received_at IS NOT NEW.received_at
+BEFORE UPDATE OF source, android_sms_id, backup_key, received_at ON sms_messages
+WHEN OLD.source IS NOT NEW.source OR OLD.android_sms_id IS NOT NEW.android_sms_id
+  OR OLD.backup_key IS NOT NEW.backup_key OR OLD.received_at IS NOT NEW.received_at
 BEGIN
   SELECT RAISE(ABORT, 'message identity is immutable; insert a new row');
 END;
@@ -329,7 +344,7 @@ SELECT t.id,
                WHERE r.original_txn_id = t.id)                      AS is_reversed,
        CASE WHEN t.origin = 'sms' THEN
          EXISTS (SELECT 1 FROM sms_fragments f
-                 JOIN sms_messages m ON m.id = f.message_id AND m.gone_at IS NULL
+                 JOIN sms_messages m ON m.id = f.message_id AND m.source = 'inbox' AND m.gone_at IS NULL
                  WHERE f.momo_txn_id = t.momo_txn_id) END           AS source_on_phone
 FROM transactions t
 JOIN transaction_category tc        ON tc.transaction_id = t.id
@@ -338,11 +353,12 @@ LEFT JOIN categories ca             ON ca.id = a.category_id
 LEFT JOIN reversal_links l          ON l.credit_txn_id = t.id
 WHERE t.retracted_at IS NULL;
 
--- "Messages we couldn't read": still on the phone, not parsed, not dismissed, not typed in by hand.
+-- "Messages we couldn't read": still in the inbox (backup rows are never unparsed), not parsed, not dismissed, not typed in by hand.
 CREATE VIEW unread_messages AS
 SELECT m.id, m.android_sms_id, m.received_at, m.status, m.reason
 FROM sms_messages m
 WHERE m.status IN ('unparsed','error')
+  AND m.source = 'inbox'
   AND m.gone_at IS NULL
   AND NOT EXISTS (SELECT 1 FROM message_dismissals d WHERE d.message_id = m.id)
   AND NOT EXISTS (SELECT 1 FROM transactions t WHERE t.source_message_id = m.id);
