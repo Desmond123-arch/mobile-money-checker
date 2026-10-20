@@ -1,4 +1,4 @@
-import { formatGhs, parseAmount, pesewas, totalDebited } from '../money';
+import { formatGhs, formatPlain, parseAmount, pesewas, splitGhs, totalDebited } from '../money';
 
 describe('parseAmount', () => {
   // Every format below appears in the real MoMo export (one-decimal and no-decimal amounts included).
@@ -102,5 +102,17 @@ describe('pesewas', () => {
   it('accepts zero and negative integers', () => {
     expect(pesewas(0)).toBe(0);
     expect(pesewas(-250)).toBe(-250);
+  });
+});
+
+describe('display helpers', () => {
+  it('formatPlain drops the currency and the sign', () => {
+    expect(formatPlain(pesewas(124050))).toBe('1,240.50');
+    expect(formatPlain(pesewas(-250))).toBe('2.50');
+  });
+
+  it('splitGhs separates the pesewas', () => {
+    expect(splitGhs(pesewas(124050))).toEqual({ whole: 'GHS 1,240', fraction: '.50' });
+    expect(splitGhs(pesewas(0))).toEqual({ whole: 'GHS 0', fraction: '.00' });
   });
 });

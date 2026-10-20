@@ -54,3 +54,15 @@ export function formatGhs(amount: Pesewas): string {
 export function totalDebited(amount: Pesewas, fee: Pesewas, tax: Pesewas): Pesewas {
   return pesewas(amount + fee + tax);
 }
+
+/** `1,240.50` without the currency, for rows where the currency is implied. */
+export function formatPlain(amount: Pesewas): string {
+  return formatGhs(amount).replace(/^-?GHS /, '');
+}
+
+/** `{ whole: 'GHS 1,240', fraction: '.50' }`, so the pesewas can be drawn in a lighter weight. */
+export function splitGhs(amount: Pesewas): { whole: string; fraction: string } {
+  const text = formatGhs(amount);
+  const dot = text.lastIndexOf('.');
+  return { whole: text.slice(0, dot), fraction: text.slice(dot) };
+}
