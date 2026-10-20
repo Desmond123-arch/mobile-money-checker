@@ -1,0 +1,20 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsUnreadRow'
+- tapOn:
+    id: 'settingsUnreadRow'
+- assertVisible:
+    id: 'unreadMessagesScreen'
+- assertVisible:
+    id: 'unreadMessage-u1'
+- assertVisible:
+    id: 'unreadAction-u2'
+- tapOn:
+    id: 'backBtn'
+- assertVisible:
+    id: 'settingsScreen'

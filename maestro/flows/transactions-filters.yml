@@ -1,0 +1,28 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarTransactionsBtn'
+- assertVisible:
+    id: 'transactionRow-t1'
+- tapOn:
+    label: 'In filter keeps money in only'
+    id: 'transactionsFilterIn'
+- assertVisible:
+    id: 'transactionRow-t4'
+- assertNotVisible:
+    id: 'transactionRow-t1'
+- tapOn:
+    label: 'Out filter hides money in'
+    id: 'transactionsFilterOut'
+- assertNotVisible:
+    id: 'transactionRow-t4'
+- tapOn:
+    id: 'transactionsFilterAll'
+- assertVisible:
+    id: 'transactionRow-t1'
+- tapOn:
+    label: 'A payment without a note offers Add a note'
+    id: 'addNoteLink-t5'
+- assertVisible:
+    id: 'addNoteSheet'

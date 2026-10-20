@@ -50,3 +50,9 @@ sms-*.xml
 /android
 /ios
 .claude/settings.local.json
+
+# test output
+coverage/
+
+# verification evidence
+artifacts/
