@@ -1,10 +1,25 @@
 name: ci
+
 on:
   push:
     branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # The git hooks are for developers; CI runs the same checks explicitly.
+  LEFTHOOK: '0'
+  EXPO_NO_TELEMETRY: '1'
+
 jobs:
-  check:
+  static:
+    name: Typecheck, lint and format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,4 +30,58 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
+      - run: npm run format:check
+
+  test:
+    name: Unit tests and coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Fails if any test fails or domain coverage drops below the thresholds in jest.config.js.
+      - run: npm run test:ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/lcov-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  expo:
+    name: Expo config and Android bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Validates app.json against the Expo schema and checks dependency versions against the SDK.
+      - run: npx expo-doctor
+      # Proves Metro, Babel and NativeWind compile the app. No device or emulator needed.
+      - run: npx expo export --platform android --output-dir "$RUNNER_TEMP/export"
+
+  commits:
+    name: Conventional Commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: >-
+          npx commitlint
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+          --verbose
