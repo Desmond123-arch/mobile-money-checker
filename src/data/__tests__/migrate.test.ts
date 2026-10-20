@@ -23,11 +23,14 @@ describe('migrate', () => {
       expect.arrayContaining([
         'categories',
         'keywords',
+        'message_dismissals',
         'meta',
         'name_lists',
-        'overrides',
         'recipient_rules',
-        'seen_messages',
+        'reversal_links',
+        'sms_fragments',
+        'sms_messages',
+        'transaction_annotations',
         'transactions',
       ]),
     );

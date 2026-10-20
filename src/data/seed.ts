@@ -1,46 +1,66 @@
 import { SEED_CATEGORIES } from '@/domain/category/seed';
 import type { Db } from './db';
 
-export const SEED_VERSION = 1;
+// Categories the migration already inserts (they are protected). UI `other` is the migration's misc row.
+const IN_MIGRATION: ReadonlySet<string> = new Set(['family', 'friends', 'income', 'other']);
 
-export interface SeedCategory {
-  systemKey: string;
-  name: string;
-  color: string;
-  tint: string;
+// Position in the UI list, so the migration's sort_order for family/friends/income and these agree.
+const SORT_STEP = 10;
+
+export interface SeedStep {
+  version: number;
+  categories: readonly {
+    systemKey: string;
+    name: string;
+    color: string;
+    tint: string;
+    sort: number;
+  }[];
 }
 
-// categorisation.md retires "Other" in favour of "Misc" and resolves rule 6 and the Paystack
-// default by system_key, so the UI's `other` becomes `misc` here. Every other UI id is already a valid key.
-const UI_ID_TO_SYSTEM_KEY: Readonly<Record<string, string>> = { other: 'misc' };
-const RENAMED: Readonly<Record<string, string>> = { misc: 'Misc' };
-
-// Cash is a system category the UI seed lacks: cash-outs stay in it until the user says what they were for.
-const CASH: SeedCategory = { systemKey: 'cash', name: 'Cash', color: '#5B6B7A', tint: '#E4E8EC' };
-
-export const SYSTEM_CATEGORIES: readonly SeedCategory[] = [
-  ...SEED_CATEGORIES.map((c) => {
-    const systemKey = UI_ID_TO_SYSTEM_KEY[c.id] ?? c.id;
-    return { systemKey, name: RENAMED[systemKey] ?? c.name, color: c.color, tint: c.tint };
-  }),
-  CASH,
+// A step lists only what version N introduced. Rows the user deleted are never re-added
+// because a step runs once, when meta.seed_version is below its version.
+export const SEED_STEPS: readonly SeedStep[] = [
+  {
+    version: 1,
+    categories: SEED_CATEGORIES.flatMap((c, i) =>
+      IN_MIGRATION.has(c.id)
+        ? []
+        : [
+            {
+              systemKey: c.id,
+              name: c.name,
+              color: c.color,
+              tint: c.tint,
+              sort: (i + 1) * SORT_STEP,
+            },
+          ],
+    ),
+  },
 ];
+
+export const SEED_VERSION = SEED_STEPS[SEED_STEPS.length - 1]!.version;
 
 export async function seedDatabase(db: Db, now: number = Date.now()): Promise<void> {
   await db.transaction(async (tx) => {
-    // ON CONFLICT(system_key) rather than OR IGNORE: a user category already named "Cash" must fail loudly, not silently drop the system row.
-    // Array order fixes `sort` and, on a fresh database, the integer ids, so they are stable across installs.
-    for (const [i, c] of SYSTEM_CATEGORIES.entries()) {
-      await tx.run(
-        `INSERT INTO categories (name, color, tint, system_key, is_system, sort, created_at)
-         VALUES (?, ?, ?, ?, 1, ?, ?)
-         ON CONFLICT(system_key) DO NOTHING`,
-        [c.name, c.color, c.tint, c.systemKey, i, now],
-      );
+    const row = await tx.get<{ value: string }>(
+      `SELECT value FROM meta WHERE key = 'seed_version'`,
+    );
+    const applied = row ? Number(row.value) : 0;
+    for (const step of SEED_STEPS.filter((s) => s.version > applied)) {
+      for (const c of step.categories) {
+        // ON CONFLICT(system_key), not OR IGNORE: a user category named "Food" must fail loudly on the name constraint.
+        await tx.run(
+          `INSERT INTO categories (system_key, name, color, tint, sort_order, seed_version, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(system_key) DO NOTHING`,
+          [c.systemKey, c.name, c.color, c.tint, c.sort, step.version, now, now],
+        );
+      }
     }
     await tx.run(
       `INSERT INTO meta (key, value) VALUES ('seed_version', ?)
-                  ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
       [String(SEED_VERSION)],
     );
   });
