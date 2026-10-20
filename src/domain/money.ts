@@ -1,10 +1,5 @@
-/**
- * Money is integer pesewas end to end (GHS 12.50 = 1250). Amounts are parsed from text with string
- * and integer arithmetic only, never through floating point.
- */
 export type Pesewas = number & { readonly __brand: 'Pesewas' };
 
-/** Wrap a number that must already be a safe integer. Throws on anything else (a bug, not user input). */
 export function pesewas(n: number): Pesewas {
   if (!Number.isSafeInteger(n)) {
     throw new RangeError(`Pesewas must be a safe integer, got ${n}`);
@@ -14,8 +9,6 @@ export function pesewas(n: number): Pesewas {
 
 const NUMBER = String.raw`(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d{1,2})?`;
 const CURRENCY = String.raw`GH[SC]`;
-// One number, with at most one currency token before it OR after it, and an optional sentence-final dot.
-// Spaces are only allowed around the currency token, never inside the number, so "10 20" is not 1020.
 const PREFIXED = new RegExp(String.raw`^${CURRENCY}\s*(${NUMBER})\.?$`, 'i');
 const SUFFIXED = new RegExp(String.raw`^(${NUMBER})\s*(?:${CURRENCY})?\.?$`, 'i');
 
@@ -50,17 +43,14 @@ export function formatGhs(amount: Pesewas): string {
   return `${negative ? '-' : ''}GHS ${whole}.${fraction}`;
 }
 
-/** What actually left the wallet: the amount plus the fee and tax charged on top of it. Never stored. */
 export function totalDebited(amount: Pesewas, fee: Pesewas, tax: Pesewas): Pesewas {
   return pesewas(amount + fee + tax);
 }
 
-/** `1,240.50` without the currency, for rows where the currency is implied. */
 export function formatPlain(amount: Pesewas): string {
   return formatGhs(amount).replace(/^-?GHS /, '');
 }
 
-/** `{ whole: 'GHS 1,240', fraction: '.50' }`, so the pesewas can be drawn in a lighter weight. */
 export function splitGhs(amount: Pesewas): { whole: string; fraction: string } {
   const text = formatGhs(amount);
   const dot = text.lastIndexOf('.');

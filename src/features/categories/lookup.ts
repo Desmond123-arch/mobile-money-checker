@@ -4,7 +4,6 @@ import type { IconName } from '@/ui';
 
 const BY_ID = new Map(SEED_CATEGORIES.map((c) => [c.id, c]));
 
-/** Until categories come from SQLite, screens resolve them from the seed. */
 export function categoryById(id: string | null): Category | null {
   return id === null ? null : (BY_ID.get(id) ?? null);
 }

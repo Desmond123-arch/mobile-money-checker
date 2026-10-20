@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
-/** Large screen title with an optional trailing control. */
 export function ScreenTitle({ title, trailing }: { title: string; trailing?: ReactNode }) {
   return (
     <View className="flex-row items-center justify-between px-5 pt-2">

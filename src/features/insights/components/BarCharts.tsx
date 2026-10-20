@@ -14,7 +14,6 @@ interface MonthBar {
 const WEEKDAY_MAX_HEIGHT = 92;
 const MONTH_MAX_HEIGHT = 114;
 
-/** The tallest bar is ink and carries its value; the rest are grey. */
 export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
   const max = Math.max(...days.map((d) => d.cedis));
   return (
@@ -71,7 +70,6 @@ export function Legend({ items }: { items: readonly { label: string; color: stri
   );
 }
 
-/** Paired out/in columns per month; the biggest month is highlighted yellow with an ink outline. */
 export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
   const max = Math.max(...months.flatMap((m) => [m.out, m.in]));
   const peak = Math.max(...months.map((m) => m.out));

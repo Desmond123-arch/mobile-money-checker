@@ -4,7 +4,6 @@ import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-nat
 import { hardShadow } from './hardShadow';
 import { Icon } from './Icon';
 
-/** Text input with the 2px border and hard shadow. */
 export function TextField(props: TextInputProps) {
   return (
     <TextInput
@@ -60,7 +59,6 @@ export function BackButton({ onPress }: { onPress: () => void }) {
   );
 }
 
-/** A quiet grey note: tips and "why this happens". */
 export function Hint({ title, children }: { title: string; children: string }) {
   return (
     <View className="gap-[6px] rounded-chip bg-[#F4F4F4] px-[14px] py-3">
@@ -95,7 +93,6 @@ export function SectionHeader({
   );
 }
 
-/** Small heading used inside a screen: "Category", "What was it for?". */
 export function SubHeading({ title, aside }: { title: string; aside?: string }) {
   return (
     <View className="flex-row items-baseline justify-between">

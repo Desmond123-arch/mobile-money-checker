@@ -8,14 +8,12 @@ import { categoryById, categoryIcon } from '@/features/categories';
 
 interface Props {
   row: Row;
-  /** Appended to the subtitle on Home ("Today"). */
   when?: string;
   padding?: 'py-3' | 'py-[14px]';
   onPress?: () => void;
   onAddNote?: () => void;
 }
 
-/** Icon disc, title and subtitle, amount in a fixed 80px lane so amounts align down the list. */
 export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote }: Props) {
   const category = categoryById(row.categoryId);
   const incoming = row.direction === 'in';

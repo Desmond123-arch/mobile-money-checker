@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/** A bottom sheet over a scrim. Presented by a transparent-modal route; the scrim dismisses it. */
 export function Sheet({ children, testID }: { children: ReactNode; testID?: string }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();

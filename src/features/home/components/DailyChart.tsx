@@ -11,7 +11,6 @@ interface Props {
   peakLabel: string | null;
 }
 
-/** One column per day. The biggest day is yellow, today is white, days still to come are faint. */
 export function DailyChart({ daily, today, peakLabel }: Props) {
   const max = Math.max(...daily, 0);
   const peakDay = max > 0 ? daily.indexOf(max as Pesewas) + 1 : 0;

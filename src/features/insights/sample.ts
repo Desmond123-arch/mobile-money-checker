@@ -1,4 +1,3 @@
-/** Average spend by weekday (whole cedis) and six months of money out and in. Stand-ins for the insights queries. */
 export const WEEKDAYS = [
   { label: 'Mon', cedis: 42 },
   { label: 'Tue', cedis: 36 },

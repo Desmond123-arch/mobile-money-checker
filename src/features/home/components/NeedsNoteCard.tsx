@@ -2,7 +2,6 @@ import { Pressable, Text, View } from 'react-native';
 
 import { Icon, hardShadow } from '@/ui';
 
-/** The yellow "What were these for?" prompt. Hidden by the screen when nothing needs a note. */
 export function NeedsNoteCard({ count, onPress }: { count: number; onPress: () => void }) {
   return (
     <Pressable

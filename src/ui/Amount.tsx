@@ -4,14 +4,11 @@ import { splitGhs, type Pesewas } from '@/domain/money';
 
 interface AmountProps {
   amount: Pesewas;
-  /** Prefix drawn before the currency: `−` or `+`. */
   sign?: string;
-  /** `inverse` is for the dark hero. */
   tone?: 'ink' | 'inverse';
   testID?: string;
 }
 
-/** The big number: whole cedis heavy, pesewas lighter (design.md 2). */
 export function Amount({ amount, sign = '', tone = 'ink', testID }: AmountProps) {
   const { whole, fraction } = splitGhs(amount);
   return (

@@ -15,7 +15,6 @@ interface ButtonProps {
   onPress?: () => void;
   variant?: Variant;
   size?: 'lg' | 'md';
-  /** Fill the width (the default for sheet and screen actions). */
   block?: boolean;
   testID?: string;
 }

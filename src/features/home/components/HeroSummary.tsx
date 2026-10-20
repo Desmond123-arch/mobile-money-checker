@@ -9,11 +9,9 @@ interface HeroProps {
   monthLabel: string;
   spent: Pesewas;
   delta?: { label: string; compare: string };
-  /** Chart, totals row, anything below the headline number. */
   children?: ReactNode;
 }
 
-/** The dark hero: month pill, the month's spend, and whatever the screen puts under it. */
 export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
   const insets = useSafeAreaInsets();
   return (

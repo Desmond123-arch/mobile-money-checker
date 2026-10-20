@@ -5,7 +5,6 @@ import { categoryShares, type CategorySpend } from '@/domain/category/share';
 
 import { categoryById } from '../lookup';
 
-/** The stacked share bar. Segments are flex-weighted by amount. */
 export function ShareBar({ spend }: { spend: readonly CategorySpend[] }) {
   const shares = categoryShares(spend);
   return (
@@ -30,7 +29,6 @@ export function ShareBar({ spend }: { spend: readonly CategorySpend[] }) {
   );
 }
 
-/** One legend row per category: swatch, name, percent, amount in fixed lanes. */
 export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[]; limit?: number }) {
   const rows = categoryShares(spend).slice(0, limit);
   return (

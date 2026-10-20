@@ -6,11 +6,9 @@ export interface CategorySpend {
 }
 
 export interface CategoryShare extends CategorySpend {
-  /** Whole percent of the total, rounded to nearest. */
   percent: number;
 }
 
-/** Largest first, each with its whole-percent share of the total. */
 export function categoryShares(spend: readonly CategorySpend[]): CategoryShare[] {
   const total = spend.reduce((sum, s) => sum + s.amount, 0);
   if (total === 0) return [];

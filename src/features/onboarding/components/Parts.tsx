@@ -3,7 +3,6 @@ import { Text, View } from 'react-native';
 
 import { hardShadow, Icon, type IconName } from '@/ui';
 
-/** The big icon tile at the top of the permission screens. */
 export function IconTile({ icon, tone }: { icon: IconName; tone: 'signal' | 'warn' }) {
   const warn = tone === 'warn';
   return (
@@ -28,7 +27,6 @@ export function Lede({ children }: { children: string }) {
   return <Text className="font-inter text-[17px] leading-[26px] text-muted">{children}</Text>;
 }
 
-/** Hairline-ruled list: `lead` is the check or step number. */
 export function RuledList({
   items,
   lead,

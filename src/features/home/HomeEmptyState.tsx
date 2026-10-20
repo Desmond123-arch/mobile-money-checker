@@ -5,7 +5,6 @@ import { Button, Screen, TAB_BAR_CLEARANCE } from '@/ui';
 
 import { HeroSummary } from './components/HeroSummary';
 
-/** Nothing parsed yet: a flat hero with ghost columns and a prompt to check for messages. */
 export function HomeEmptyState({ month }: { month: MonthSummary }) {
   return (
     <Screen testID="homeEmptyState" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>

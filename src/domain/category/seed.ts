@@ -1,6 +1,5 @@
 import type { Category } from './category';
 
-/** Categories a fresh install starts with. Ids double as system keys, so renames never break rules. */
 export const SEED_CATEGORIES: readonly Category[] = [
   { id: 'food', name: 'Food', color: '#2A78D6', tint: '#D9E8FA' },
   { id: 'rent', name: 'Rent & Bills', color: '#EB6834', tint: '#FBE2D6' },
@@ -15,7 +14,6 @@ export const SEED_CATEGORIES: readonly Category[] = [
   { id: 'other', name: 'Other', color: '#9A9A9A', tint: '#EDEDED' },
 ];
 
-/** Swatches offered when creating a category. */
 export const CATEGORY_SWATCHES = [
   '#6250D6',
   '#2A78D6',

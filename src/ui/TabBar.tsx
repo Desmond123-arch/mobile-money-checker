@@ -15,7 +15,6 @@ const TABS: Record<string, { testID: string; label: string; icon: IconName }> = 
   settings: { testID: 'tabBarSettingsBtn', label: 'Settings', icon: 'gear' },
 };
 
-/** The floating black bar: the active tab is a yellow pill with a label, the rest are icons. */
 export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
   const insets = useSafeAreaInsets();
   return (

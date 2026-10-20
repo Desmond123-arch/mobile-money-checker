@@ -7,12 +7,10 @@ interface CategoryChipProps {
   color: string;
   selected?: boolean;
   onPress?: () => void;
-  /** `lg` is the sheet size, `md` the inline size. */
   size?: 'lg' | 'md';
   testID?: string;
 }
 
-/** A category picker chip: 2px ink border, no shadow (design.md 4.1). */
 export function CategoryChip({
   label,
   color,
@@ -41,7 +39,6 @@ export function CategoryChip({
   );
 }
 
-/** A removable word or name, tinted by the category it belongs to. */
 export function WordChip({
   label,
   tint,
@@ -72,7 +69,6 @@ export function WordChip({
   );
 }
 
-/** Dashed chip: "add", "more", "show all". */
 export function DashedChip({
   label,
   icon = false,
@@ -97,7 +93,6 @@ export function DashedChip({
   );
 }
 
-/** A solid outlined suggestion with a leading plus. */
 export function SuggestionChip({
   label,
   onPress,
@@ -120,7 +115,6 @@ export function SuggestionChip({
   );
 }
 
-/** Pill filter used on the Transactions screen. */
 export function FilterPill({
   label,
   active = false,

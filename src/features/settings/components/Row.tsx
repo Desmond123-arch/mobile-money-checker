@@ -6,9 +6,7 @@ import { Icon } from '@/ui';
 interface RowProps {
   title: string;
   subtitle?: string;
-  /** A swatch on the left (category rows). */
   swatch?: string;
-  /** Muted text before the chevron ("64 words"). */
   aside?: string | undefined;
   trailing?: ReactNode;
   chevron?: boolean;
@@ -17,7 +15,6 @@ interface RowProps {
   testID?: string;
 }
 
-/** A hairline-separated settings row. Rows own their top border; the last one also closes the list. */
 export function Row({
   title,
   subtitle,

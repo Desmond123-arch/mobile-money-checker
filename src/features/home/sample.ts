@@ -14,7 +14,6 @@ export const SAMPLE_MONTH: MonthSummary = {
   needNote: 3,
   today: 20,
   daysInMonth: 31,
-  /** Whole-cedi spend per day, day 1 first. Days after today are zero. */
   peakLabel: 'Fri 9 Oct, GHS 260.00',
   daily: [
     51, 38, 10, 65, 171, 19, 35, 46, 260, 30, 24, 10, 111, 41, 27, 149, 35, 60, 46, 27, 0, 0, 0, 0,

@@ -1,7 +1,6 @@
 import { formatGhs, formatPlain, parseAmount, pesewas, splitGhs, totalDebited } from '../money';
 
 describe('parseAmount', () => {
-  // Every format below appears in the real MoMo export (one-decimal and no-decimal amounts included).
   it.each([
     ['GHS 103.00', 10300],
     ['GHS3.00', 300],
@@ -34,7 +33,6 @@ describe('parseAmount', () => {
     ['1,24'],
     ['1,2345.00'],
     ['99999999999999999999'],
-    // Adjacent or repeated amounts must never be glued together into one (found by CodeRabbit).
     ['GHS 10 GHS 20'],
     ['GHS 10 GHS'],
     ['GHS10GHS'],
@@ -42,7 +40,6 @@ describe('parseAmount', () => {
     ['10 20'],
     ['1 000'],
     ['GHS 10 20'],
-    // Only one optional sentence-final dot is allowed.
     ['GHS 10..'],
     ['10.00..'],
   ])('returns null for %j', (text) => {
@@ -72,14 +69,13 @@ describe('formatGhs', () => {
 
 describe('parseAmount and formatGhs round trip', () => {
   it('returns the same pesewas for many amounts, with and without the currency prefix', () => {
-    // Deterministic pseudo-random sequence (LCG) so a failure is reproducible.
     let seed = 12345;
     const next = () => {
       seed = (seed * 1664525 + 1013904223) % 4294967296;
       return seed;
     };
     for (let i = 0; i < 2000; i += 1) {
-      const value = next() % 100_000_000; // up to GHS 1,000,000.00
+      const value = next() % 100_000_000;
       const text = formatGhs(pesewas(value));
       expect(parseAmount(text)).toBe(value);
       expect(parseAmount(text.replace('GHS ', ''))).toBe(value);
