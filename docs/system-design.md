@@ -70,7 +70,7 @@ B keeps the pure, replayable parser of the log-based idea without storing any me
 
 ```
 momo-spend/
-  app/                         expo-router: (tabs)/index, transactions, insights, settings; transaction/[id]; category/[id]; modals
+  src/app/                     expo-router (the Expo template keeps routes under src/app): (tabs)/index, transactions, insights, settings; transaction/[id]; category/[id]; modals
   modules/momo-sms/            local Expo module
     android/src/main/java/.../MomoSmsModule.kt
     src/index.ts               typed JS surface (section 8)
