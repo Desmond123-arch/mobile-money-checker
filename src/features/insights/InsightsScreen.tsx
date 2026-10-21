@@ -19,6 +19,7 @@ import {
 
 import { Legend, MonthlyChart } from './components/BarCharts';
 import { Notice } from './components/Notice';
+import { AllTimeView } from './AllTimeView';
 import { YearView } from './YearView';
 import { useDaySpend, useMonthlyFlows, useWeekdayAverage } from './useInsights';
 
@@ -32,9 +33,11 @@ export function InsightsScreen() {
   const label =
     scope.kind === 'year'
       ? String(scope.year)
-      : period.kind === 'day'
-        ? shortDate(period.iso)
-        : month.label;
+      : scope.kind === 'all'
+        ? 'All time'
+        : period.kind === 'day'
+          ? shortDate(period.iso)
+          : month.label;
   const heading = flows ? trendHeading(flows) : null;
 
   return (
@@ -51,13 +54,11 @@ export function InsightsScreen() {
         }
       />
 
-      {scope.kind === 'year' ? (
+      {scope.kind === 'year' || scope.kind === 'all' ? (
         <View className="px-5 pt-9">
-          <YearView year={scope.year} />
+          {scope.kind === 'year' ? <YearView year={scope.year} /> : <AllTimeView />}
         </View>
-      ) : null}
-
-      {scope.kind === 'year' ? null : (
+      ) : (
         <View testID="insightsWhereItWent" className="px-5 pt-9">
           {period.kind === 'month' ? (
             <MonthContent monthId={month.id} monthLabel={month.label} />
@@ -71,7 +72,7 @@ export function InsightsScreen() {
         </View>
       )}
 
-      {scope.kind !== 'year' && flows && heading ? (
+      {(scope.kind === 'day' || scope.kind === 'month') && flows && heading ? (
         <View className="gap-1 px-5 pt-10">
           <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">
             {heading.title}
