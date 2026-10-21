@@ -16,6 +16,13 @@ export { cashOutPrompts, needsNoteCount, needsNoteList } from './needsNote';
 export { monthFacts, monthSummary } from './summary';
 export { allTimeSummary, yearsWithData, yearSummary } from './years';
 export {
+  activeDays,
+  biggestPayment,
+  topCounterparties,
+  weekdayTotals,
+  wrappedFacts,
+} from './wrapped';
+export {
   listTransactions,
   paymentCount,
   recentPayments,

@@ -4,6 +4,7 @@ import { readBackupMessages } from '@/backup/readBackup';
 import { dayRange, monthRange } from '@/domain/calendar/month';
 import { ALL_TIME, yearRange } from '@/domain/calendar/year';
 import { spanLabel } from '@/domain/summary/year';
+import { buildWrapped, type WrappedSlide } from '@/domain/summary/wrapped';
 import { finishImport } from '@/ledger/finishImport';
 import { ingest } from '@/ledger/ingest';
 
@@ -21,6 +22,8 @@ import {
   paymentCount,
   recentPayments,
   transactionDetail,
+  topCounterparties,
+  wrappedFacts,
   weekdayAverage,
 } from '../queries';
 import { setup } from './fixtures';
@@ -114,6 +117,43 @@ run('read queries on the real export', () => {
     expect(allTime.lastMonthId).toBe(latest.monthId);
     const everything = await categorySpend(db, ALL_TIME);
     expect(everything.reduce((a, c) => a + c.amount, 0)).toBe(allTime.spent);
+
+    expect(years.find((y) => y.year === 2025)?.out).toBe(3_065_554);
+    expect(allTime.spent).toBe(5_671_551);
+    expect(spanLabel(allTime.firstMonthId!, allTime.lastMonthId!)).toBe('Apr 2024 to Jun 2026');
+    for (const scope of [{ kind: 'year', year: 2025 }, { kind: 'all' }] as const) {
+      const facts = await wrappedFacts(db, scope);
+      const range = scope.kind === 'year' ? yearRange(2025) : ALL_TIME;
+      const slides = buildWrapped(facts);
+      const find = <K extends WrappedSlide['kind']>(kind: K) =>
+        slides.find((s): s is Extract<WrappedSlide, { kind: K }> => s.kind === kind);
+      const insights = scope.kind === 'year' ? await yearSummary(db, 2025) : allTime;
+      expect(find('total')?.big.amount).toBe(insights.spent);
+      expect(facts.payments).toBe(insights.payments);
+      expect(facts.weekdays.reduce((a, d) => a + d, 0)).toBe(insights.spent);
+      expect(facts.categories.reduce((a, c) => a + c.amount, 0)).toBe(insights.spent);
+      expect(facts.months.reduce((a, m) => a + m.out, 0)).toBe(insights.spent);
+      const bySpend = await topCounterparties(db, range, 5, 'spent');
+      const byCount = await topCounterparties(db, range, 5, 'count');
+      expect(bySpend.reduce((a, c) => a + c.spent, 0)).toBeLessThanOrEqual(insights.spent);
+      expect(byCount.reduce((a, c) => a + c.spent, 0)).toBeLessThanOrEqual(insights.spent);
+      expect(facts.topBySpend?.spent).toBeLessThanOrEqual(insights.spent);
+      expect(facts.biggest?.amount).toBeLessThanOrEqual(insights.spent);
+      expect(facts.days.active).toBeLessThanOrEqual(facts.days.span);
+      expect(slides.map((s) => s.line).join(' ')).not.toMatch(/Merchant|\b\d{6,}\b/);
+      expect(find('person')?.line).toBeDefined();
+      expect(find('busiest')?.big.text).toBe(scope.kind === 'year' ? 'November' : '2025');
+      process.stdout.write(
+        `\nwrapped ${scope.kind}: slides=${slides.map((s) => s.kind).join(',')}` +
+          ` out=${ghs(facts.spent)} in=${ghs(facts.moneyIn)} payments=${facts.payments}` +
+          ` topCategory=${find('category')?.big.value}% biggest=${ghs(facts.biggest?.amount ?? 0)}` +
+          ` topBySpend=${ghs(facts.topBySpend?.spent ?? 0)}x${facts.topBySpend?.count}` +
+          ` topByCount=${facts.topByCount?.count}x(${ghs(facts.topByCount?.spent ?? 0)})` +
+          ` perDay=${ghs(find('daily')?.big.amount ?? 0)} span=${facts.days.span}` +
+          ` active=${facts.days.active} quiet=${facts.days.span - facts.days.active}` +
+          ` weekdaySun0=${facts.weekdays.map(ghs).join('/')}\n`,
+      );
+    }
 
     process.stdout.write(
       `\nreal export years\n` +
