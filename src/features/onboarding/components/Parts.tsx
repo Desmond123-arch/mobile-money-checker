@@ -37,10 +37,7 @@ export function RuledList({
   return (
     <View>
       {items.map((text, i) => (
-        <View
-          key={text}
-          className={`flex-row items-start gap-[14px] border-t border-hairline py-[14px] ${i === items.length - 1 ? 'border-b' : ''}`}
-        >
+        <View key={text} className="flex-row items-start gap-[14px] py-[14px]">
           {lead(i)}
           <Text className="flex-1 font-inter text-body leading-6 text-ink">{text}</Text>
         </View>

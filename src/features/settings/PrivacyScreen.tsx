@@ -54,11 +54,8 @@ export function PrivacyScreen() {
           <Text className="pb-2 font-tight-extrabold text-[22px] leading-[29px] tracking-[-0.01em] text-ink">
             {section.title}
           </Text>
-          {section.points.map((point, i) => (
-            <View
-              key={point}
-              className={`border-t border-hairline py-[14px] ${i === section.points.length - 1 ? 'border-b' : ''}`}
-            >
+          {section.points.map((point) => (
+            <View key={point} className="py-[14px]">
               <Text className="font-inter text-body leading-6 text-ink">{point}</Text>
             </View>
           ))}

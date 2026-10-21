@@ -119,7 +119,6 @@ export function SettingsScreen() {
             testID="settingsMoreCategoriesRow"
             title={showAll ? 'Show fewer' : `${hidden.length} more without words`}
             chevron={false}
-            last
             trailing={
               <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
             }
@@ -195,7 +194,6 @@ export function SettingsScreen() {
           testID="settingsPrivacyRow"
           title="Privacy"
           subtitle="Everything stays on this phone"
-          last
           onPress={() => router.push('/privacy')}
         />
       </View>

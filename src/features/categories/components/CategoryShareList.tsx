@@ -35,13 +35,13 @@ export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[];
   const rows = categoryShares(spend).slice(0, limit);
   return (
     <View className="pt-2">
-      {rows.map((s, i) => {
+      {rows.map((s) => {
         const category = categoryById(s.categoryId);
         return (
           <View
             key={s.categoryId}
             testID={`legendRow-${s.categoryId}`}
-            className={`flex-row items-center gap-3 py-3 ${i < rows.length - 1 ? 'border-b border-hairline' : ''}`}
+            className="flex-row items-center gap-3 py-3"
           >
             <View
               className="size-3 rounded-[3px]"

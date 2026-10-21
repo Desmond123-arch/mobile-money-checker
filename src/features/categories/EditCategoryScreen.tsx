@@ -185,7 +185,7 @@ export function EditCategoryScreen() {
           testID="deleteCategoryBtn"
           onPress={confirmDelete}
           accessibilityRole="button"
-          className="mx-5 mt-10 items-center border-t border-hairline p-[14px]"
+          className="mx-5 mt-10 items-center p-[14px]"
         >
           <Text className="font-inter-semibold text-[15px] leading-[20px] text-warn">
             Delete this category

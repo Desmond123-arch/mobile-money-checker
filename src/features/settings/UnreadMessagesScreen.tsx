@@ -54,12 +54,8 @@ export function UnreadMessagesScreen() {
         </Text>
       </View>
       <View className="px-5 pt-7">
-        {list.map((m, i) => (
-          <View
-            key={m.id}
-            testID={`unreadMessage-${m.id}`}
-            className={`gap-[10px] border-t border-hairline py-[18px] ${i === list.length - 1 ? 'border-b' : ''}`}
-          >
+        {list.map((m) => (
+          <View key={m.id} testID={`unreadMessage-${m.id}`} className="gap-[10px] py-[18px]">
             <View className="flex-row justify-between">
               <Text className="font-inter-bold text-caption text-ink">
                 {occurredAtLabel(m.receivedAt, false, today)}

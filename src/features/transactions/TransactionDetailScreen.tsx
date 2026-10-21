@@ -25,7 +25,7 @@ import { useTransactionDetail } from './useTransactions';
 
 function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between border-t border-hairline py-3">
+    <View className="flex-row justify-between py-3">
       <Text className="font-inter text-body leading-[21px] text-muted">{label}</Text>
       <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
         {value}
@@ -186,7 +186,7 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
         testID="detailOriginalMessageToggle"
         accessibilityRole="button"
         onPress={() => setShowOriginal((v) => !v)}
-        className="mx-5 mt-8 flex-row items-center justify-between border-y border-hairline py-4"
+        className="mx-5 mt-8 flex-row items-center justify-between rounded-[14px] bg-hairline px-4 py-4"
       >
         <Text className="font-inter-semibold text-body leading-[21px] text-ink">
           Original message
