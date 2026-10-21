@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is written and tested against a fake module, but its Kotlin has never been compiled or run (section 5, "Live SMS reading"). What is still a stand-in is small: "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is compiled and has run on the emulator, but not on a real phone (section 5, "Live SMS reading"). What is still a stand-in is small: "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
 
 ## 2. Real versus stand-in
 
@@ -108,7 +108,7 @@ Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, `s
 
 ### Live SMS reading (milestone M1)
 
-**State: written and unit-tested against a fake; the Kotlin has never been compiled, and nothing has run on a phone.** The lead runs an EAS dev build (`npm run build:dev`) to compile it. Do not call this verified until the manual list below passes.
+**State: compiled and run on the Android emulator, not yet on a real phone.** The Kotlin compiled in an EAS dev build on 21 Oct 2026. On the emulator, with the inbox seeded through the emulator console (`adb emu sms send MobileMoney "<text>"`; direct `content insert` into the SMS provider is silently refused unless the app is the default SMS app, and the console cannot set the received time), these worked: the permission dialog, a scan of the seeded inbox, a new payment ingested about 1 s after arrival, two layouts of one payment merged into a single transaction, a GHS 10,000.00 amount, and an OTP (`<#>`) and a message from another sender staying out. The checks that need a real phone are still open in the manual list below (Android 13+ restricted settings from a sideloaded APK, id reuse after a restore, the hidden-sender toggle on MIUI, Tecno and Infinix phones). Do not call this verified until that list passes.
 
 What is real, in the JS and SQL that Node can run:
 
