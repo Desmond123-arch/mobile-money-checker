@@ -125,15 +125,18 @@ export async function transactionDetail(
   if (r === null) return null;
   const { row } = mapRow(r);
   const approximate = r.occurred_at_source === 'received';
+  const reversed = r.is_reversed === 1;
+  const reversesId = r.reverses_txn_id === null ? null : String(r.reverses_txn_id);
+  const kind = r.origin === 'manual' ? 'Added by you.' : kindLabel(r.kind);
   return {
     ...row,
     occurredAtLabel: occurredAtLabel(r.occurred_at, approximate, today),
     timeApproximate: approximate,
-    kindLabel: r.origin === 'manual' ? 'Added by you.' : kindLabel(r.kind),
+    kindLabel: `${kind}${reversed ? ' It was reversed.' : ''}${reversesId ? ' It reverses an earlier payment.' : ''}`,
     balanceAfter: r.balance_after_pesewas === null ? null : pesewas(r.balance_after_pesewas),
     noteSource: r.note_source,
     originalMessage: null,
-    reversed: r.is_reversed === 1,
-    reversesId: r.reverses_txn_id === null ? null : String(r.reverses_txn_id),
+    reversed,
+    reversesId,
   };
 }

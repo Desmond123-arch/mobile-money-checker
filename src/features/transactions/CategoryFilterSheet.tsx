@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { SEED_CATEGORIES } from '@/domain/category/seed';
+import { useCategories } from '@/features/categories';
 import { CategoryChip, Sheet, SheetTitle } from '@/ui';
 
 import { useTransactionFilter } from './filterContext';
@@ -10,6 +10,7 @@ export function CategoryFilterSheet() {
   const router = useRouter();
   const { goTo } = useLocalSearchParams<{ goTo?: string }>();
   const { categoryId, setCategoryId } = useTransactionFilter();
+  const categories = useCategories();
 
   const choose = (id: string | null) => {
     setCategoryId(id);
@@ -29,7 +30,7 @@ export function CategoryFilterSheet() {
           selected={categoryId === null}
           onPress={() => choose(null)}
         />
-        {SEED_CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <CategoryChip
             key={c.id}
             testID={`categoryFilter-${c.id}`}

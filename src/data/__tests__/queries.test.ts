@@ -244,7 +244,7 @@ describe('read queries', () => {
       note: 'paracetamol',
       noteSource: 'sms',
       balanceAfter: 41184,
-      kindLabel: 'Paid to a merchant.',
+      kindLabel: 'Paid to a merchant. It was reversed.',
       occurredAtLabel: 'Sat 3 Oct · 12:00',
       timeApproximate: false,
       reversed: true,
@@ -261,6 +261,7 @@ describe('read queries', () => {
     expect(refund).toMatchObject({
       reversed: false,
       reversesId: String(ids.pharmacy),
+      kindLabel: 'A refund. It reverses an earlier payment.',
       counterparty: 'Refund',
       direction: 'in',
     });

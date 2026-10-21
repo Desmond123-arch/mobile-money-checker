@@ -1,9 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { SEED_CATEGORIES } from '@/domain/category/seed';
 import { formatGhs } from '@/domain/money';
+import type { TransactionDetail } from '@/domain/transaction/transaction';
 import {
   Amount,
   BackButton,
@@ -17,11 +17,12 @@ import {
   Toggle,
 } from '@/ui';
 
-import { categoryIcon, categoryById } from '@/features/categories';
+import { categoryIcon, categoryById, useCategories } from '@/features/categories';
+import { useExpenses } from '@/features/expenses';
+import { detailOfAdded } from '@/features/expenses/merge';
+import { useToday } from '@/features/period';
 
-import { SAMPLE_DETAIL } from './sample';
-
-const VISIBLE_CATEGORIES = SEED_CATEGORIES.slice(0, 5);
+import { useTransactionDetail } from './useTransactions';
 
 function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
@@ -35,8 +36,40 @@ function BreakdownRow({ label, value }: { label: string; value: string }) {
 }
 
 export function TransactionDetailScreen() {
+  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const today = useToday();
+  const { added } = useExpenses();
+  const stored = useTransactionDetail(id);
+  const mine = added.find((a) => a.row.id === id);
+  const tx = mine ? detailOfAdded(mine, today) : stored;
+
+  if (tx === undefined) return <Screen testID="detailLoading">{null}</Screen>;
+  if (tx === null) return <DetailNotFound />;
+  return <DetailBody key={tx.id} tx={tx} />;
+}
+
+function DetailNotFound() {
   const router = useRouter();
-  const tx = SAMPLE_DETAIL;
+  return (
+    <Screen testID="detailNotFound">
+      <View className="px-5 pt-2">
+        <BackButton onPress={() => router.back()} />
+      </View>
+      <View className="items-start gap-2 px-5 pt-8">
+        <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">
+          We could not find that payment.
+        </Text>
+        <Text className="font-inter text-body leading-6 text-muted">
+          It may have been removed. Go back and pick another.
+        </Text>
+      </View>
+    </Screen>
+  );
+}
+
+function DetailBody({ tx }: { tx: TransactionDetail }) {
+  const router = useRouter();
+  const categories = useCategories();
   const [categoryId, setCategoryId] = useState(tx.categoryId);
   const [note, setNote] = useState(tx.note ?? '');
   const [alwaysTag, setAlwaysTag] = useState(true);
@@ -64,7 +97,7 @@ export function TransactionDetailScreen() {
             {tx.counterparty}
           </Text>
         </View>
-        <Amount testID="detailAmount" amount={tx.amount} sign="−" />
+        <Amount testID="detailAmount" amount={tx.amount} sign={tx.direction === 'in' ? '+' : '−'} />
         <Text className="font-inter text-[14px] leading-5 text-muted">{tx.kindLabel}</Text>
       </View>
 
@@ -78,7 +111,13 @@ export function TransactionDetailScreen() {
       <View className="gap-[10px] px-5 pt-8">
         <SubHeading
           title="What was it for?"
-          aside={tx.noteSource === 'sms' ? 'From the SMS' : 'Entered by you'}
+          aside={
+            tx.noteSource === 'sms'
+              ? 'From the SMS'
+              : tx.noteSource === 'user'
+                ? 'Entered by you'
+                : ''
+          }
         />
         <TextField
           testID="detailNoteInput"
@@ -91,7 +130,7 @@ export function TransactionDetailScreen() {
       <View className="gap-3 px-5 pt-8">
         <SubHeading title="Category" aside="Picked from your note" />
         <View className="flex-row flex-wrap gap-2">
-          {VISIBLE_CATEGORIES.map((c) => (
+          {categories.slice(0, 5).map((c) => (
             <CategoryChip
               key={c.id}
               testID={`detailCategory-${c.id}`}
@@ -101,7 +140,7 @@ export function TransactionDetailScreen() {
               onPress={() => setCategoryId(c.id)}
             />
           ))}
-          <DashedChip testID="detailAllCategoriesBtn" label={`All ${SEED_CATEGORIES.length}`} />
+          <DashedChip testID="detailAllCategoriesBtn" label={`All ${categories.length}`} />
         </View>
         <View className="flex-row items-center gap-3 pt-4">
           <Toggle
@@ -132,7 +171,7 @@ export function TransactionDetailScreen() {
           testID="detailOriginalMessage"
           className="mx-5 pt-3 font-inter text-[14px] leading-5 text-muted"
         >
-          {tx.originalMessage}
+          {tx.originalMessage ?? 'The original message is not kept in this app.'}
         </Text>
       ) : null}
 
