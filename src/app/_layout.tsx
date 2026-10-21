@@ -16,13 +16,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
 
-import { DbProvider } from '@/features/app';
+import { DbProvider, FirstRunGate } from '@/features/app';
 import { ExpensesProvider } from '@/features/expenses';
 import { PeriodProvider } from '@/features/period';
 import { TransactionFilterProvider } from '@/features/transactions';
 
+// The splash stays up until FirstRunGate (or the database error screen) has decided the landing.
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -37,10 +37,6 @@ export default function RootLayout() {
     InterTight_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (loaded || error) void SplashScreen.hideAsync();
-  }, [loaded, error]);
-
   if (!loaded && !error) return null;
 
   return (
@@ -49,6 +45,7 @@ export default function RootLayout() {
         <ExpensesProvider>
           <TransactionFilterProvider>
             <StatusBar style="dark" />
+            <FirstRunGate />
             <Stack
               screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
             >
