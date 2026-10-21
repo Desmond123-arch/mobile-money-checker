@@ -20,10 +20,11 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Months list | Real. `monthsWithData` plus the current month, `useMonthOptions` and `PeriodProvider` in `src/features/period`. `MONTH_OPTIONS` and `CURRENT_MONTH` are gone | Keep |
 | Insights | Real. `monthlyFlows` (six months), `daySpend`, `weekdayAverage` (the "not happened yet" average), hooks in `src/features/insights/useInsights.ts`. The weekday bar chart stays gone (design 8.5) | Keep |
 | Categories | Real. `listCategories` feeds `useCategories` and `categoryById` (`src/features/categories/lookup.ts`); the seed is only the fallback before the first read. The add-expense, cash-out, add-note and detail pickers still list `SEED_CATEGORIES` (piece 4b) | Move those pickers to `useCategories()` |
-| Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view |
+| Categoriser | Real. `src/domain/categorise` (pure) and `src/ledger/categorise.ts` (loads the config, calls it) | Keep |
+| Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view; after any edit call `recategorise(db)` |
 | "Today" | Device clock via `useToday()` (UTC dates) | Keep |
 | Permission, importing | Real for a picked backup file: progress, payments found, then an "Import complete" summary and a Home button. The "Allow SMS access" path is still sample | Wire "Allow SMS access" to the `momo-sms` module and scan |
-| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue. Category is a placeholder (`categoryStub.ts`, section 5) | The categoriser piece replaces `resolveCategoryStub` |
+| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue. Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
 
@@ -53,7 +54,7 @@ These hold user input in memory only. They reset on reload.
 
 - `db.ts` defines the async `Db` interface (`exec`, `run`, `all`, `get`, `transaction`) and `openDatabase(name?)`, the only file that imports `expo-sqlite`. `transaction` is exclusive and a nested call joins the open one.
 - `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0002_*.ts` and append it to `migrations/index.ts`. Every table is STRICT, and triggers go through `execAsync` like any other statement.
-- `0001_init` inserts the five protected categories (family, friends, income, cash, misc). `seedDatabase(db)` adds the other UI categories (`system_key` is the UI id; UI `other` is the Misc row) once per seed version and is safe to call on every launch. It seeds no keywords.
+- `0001_init` inserts the five protected categories (family, friends, income, cash, misc). `seedDatabase(db)` adds the other UI categories (`system_key` is the UI id; UI `other` is the Misc row) once per seed version and is safe to call on every launch. Seed step 2 adds six categories (`electronics`, `entertainment`, `personalcare`, `giving`, `savings`, `services`) and the seed keywords (`origin = 'seed'`, aliases `is_alias = 1`), and sets `sort_order` of the keyword categories to the priority in `docs/categorisation.md` (200 and up). Keywords are inserted once per seed version, so a deleted word never returns; a word the user already added keeps its owner. UI `other` is still in `SEED_CATEGORIES` because samples use it; it maps to Misc and goes when the screens read the database.
 - Tests run in plain Node against `node:sqlite` through `src/data/__tests__/nodeDb.ts`, which implements `Db`.
 
 Reading the data: totals come from the view `ledger_lines` (one SUM each for spend, income and fees; refunds and reversals are already netted), lists and detail from `transaction_list`. Both expose the effective category: the user's tag, else the categoriser's, else Misc. Writers: the ledger writes `sms_*`, SMS `transactions` and `auto_category_*`; the user's tag, note and snooze go only in `transaction_annotations`.
@@ -75,7 +76,9 @@ Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, `s
 - **Settings entry.** The More section has "Import a backup file" (`settingsImportBackupRow`). It opens `/sheets/import-steps` and the same import as first run. Its subtitle is "Last imported <date>" from `meta.last_import_at` (set on every finished import; falls back to `first_import_at`), else the hint text. Re-importing is safe because ingest is idempotent.
 - **Reset to a fresh install:** `adb shell pm clear com.momospend.app` (dev build). Under Expo Go use `host.exp.exponent`. The next launch lands on Permission.
 - **Maestro:** a fresh launch lands on Permission, so `maestro/setupApp.yml` runs `flows/_skipOnboarding.yml` (taps `permissionNotNowBtn` when visible). `first-run-gate.yml` and `settings-import-row.yml` are new and, like all flows, never run.
-- Placeholders in the ledger: `resolveCategoryStub` (cash out is Cash, incoming is Income, everything else Misc, source `default`) in `src/ledger/categoryStub.ts` is the single seam the categoriser replaces; `is_self_transfer` is always 0; `reference_clean` is never set, so a transaction's note is empty until the categoriser cleans `sms_reference`.
+- **Categoriser in the ledger.** `categorise(facts, ctx)` in `src/ledger/categorise.ts` is the only seam. `loadCategoriserContext(tx)` reads categories, keywords, `name_lists`, `recipient_rules` and `meta.owner_number` / `owner_name` once per ingest batch. `ingest` writes `auto_category_id`, `auto_category_source`, `reference_clean` (the note, original case kept) and `is_self_transfer`. `recategorise(db)` (queued, one transaction) and `recategoriseIn(tx)` (for callers already in the queue, as `finishImport` is) overwrite those four columns for every SMS row and never touch `transaction_annotations`. Call `recategorise` after any edit to keywords, names, rules or categories. The manual tag is rule 1 of the contract but lives in the annotation, so `resolveCategory(facts, config)` has no manual argument.
+- Matching details that differ from a literal reading of the spec: incoming money and cash-outs skip the reference and go to Income and Cash, but a recipient rule (scoped by `applies_to`) still applies to them; refunds and reversals are Misc (their effective category comes from the original through `ledger_lines`); a priority tie between categories is broken by `categories.sort_order`, so a new user category must get a `sort_order` after the seeded ones (200 and up), not the default 0.
+- Family and friends name lists start empty, so no transaction is Family or Friends until the user adds names. Add names, then call `recategorise`.
 - "Allow SMS access" still goes to Importing with no scan behind it, so the screen shows labelled sample numbers (`importSampleNote`).
 - The real export (2,488 messages) gives 1,913 parsed, 575 ignored, 0 unparsed, 0 errors, 1,640 transactions (1,328 payments) and 6 reversal links. The optional test `src/ledger/__tests__/realFile.test.ts` checks this when `/mnt/c/Users/Desmond Opoku Mends/Downloads/sms-20260621002856.xml` exists and prints monthly totals; it never prints message text.
 - Only `expoFileSource.ts` and `pickBackupFile.ts` may import Expo inside `src/backup` (ESLint enforces it, and bans `console` there because message bodies flow through).
@@ -102,7 +105,7 @@ Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` 
 
 Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
 
-Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), the rest of `src/ledger` (recategorise, reparse, `deleteCategory`), `src/scan`.
+Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), the rest of `src/ledger` (reparse, `deleteCategory`), `src/scan`.
 
 ### The SMS parser
 
@@ -114,7 +117,7 @@ Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), 
 - `linkReversals(txns, existing)` returns only new links, each with `ambiguous`. Run it over all unlinked credits in `finishScan`. On the sample export it links all 6 (3 ambiguous). It never touches a link you pass in `existing`, so pass the user's links too.
 - `reconcileBalances` is a check, not part of ingest. `npm run check:sms -- <export.xml>` prints parse rate, unparsed shapes (redacted), merge conflicts, reversal links and reconciliation, with no message text.
 - `PARSER_VERSION` (in `parse/types.ts`) is 1. Bump it with any template change so `meta.parser_version` triggers a re-parse.
-- `reference` is the raw text with only the sentence-final dot removed; `-` stays. `resolveCategory` does the cleaning. A `name ,233XXXXXXXXX,note` reference also fills `counterpartyNumber`.
+- `reference` is the raw text with only the sentence-final dot removed; `-` stays. `cleanReference` in `src/domain/categorise/reference.ts` does the cleaning. A `name ,233XXXXXXXXX,note` reference also fills `counterpartyNumber`.
 - `Merchant NNNNNN` goes to `merchantCode` and leaves `counterpartyName` null.
 - Fixtures are in `fixtures/sms` (see its README). Regenerate them with `npm run anonymise:sms -- <export.xml>` then `npx prettier --write fixtures`. The script also writes `.local/sms-denylist.txt` (ignored by version control); the fixtures test uses it when present.
 - `scripts/lib/smsXml.ts` reads an SMS Backup & Restore file without a dependency. It handles single-quoted attributes (the exporter uses them for a body containing a double quote); the backup importer needs the same.
@@ -143,6 +146,7 @@ Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), 
 
 ## 7. Checking your work
 
+- `npm run check:categories -- <export.xml>` ingests an export in memory and prints the category split and redacted skeletons of unmatched references (counts only).
 - `npm run check` runs typecheck, lint, format and the Jest suite with the 95% domain coverage gate.
 - `.claude/skills/verify-momo-spend` drives the app on an adb emulator through Expo Go and reads `testID`s as resource-ids. Prefer `tap-id` and `has-id`.
 - Every element a flow or test touches gets a camelCase `testID`; naming is in `maestro/README.md`.

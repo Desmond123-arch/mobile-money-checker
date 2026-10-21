@@ -5,6 +5,8 @@ export type MetaKey =
   | 'first_import_at'
   | 'last_import_at'
   | 'onboarding_choice'
+  | 'owner_name'
+  | 'owner_number'
   | 'parser_version'
   | 'seed_version';
 

@@ -161,13 +161,13 @@ describe('ledger totals and reversals', () => {
     });
   });
 
-  it('applies the category stub: cash out is cash, incoming is income, the rest misc', async () => {
+  it('categorises: built-in rules, cash out is cash, incoming is income, a reversal is misc', async () => {
     await ingest(db, BATCH, NOW);
     const rows = await db.all<{ momo_txn_id: string; key: string; source: string }>(
       `SELECT t.momo_txn_id, c.system_key AS key, t.auto_category_source AS source
        FROM transactions t JOIN categories c ON c.id = t.auto_category_id ORDER BY t.momo_txn_id`,
     );
-    expect(rows.map((r) => r.key)).toEqual(['misc', 'cash', 'misc', 'income', 'misc']);
+    expect(rows.map((r) => r.key)).toEqual(['airtime', 'cash', 'airtime', 'income', 'misc']);
     expect(new Set(rows.map((r) => r.source))).toEqual(new Set(['default']));
   });
 });

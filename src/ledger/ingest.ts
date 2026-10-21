@@ -4,7 +4,7 @@ import { parseSms } from '@/domain/parse/parse';
 import { PARSER_VERSION, type MessageKind, type ParsedFragment } from '@/domain/parse/types';
 import type { Pesewas } from '@/domain/money';
 
-import { resolveCategoryStub } from './categoryStub';
+import { categorise, loadCategoriserContext, type CategoriserContext } from './categorise';
 
 export interface IngestItem {
   source: 'backup' | 'inbox';
@@ -127,32 +127,35 @@ async function upsertMessage(
   return row!.id;
 }
 
-async function categoryIds(tx: Db): Promise<Map<string, number>> {
-  const rows = await tx.all<{ id: number; system_key: string }>(
-    `SELECT id, system_key FROM categories WHERE system_key IN ('cash','income','misc')`,
-  );
-  return new Map(rows.map((r) => [r.system_key, r.id]));
-}
-
 async function upsertTransaction(
   tx: Db,
   m: MergedTxn,
-  categories: Map<string, number>,
+  ctx: CategoriserContext,
   now: number,
 ): Promise<void> {
-  const auto = resolveCategoryStub(m.kind);
+  const auto = categorise(
+    {
+      kind: m.kind,
+      counterpartyName: m.counterpartyName,
+      counterpartyNumber: m.counterpartyNumber,
+      merchantCode: m.merchantCode,
+      reference: m.reference,
+    },
+    ctx,
+  );
   await tx.run(
     `INSERT INTO transactions (origin, momo_txn_id, flow, kind, amount_pesewas, fee_pesewas, tax_pesewas,
        balance_after_pesewas, counterparty_name, merchant_code, counterparty_number, sms_reference,
-       auto_category_id, auto_category_source, is_self_transfer, has_conflict, occurred_at,
-       occurred_at_source, created_at, updated_at)
-     VALUES ('sms', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
+       reference_clean, auto_category_id, auto_category_source, is_self_transfer, has_conflict,
+       occurred_at, occurred_at_source, created_at, updated_at)
+     VALUES ('sms', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(momo_txn_id) DO UPDATE SET
        flow = excluded.flow, kind = excluded.kind, amount_pesewas = excluded.amount_pesewas,
        fee_pesewas = excluded.fee_pesewas, tax_pesewas = excluded.tax_pesewas,
        balance_after_pesewas = excluded.balance_after_pesewas,
        counterparty_name = excluded.counterparty_name, merchant_code = excluded.merchant_code,
        counterparty_number = excluded.counterparty_number, sms_reference = excluded.sms_reference,
+       reference_clean = excluded.reference_clean, is_self_transfer = excluded.is_self_transfer,
        auto_category_id = excluded.auto_category_id,
        auto_category_source = excluded.auto_category_source,
        has_conflict = excluded.has_conflict, occurred_at = excluded.occurred_at,
@@ -170,8 +173,10 @@ async function upsertTransaction(
       m.merchantCode,
       m.counterpartyNumber,
       m.reference,
-      categories.get(auto.systemKey)!,
+      auto.referenceClean,
+      auto.categoryId,
       auto.source,
+      auto.isSelfTransfer ? 1 : 0,
       m.hasConflict ? 1 : 0,
       m.occurredAt.at,
       m.occurredAt.source,
@@ -185,7 +190,7 @@ async function upsertTransaction(
 async function refold(
   tx: Db,
   momoTxnId: string,
-  categories: Map<string, number>,
+  ctx: CategoriserContext,
   now: number,
 ): Promise<boolean> {
   const rows = await tx.all<FragmentRow>(
@@ -201,14 +206,14 @@ async function refold(
     );
     return false;
   }
-  await upsertTransaction(tx, mergeAll(rows.map(toFragment)), categories, now);
+  await upsertTransaction(tx, mergeAll(rows.map(toFragment)), ctx, now);
   return true;
 }
 
 async function ingestOne(
   tx: Db,
   item: IngestItem,
-  categories: Map<string, number>,
+  ctx: CategoriserContext,
   now: number,
   touched: Map<string, Flow>,
   tally: IngestCounts,
@@ -243,7 +248,7 @@ async function ingestOne(
     );
     if (old) {
       await tx.run('DELETE FROM sms_fragments WHERE message_id = ?', [id]);
-      await refold(tx, old.momo_txn_id, categories, now);
+      await refold(tx, old.momo_txn_id, ctx, now);
     }
     return;
   }
@@ -290,9 +295,9 @@ async function ingestOne(
       f.template.version,
     ],
   );
-  await refold(tx, f.momoTxnId, categories, now);
+  await refold(tx, f.momoTxnId, ctx, now);
   if (previous && previous.momo_txn_id !== f.momoTxnId) {
-    await refold(tx, previous.momo_txn_id, categories, now);
+    await refold(tx, previous.momo_txn_id, ctx, now);
   }
   // Last, so a message that fails above never counts as a written transaction.
   touched.set(f.momoTxnId, FLOW[f.kind]);
@@ -313,12 +318,12 @@ export async function ingest(
   };
   const touched = new Map<string, Flow>();
   await db.transaction(async (tx) => {
-    const categories = await categoryIds(tx);
+    const ctx = await loadCategoriserContext(tx);
     for (const item of batch) {
       const before = { ...tally };
       await tx.exec('SAVEPOINT msg');
       try {
-        await ingestOne(tx, item, categories, now, touched, tally);
+        await ingestOne(tx, item, ctx, now, touched, tally);
         await tx.exec('RELEASE msg');
       } catch {
         await tx.exec('ROLLBACK TO msg');
