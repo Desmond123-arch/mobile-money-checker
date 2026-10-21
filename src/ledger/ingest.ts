@@ -90,7 +90,7 @@ function toFragment(r: FragmentRow): ParsedFragment {
 async function upsertMessage(
   tx: Db,
   item: IngestItem,
-  status: 'parsed' | 'ignored' | 'unparsed',
+  status: 'parsed' | 'ignored' | 'unparsed' | 'error',
   reason: string | null,
   backupKey: string | null,
   now: number,
@@ -303,6 +303,19 @@ async function ingestOne(
   touched.set(f.momoTxnId, FLOW[f.kind]);
 }
 
+// An inbox message that threw is stored as an error row, so "Messages we couldn't read" lists it
+// and the scan does not re-read it on every run. A failure here only loses that row.
+async function recordError(tx: Db, item: IngestItem, now: number): Promise<void> {
+  await tx.exec('SAVEPOINT err');
+  try {
+    await upsertMessage(tx, item, 'error', 'error:ingest', null, now);
+    await tx.exec('RELEASE err');
+  } catch {
+    await tx.exec('ROLLBACK TO err');
+    await tx.exec('RELEASE err');
+  }
+}
+
 export async function ingest(
   db: Db,
   batch: readonly IngestItem[],
@@ -329,6 +342,7 @@ export async function ingest(
         await tx.exec('ROLLBACK TO msg');
         await tx.exec('RELEASE msg');
         Object.assign(tally, before, { errors: before.errors + 1 });
+        if (item.source === 'inbox') await recordError(tx, item, now);
       }
     }
   });

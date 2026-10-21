@@ -15,25 +15,28 @@ declare class NativeMomoSms extends NativeModule<Events> {
   stopInboxObserver(): void;
 }
 
-const native = requireNativeModule<NativeMomoSms>('MomoSms');
+// Resolved on first call, so importing this file in a build without the native module (Expo Go)
+// does not throw at startup.
+let loaded: NativeMomoSms | null = null;
+const native = (): NativeMomoSms => (loaded ??= requireNativeModule<NativeMomoSms>('MomoSms'));
 
 let listeners = 0;
 
 export const momoSms: MomoSmsApi = {
-  getPermissionStatus: () => native.getPermissionStatus(),
-  requestPermission: () => native.requestPermission(),
-  listMomoMessageIds: () => native.listMomoMessageIds(),
-  readMessagesByIds: (ids) => native.readMessagesByIds(ids),
+  getPermissionStatus: () => native().getPermissionStatus(),
+  requestPermission: () => native().requestPermission(),
+  listMomoMessageIds: () => native().listMomoMessageIds(),
+  readMessagesByIds: (ids) => native().readMessagesByIds(ids),
   addInboxChangedListener(onChange) {
-    const subscription = native.addListener('onInboxChanged', onChange);
-    if (listeners++ === 0) native.startInboxObserver();
+    const subscription = native().addListener('onInboxChanged', onChange);
+    if (listeners++ === 0) native().startInboxObserver();
     let removed = false;
     return {
       remove() {
         if (removed) return;
         removed = true;
         subscription.remove();
-        if (--listeners === 0) native.stopInboxObserver();
+        if (--listeners === 0) native().stopInboxObserver();
       },
     };
   },
