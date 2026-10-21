@@ -2,10 +2,15 @@ import { closeSync, existsSync, openSync, readSync, statSync } from 'node:fs';
 
 import { readBackupMessages } from '@/backup/readBackup';
 import { dayRange, monthRange } from '@/domain/calendar/month';
+import { ALL_TIME, yearRange } from '@/domain/calendar/year';
+import { spanLabel } from '@/domain/summary/year';
 import { finishImport } from '@/ledger/finishImport';
 import { ingest } from '@/ledger/ingest';
 
 import {
+  allTimeSummary,
+  yearSummary,
+  yearsWithData,
   categorySpend,
   daySpend,
   listTransactions,
@@ -83,6 +88,40 @@ run('read queries on the real export', () => {
     expect(dayRange(peakIso).end - dayRange(peakIso).start).toBe(86_400_000);
 
     const ghs = (p: number) => (p / 100).toFixed(2);
+
+    const years = await yearsWithData(db);
+    const allTime = await allTimeSummary(db);
+    for (const y of years) {
+      const inYear = months.filter((m) => m.monthId.startsWith(String(y.year)));
+      expect(y.out).toBe(inYear.reduce((a, m) => a + m.spent, 0));
+      expect(y.in).toBe(inYear.reduce((a, m) => a + m.moneyIn, 0));
+      const s = await yearSummary(db, y.year);
+      expect(s.spent).toBe(y.out);
+      expect(s.moneyIn).toBe(y.in);
+      expect(s.payments).toBe(await paymentCount(db, yearRange(y.year)));
+      const byCategory = await categorySpend(db, yearRange(y.year));
+      expect(byCategory.reduce((a, c) => a + c.amount, 0)).toBe(y.out);
+    }
+    expect(allTime.spent).toBe(years.reduce((a, y) => a + y.out, 0));
+    expect(allTime.moneyIn).toBe(years.reduce((a, y) => a + y.in, 0));
+    expect(allTime.payments).toBe(
+      (await Promise.all(years.map((y) => paymentCount(db, yearRange(y.year))))).reduce(
+        (a, n) => a + n,
+        0,
+      ),
+    );
+    expect(allTime.firstMonthId).toBe(months[0]!.monthId);
+    expect(allTime.lastMonthId).toBe(latest.monthId);
+    const everything = await categorySpend(db, ALL_TIME);
+    expect(everything.reduce((a, c) => a + c.amount, 0)).toBe(allTime.spent);
+
+    process.stdout.write(
+      `\nreal export years\n` +
+        years.map((y) => `${y.year} out=${ghs(y.out)} in=${ghs(y.in)}`).join('\n') +
+        `\nall time ${spanLabel(allTime.firstMonthId!, allTime.lastMonthId!)}: out=${ghs(allTime.spent)}` +
+        ` in=${ghs(allTime.moneyIn)} payments=${allTime.payments}` +
+        ` busiestYear=${allTime.busiestYear?.year} busiestMonth=${allTime.busiestMonth?.monthId}\n`,
+    );
     process.stdout.write(
       `\nreal export read queries\n` +
         months.map((m) => `${m.monthId} spent=${ghs(m.spent)} in=${ghs(m.moneyIn)}`).join('\n') +
