@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formatGhs } from '@/domain/money';
+import { formatGhs, formatPlain, pesewas } from '@/domain/money';
 import type { TransactionDetail } from '@/domain/transaction/transaction';
 import {
   Amount,
@@ -14,6 +14,7 @@ import {
   Screen,
   SubHeading,
   TextField,
+  TextLink,
   Toggle,
 } from '@/ui';
 
@@ -21,6 +22,7 @@ import { useWrite } from '@/features/app';
 import { categoryIcon, categoryById, useCategories } from '@/features/categories';
 import { editTransaction } from '@/ledger/transactionEdit';
 
+import { useCashOutBreakdown } from './useCashAllocations';
 import { useTransactionDetail } from './useTransactions';
 
 function BreakdownRow({ label, value }: { label: string; value: string }) {
@@ -72,6 +74,7 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
   const [alwaysTag, setAlwaysTag] = useState(true);
   const [showOriginal, setShowOriginal] = useState(false);
   const category = categoryById(categoryId);
+  const cash = useCashOutBreakdown(tx.id);
 
   const initialNote = tx.note ?? '';
   const noteChanged = note.trim() !== initialNote;
@@ -128,6 +131,51 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
           <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
         ) : null}
       </View>
+
+      {cash ? (
+        <View testID="detailCashSection" className="gap-3 px-5 pt-8">
+          <SubHeading
+            title="Where the cash went"
+            aside={cash.left > 0 ? `${formatGhs(pesewas(cash.left))} left` : 'All accounted for'}
+          />
+          {cash.allocations.length === 0 ? (
+            <Text className="font-inter text-[14px] leading-5 text-muted">
+              Break the withdrawal down into what you spent it on, a bit at a time.
+            </Text>
+          ) : (
+            <View testID="detailCashList">
+              {cash.allocations.map((entry) => (
+                <View key={entry.id} className="flex-row justify-between gap-3 py-2">
+                  <Text
+                    numberOfLines={1}
+                    className="min-w-0 flex-1 font-inter text-body leading-[21px] text-ink"
+                  >
+                    {[categoryById(entry.categoryId)?.name ?? 'Other', entry.note]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                  <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
+                    {formatPlain(pesewas(entry.amount))}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <Button
+            testID="detailCashAllocBtn"
+            variant="outline"
+            label={cash.allocations.length === 0 ? 'Break it down' : 'Edit the breakdown'}
+            onPress={() => router.push(`/sheets/cash-allocations?id=${tx.id}`)}
+          />
+          {cash.allocations.length === 0 && tx.categoryId === 'cash' && tx.noteSource !== 'user' ? (
+            <TextLink
+              testID="detailCashOutLink"
+              label="Or say what it was for"
+              onPress={() => router.push(`/sheets/cash-out?id=${tx.id}`)}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       <View className="gap-[10px] px-5 pt-8">
         <SubHeading

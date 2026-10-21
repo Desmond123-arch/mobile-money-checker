@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { formatPlain } from '@/domain/money';
+import { formatPlain, pesewas } from '@/domain/money';
 import { groupByDay } from '@/domain/transaction/day';
 import { categoryById, useCategories } from '@/features/categories';
 import { usePeriod, useToday } from '@/features/period';
@@ -18,6 +18,7 @@ import {
 
 import { TransactionRow } from './components/TransactionRow';
 import { useTransactionFilter } from './filterContext';
+import { useCashOutLefts } from './useCashAllocations';
 import { useCashOutPrompts } from './useCashOutPrompts';
 import { useTransactions } from './useTransactions';
 
@@ -49,6 +50,15 @@ export function TransactionsScreen() {
     search: query,
   });
   const asking = new Set((useCashOutPrompts(month.id) ?? []).map((p) => p.row.id));
+  const lefts = useCashOutLefts(month.id);
+  const breakDownFor = (id: string) => {
+    const info = lefts?.get(id);
+    if (!info || info.left === 0 || !(asking.has(id) || info.allocated > 0)) return undefined;
+    return {
+      left: pesewas(info.left),
+      onPress: () => router.push(`/sheets/cash-allocations?id=${id}`),
+    };
+  };
   const days = groupByDay(rows ?? [], today);
 
   const toggleSearch = () => {
@@ -153,11 +163,7 @@ export function TransactionsScreen() {
                   row={row}
                   onPress={() => router.push(`/transaction/${row.id}`)}
                   onAddNote={() => router.push(`/sheets/add-note?id=${row.id}`)}
-                  onCashOut={
-                    asking.has(row.id)
-                      ? () => router.push(`/sheets/cash-out?id=${row.id}`)
-                      : undefined
-                  }
+                  breakDown={breakDownFor(row.id)}
                 />
               ))}
             </View>

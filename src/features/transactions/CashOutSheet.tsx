@@ -108,6 +108,11 @@ function CashOutForm({ target }: { target: NoteTarget }) {
       />
       <View className="items-center">
         <TextLink
+          testID="cashOutSplitLink"
+          label="Split it up"
+          onPress={() => router.replace(`/sheets/cash-allocations?id=${target.id}`)}
+        />
+        <TextLink
           testID="cashOutAskLaterLink"
           label="Ask me later"
           onPress={() => void askLater()}

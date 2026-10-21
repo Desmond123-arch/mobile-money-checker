@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { formatPlain } from '@/domain/money';
+import { formatGhs, formatPlain, type Pesewas } from '@/domain/money';
 import type { TransactionRow as Row } from '@/domain/transaction/transaction';
 import { Icon } from '@/ui';
 
@@ -12,7 +12,8 @@ interface Props {
   padding?: 'py-3' | 'py-[14px]';
   onPress?: () => void;
   onAddNote?: () => void;
-  onCashOut?: (() => void) | undefined;
+  /** A cash-out with something left to break down: opens the allocations sheet. */
+  breakDown?: { left: Pesewas; onPress: () => void } | undefined;
 }
 
 export function TransactionRow({
@@ -21,7 +22,7 @@ export function TransactionRow({
   padding = 'py-3',
   onPress,
   onAddNote,
-  onCashOut,
+  breakDown,
 }: Props) {
   useCategories();
   const category = categoryById(row.categoryId);
@@ -33,9 +34,9 @@ export function TransactionRow({
     !row.manual &&
     (row.categoryId === null || row.categoryId === 'other');
 
-  // The caller passes `onCashOut` only for a cash-out whose prompt is live (`cashOutPrompts`):
-  // unanswered, after the first import and not snoozed.
-  const asksCashUse = onCashOut !== undefined && !incoming;
+  // The caller passes `breakDown` only for a cash-out that is still asking (`cashOutPrompts`) or
+  // already partly broken down, and that has something left.
+  const asksCashUse = breakDown !== undefined && !incoming;
 
   const disc = needsNote
     ? { bg: '#F5B800', icon: 'exclaim' as const, stroke: '#14110F', width: 2 }
@@ -71,11 +72,11 @@ export function TransactionRow({
         </Text>
         {asksCashUse ? (
           <Text
-            testID={`cashOutLink-${row.id}`}
-            onPress={onCashOut}
+            testID={`cashAllocLink-${row.id}`}
+            onPress={breakDown.onPress}
             className="font-inter-semibold text-[13px] leading-[18px] text-ink underline"
           >
-            What was this for?
+            Break it down · {formatGhs(breakDown.left)} left
           </Text>
         ) : needsNote ? (
           <Text
