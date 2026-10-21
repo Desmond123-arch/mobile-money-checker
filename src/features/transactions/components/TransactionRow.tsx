@@ -12,7 +12,7 @@ interface Props {
   padding?: 'py-3' | 'py-[14px]';
   onPress?: () => void;
   onAddNote?: () => void;
-  onCashOut?: () => void;
+  onCashOut?: (() => void) | undefined;
 }
 
 export function TransactionRow({
@@ -33,9 +33,9 @@ export function TransactionRow({
     !row.manual &&
     (row.categoryId === null || row.categoryId === 'other');
 
-  // A cash-out stays in Cash until the user says what the money was for.
-  const asksCashUse =
-    onCashOut !== undefined && row.note === null && !incoming && row.categoryId === 'cash';
+  // The caller passes `onCashOut` only for a cash-out whose prompt is live (`cashOutPrompts`):
+  // unanswered, after the first import and not snoozed.
+  const asksCashUse = onCashOut !== undefined && !incoming;
 
   const disc = needsNote
     ? { bg: '#F5B800', icon: 'exclaim' as const, stroke: '#14110F', width: 2 }
