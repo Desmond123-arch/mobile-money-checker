@@ -3,11 +3,12 @@ import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { getMeta } from '@/data/meta';
-import { useDb } from '@/features/app';
+import { useDb, useRequestSms, useScan } from '@/features/app';
 import { useCategories } from '@/features/categories';
 import { useKeywordCounts } from '@/features/categories/useCategoryWords';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
+import { checkRowSubtitle, type CheckState } from './checkRowSubtitle';
 import { importRowSubtitle } from './importRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
@@ -41,6 +42,22 @@ export function SettingsScreen() {
   const asideOf = (id: string) =>
     NAME_LISTED.includes(id) ? 'uses names' : wordsLabel(counts[id] ?? 0);
   const [lastImportAt, setLastImportAt] = useState<string | null>(null);
+  const scan = useScan();
+  const requestSms = useRequestSms();
+  const [check, setCheck] = useState<CheckState>({ kind: 'idle' });
+
+  const checkMessages = async () => {
+    if (scan.permission !== null && scan.permission !== 'granted') {
+      const status = await requestSms();
+      if (status === 'blocked')
+        router.push({ pathname: '/permission-denied', params: { state: 'blocked' } });
+      else if (status === 'denied' || status === 'undetermined') router.push('/permission-denied');
+      return;
+    }
+    setCheck({ kind: 'checking' });
+    const outcome = await scan.scan();
+    setCheck({ kind: 'done', outcome });
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -132,6 +149,12 @@ export function SettingsScreen() {
           title="Import a backup file"
           subtitle={importRowSubtitle(lastImportAt)}
           onPress={() => router.push('/sheets/import-steps')}
+        />
+        <Row
+          testID="settingsCheckMessagesRow"
+          title="Check for new messages"
+          subtitle={checkRowSubtitle(scan.permission, check)}
+          onPress={() => void checkMessages()}
         />
         <Row
           testID="settingsUnreadRow"
