@@ -1,6 +1,7 @@
 import type { Db } from './db';
 
 export type MetaKey =
+  | 'app_lock_enabled'
   | 'first_import_done'
   | 'first_import_at'
   | 'last_import_at'

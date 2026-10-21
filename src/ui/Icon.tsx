@@ -150,6 +150,16 @@ const GLYPHS = {
       </>
     ),
   },
+  lock: {
+    viewBox: '0 0 48 48',
+    draw: (p) => (
+      <>
+        {line('M10 22h28a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V24a2 2 0 0 1 2-2z', p)}
+        {line('M15 22v-6a9 9 0 0 1 18 0v6', p)}
+        {line('M24 30v5', p)}
+      </>
+    ),
+  },
 } satisfies Record<string, Glyph>;
 
 export type IconName = keyof typeof GLYPHS;

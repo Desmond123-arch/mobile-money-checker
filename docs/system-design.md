@@ -422,7 +422,7 @@ No keyset paging is needed now: the id list is cheap and bodies are read by id i
   5. `requestPermission()` returns `blocked`: the screen explains Android 13+ "restricted settings" for APKs installed from a browser or file manager (App info → ⋮ → Allow restricted settings, then grant SMS). ADB installs are exempt, so the developer never sees this; it is a manual test (step 1 of the build order).
 - **Triggers:** cold start, `AppState` → `active`, the foreground observer and the manual button all call the same single-flight scan (7.7).
 - **Needs a reference prompts** cover only transactions with `occurred_at >= meta.first_import_at` whose resolved category is Misc (and cash-outs, for the "What was this for?" sheet). The first import would otherwise raise about 700 prompts plus 134 cash-out prompts from old history; history stays reachable through the "Needs a tag" filter.
-- **App lock (Should):** `expo-local-authentication` gate in the root layout, off by default.
+- **App lock (Should):** `expo-local-authentication` gate in the root layout, off by default. As built: `LockGate` inside `DbProvider`, a pure state machine, a 30 s grace period, `meta.app_lock_enabled`; see `handoff.md` section 5. It gates the UI only, and the database is not encrypted at rest.
 
 ## 10. Privacy and safety, enforced structurally
 

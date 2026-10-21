@@ -3,13 +3,14 @@ import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { getMeta } from '@/data/meta';
-import { useDb, useRequestSms, useScan } from '@/features/app';
+import { useAppLock, useDb, useRequestSms, useScan } from '@/features/app';
 import { useCategories } from '@/features/categories';
 import { useKeywordCounts } from '@/features/categories/useCategoryWords';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
 import { checkRowSubtitle, type CheckState } from './checkRowSubtitle';
 import { importRowSubtitle } from './importRowSubtitle';
+import { lockRowSubtitle, lockToggleDisabled } from './lockRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
 import { useNameLists, useUnreadMessages } from './useSettingsData';
@@ -27,7 +28,8 @@ function Heading({ children }: { children: string }) {
 
 export function SettingsScreen() {
   const router = useRouter();
-  const [locked, setLocked] = useState(false);
+  const lock = useAppLock();
+  const [lockBusy, setLockBusy] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const db = useDb();
   const categories = useCategories();
@@ -45,6 +47,15 @@ export function SettingsScreen() {
   const scan = useScan();
   const requestSms = useRequestSms();
   const [check, setCheck] = useState<CheckState>({ kind: 'idle' });
+
+  const changeLock = async (next: boolean) => {
+    setLockBusy(true);
+    try {
+      await lock.change(next);
+    } finally {
+      setLockBusy(false);
+    }
+  };
 
   const checkMessages = async () => {
     if (scan.permission !== null && scan.permission !== 'granted') {
@@ -169,13 +180,14 @@ export function SettingsScreen() {
         <Row
           testID="settingsLockRow"
           title="Lock the app"
-          subtitle="Not built yet. Fingerprint or PIN to open"
+          subtitle={lockRowSubtitle(lock.available, lock.enabled)}
           trailing={
             <Toggle
               testID="settingsLockToggle"
               label="Lock the app"
-              value={locked}
-              onChange={setLocked}
+              value={lock.enabled}
+              disabled={lockToggleDisabled(lock.available, lock.enabled) || lockBusy}
+              onChange={(next) => void changeLock(next)}
             />
           }
         />
