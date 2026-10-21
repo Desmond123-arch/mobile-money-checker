@@ -42,20 +42,21 @@ function CountUp({
 }) {
   const reduced = useReducedMotion();
   const progress = useProgress(COUNT_MS);
-  const [shown, setShown] = useState(() => format(reduced ? to : 0));
+  const [current, setCurrent] = useState(reduced ? to : 0);
   useAnimatedReaction(
     () => Math.round(progress.value * to),
     (value, previous) => {
-      if (value !== previous) scheduleOnRN(setShown, format(value));
+      // Only the number crosses to the JS thread; `format` is plain JS and cannot run on the UI runtime.
+      if (value !== previous) scheduleOnRN(setCurrent, value);
     },
     [to],
   );
   useEffect(() => {
     // Settle on the exact final value; the reaction can skip the last frame.
-    const done = setTimeout(() => setShown(format(to)), reduced ? 0 : COUNT_MS + 50);
+    const done = setTimeout(() => setCurrent(to), reduced ? 0 : COUNT_MS + 50);
     return () => clearTimeout(done);
-  }, [to, format, reduced]);
-  return <>{children(shown)}</>;
+  }, [to, reduced]);
+  return <>{children(format(current))}</>;
 }
 
 const money = (n: number) => splitGhs(pesewas(n)).whole.replace('GHS ', '');
