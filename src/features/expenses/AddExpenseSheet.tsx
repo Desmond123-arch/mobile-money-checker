@@ -5,8 +5,9 @@ import { Text, View } from 'react-native';
 import { parseAmount } from '@/domain/money';
 import { useWrite } from '@/features/app';
 import { useCategories } from '@/features/categories';
+import { useOpenCashOut } from '@/features/transactions';
 import { addManualExpense } from '@/ledger/manualExpense';
-import { Button, CategoryChip, FilterPill, Sheet, SheetTitle, TextField } from '@/ui';
+import { Button, CategoryChip, FilterPill, Sheet, SheetTitle, TextField, TextLink } from '@/ui';
 
 type ExpenseDay = 'today' | 'yesterday';
 
@@ -18,6 +19,7 @@ export function AddExpenseSheet() {
   const linked = sourceMessageId === undefined ? undefined : Number(sourceMessageId);
   const choices = useCategories().filter((c) => c.id !== 'income');
   const { run, busy, error } = useWrite();
+  const openCash = useOpenCashOut();
   const [amountText, setAmountText] = useState('');
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('other');
@@ -53,6 +55,13 @@ export function AddExpenseSheet() {
         title="Add an expense"
         body="For cash, or anything MoMo did not send a message for."
       />
+      {openCash && linked === undefined ? (
+        <TextLink
+          testID="addExpenseCashHintLink"
+          label="Spent cash? Break the withdrawal down instead"
+          onPress={() => router.replace(`/sheets/cash-allocations?id=${openCash.id}`)}
+        />
+      ) : null}
       <View className="gap-2">
         <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">Amount (GHS)</Text>
         <TextField

@@ -56,9 +56,9 @@ export function HomeScreen() {
         <NeedsNoteCard
           count={month.needNote}
           onPress={() => {
-            // Cash-outs come first; their sheet is the cash-out one.
+            // Cash-outs come first; their sheet is the breakdown one.
             const first = cashOuts?.[0];
-            router.push(first ? `/sheets/cash-out?id=${first.row.id}` : '/sheets/add-note');
+            router.push(first ? `/sheets/cash-allocations?id=${first.row.id}` : '/sheets/add-note');
           }}
         />
       ) : null}
