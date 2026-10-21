@@ -17,6 +17,7 @@ export const MONEY_KEYS = [
   'weekdayAverage',
   'months',
   'needsNote',
+  'cashOut',
 ] as const;
 
 /** Prefixes that read categoriser settings and the unread list. */
