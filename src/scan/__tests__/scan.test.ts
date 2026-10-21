@@ -58,7 +58,10 @@ describe('scan', () => {
     const outcome = await scanner.scan();
 
     expect(outcome).toEqual({ status: 'ok', read: 3, payments: 3, changed: true });
-    expect(progress).toEqual([{ read: 3, total: 3, payments: 3 }]);
+    expect(progress).toEqual([
+      { read: 0, total: 3, payments: 0 },
+      { read: 3, total: 3, payments: 3 },
+    ]);
     expect((await messages(db)).map((m) => [m.android_sms_id, m.status])).toEqual([
       [1, 'parsed'],
       [2, 'parsed'],
@@ -333,7 +336,7 @@ describe('scan', () => {
     await scanner.scan();
 
     expect(sms.readCalls.map((c) => c.length)).toEqual([500, 500, 1]);
-    expect(progress.map((p) => p.read)).toEqual([500, 1_000, 1_001]);
+    expect(progress.map((p) => p.read)).toEqual([0, 500, 1_000, 1_001]);
   });
 
   it('compares ids as integers, not text', async () => {

@@ -9,9 +9,21 @@ export interface ImportState {
   payments: number;
   /** Set when the phase is 'done'. */
   summary: ImportSummary | null;
+  /** What is filling the store: a picked backup file or the inbox scan. */
+  kind: 'backup' | 'scan';
+  /** A scan finished with permission but found no MobileMoney message. */
+  empty: boolean;
 }
 
-const IDLE: ImportState = { phase: 'idle', read: 0, total: 0, payments: 0, summary: null };
+const IDLE: ImportState = {
+  phase: 'idle',
+  read: 0,
+  total: 0,
+  payments: 0,
+  summary: null,
+  kind: 'backup',
+  empty: false,
+};
 
 let state: ImportState = IDLE;
 const listeners = new Set<() => void>();

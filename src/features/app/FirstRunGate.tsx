@@ -3,6 +3,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 
 import { useDb } from './DbProvider';
+import { nativeSms } from '@/scan';
+
 import { loadStartRoute } from './loadStartRoute';
 
 /**
@@ -21,7 +23,7 @@ export function FirstRunGate() {
     decided.current = true;
     const landedOnRoot = pathname === '/';
     (async () => {
-      if (landedOnRoot) router.replace(await loadStartRoute(db));
+      if (landedOnRoot) router.replace(await loadStartRoute(db, nativeSms));
     })()
       // A failed read must not strand the user behind the splash; Home is the safe landing.
       .catch(() => undefined)

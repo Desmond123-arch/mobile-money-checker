@@ -23,10 +23,10 @@ const native = (): NativeMomoSms => (loaded ??= requireNativeModule<NativeMomoSm
 let listeners = 0;
 
 export const momoSms: MomoSmsApi = {
-  getPermissionStatus: () => native().getPermissionStatus(),
-  requestPermission: () => native().requestPermission(),
-  listMomoMessageIds: () => native().listMomoMessageIds(),
-  readMessagesByIds: (ids) => native().readMessagesByIds(ids),
+  getPermissionStatus: async () => native().getPermissionStatus(),
+  requestPermission: async () => native().requestPermission(),
+  listMomoMessageIds: async () => native().listMomoMessageIds(),
+  readMessagesByIds: async (ids) => native().readMessagesByIds(ids),
   addInboxChangedListener(onChange) {
     const subscription = native().addListener('onInboxChanged', onChange);
     if (listeners++ === 0) native().startInboxObserver();

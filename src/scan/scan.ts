@@ -103,6 +103,7 @@ export function createScanner({
       const ids = unseen.map((r) => r.androidId);
       const paymentIds = new Set<string>();
       const progress: ScanProgress = { read: 0, total: ids.length, payments: 0 };
+      if (ids.length > 0) onProgress?.({ ...progress });
       for (let i = 0; i < ids.length; i += PAGE) {
         const rows = (await sms.readMessagesByIds(ids.slice(i, i + PAGE))).filter(
           fromAllowedSender,

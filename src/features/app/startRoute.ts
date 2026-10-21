@@ -8,14 +8,17 @@ export interface StartFacts {
   /** meta.onboarding_choice, null until the user picks "Not now". */
   onboardingChoice: 'not_now' | null;
   importPhase: ImportPhase;
+  /** READ_SMS is granted. Granted with no finished import means a scan was cut short. */
+  smsGranted: boolean;
 }
 
 export function decideStartRoute({
   firstImportDone,
   onboardingChoice,
   importPhase,
+  smsGranted,
 }: StartFacts): StartRoute {
   if (firstImportDone || onboardingChoice !== null) return '/(tabs)';
-  if (importPhase === 'running') return '/importing';
+  if (importPhase === 'running' || smsGranted) return '/importing';
   return '/permission';
 }

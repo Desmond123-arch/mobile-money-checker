@@ -31,7 +31,34 @@ const TABLE: [boolean, Choice, ImportPhase, StartRoute][] = [
 describe('decideStartRoute', () => {
   it.each(TABLE)('done=%s choice=%s phase=%s -> %s', (done, choice, phase, route) => {
     expect(
-      decideStartRoute({ firstImportDone: done, onboardingChoice: choice, importPhase: phase }),
+      decideStartRoute({
+        firstImportDone: done,
+        onboardingChoice: choice,
+        importPhase: phase,
+        smsGranted: false,
+      }),
     ).toBe(route);
+  });
+
+  const facts = (over: Partial<Parameters<typeof decideStartRoute>[0]>) =>
+    decideStartRoute({
+      firstImportDone: false,
+      onboardingChoice: null,
+      importPhase: 'idle',
+      smsGranted: false,
+      ...over,
+    });
+
+  it('resumes the scan behind Importing when SMS is granted but no import finished', () => {
+    expect(facts({ smsGranted: true })).toBe('/importing');
+    expect(facts({ smsGranted: true, importPhase: 'failed' })).toBe('/importing');
+  });
+
+  it('goes home when SMS is granted and the first scan is done', () => {
+    expect(facts({ smsGranted: true, firstImportDone: true })).toBe('/(tabs)');
+  });
+
+  it('goes home after Not now even if SMS was granted later', () => {
+    expect(facts({ smsGranted: true, onboardingChoice: 'not_now' })).toBe('/(tabs)');
   });
 });
