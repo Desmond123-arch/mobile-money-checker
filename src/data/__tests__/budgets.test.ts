@@ -2,7 +2,7 @@ import { addLink, addTxn, categoryId, month, setup, sum } from './fixtures';
 import { migrate } from '../migrate';
 import { MIGRATIONS } from '../migrations';
 
-// The 0002 sketch from docs/data-model.md. If 0001 changes in a way that breaks it, this fails.
+// The budgets sketch, applied after every shipped migration from docs/data-model.md. If 0001 changes in a way that breaks it, this fails.
 const BUDGETS_SQL = `
 CREATE TABLE budgets (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,10 +21,13 @@ CREATE TABLE budget_alerts (
 ) STRICT;
 `;
 
-describe('budgets as migration 0002', () => {
+describe('budgets as the next migration', () => {
   it('applies on top of 0001 and sums category-month spend over ledger_lines', async () => {
     const db = await setup();
-    await migrate(db, [...MIGRATIONS, { version: 2, name: 'budgets', sql: BUDGETS_SQL }]);
+    await migrate(db, [
+      ...MIGRATIONS,
+      { version: MIGRATIONS.length + 1, name: 'budgets', sql: BUDGETS_SQL },
+    ]);
     const food = await categoryId(db, 'food');
     const m = month(3);
     await db.run(
