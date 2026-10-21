@@ -163,6 +163,29 @@ Manual checklist on a real phone (new dev build, screen lock and fingerprint set
 9. On a phone (or emulator) with no screen lock: the Lock the app row shows the note and the switch does nothing.
 10. With the lock on, remove the phone's screen lock in system settings and reopen the app: the lock screen shows `lockUnavailableNote`. Set a screen lock, tap Unlock.
 
+### Wrapped music
+
+Built with five PLACEHOLDER tracks. The pieces:
+
+- **Manifest.** `assets/audio/tracks.ts` is an array of `{ id, title, artist, license, sourceUrl, credit, asset }`; array order is playback order. `credit` is shown after the title when set. `assets/audio/README.md` explains how to swap a track (drop the file, edit one entry) and what to record per track (title, artist, licence, source URL, attribution text, date checked). Popular commercial songs cannot be used without a licence. `scripts/make-placeholder-music.mjs` regenerates the placeholders (`.m4a` with `ffmpeg`, else `.wav`).
+- **Logic.** `src/domain/music/playlist.ts`: `nextIndex`, `startIndex` and `reducePlayer` over open, trackEnded, mute, unmute, background, foreground, close, interruption and error (status `idle`, `playing`, `paused`, `muted`, `unavailable`). `src/features/wrapped/musicDriver.ts` mirrors that state onto an adapter, `useWrappedMusic.ts` wires meta, AppState and cleanup.
+- **Adapter.** `src/features/wrapped/audio.ts` is the only file that may import `expo-audio` (ESLint rule). It loads the module lazily inside try/catch, so Expo Go and a dev client built before `expo-audio` run silently with the mute button hidden. `audioFake.ts` is the test double. The audio mode is `doNotMix` (takes focus, other apps pause), silent switch respected, no background playback.
+- **Meta keys.** `wrapped_track` (index of the last track started) and `wrapped_muted` (`'1'` or `'0'`).
+- **Behaviour to know.** An engine error on any track turns music off for that visit (`unavailable`). After an audio-focus interruption, playback resumes when the app returns to the foreground or the user unmutes; it does not resume on its own when the other app stops.
+- **Build.** `expo-audio` is a native module: build a new dev client (`npm run build:dev`) and a new production build. Its config plugin is not used, because it adds `RECORD_AUDIO`. The library manifest adds `MODIFY_AUDIO_SETTINGS`. `app.config.js` removes both (`blockedPermissions`) in every profile.
+
+Manual device checklist (none of this has run on a device):
+
+1. Opening Wrapped starts music, fading in over about a second.
+2. A track ends and the next one starts. After the fifth, the first plays.
+3. Close and re-open Wrapped: it starts with the track after the one that started last.
+4. Mute stops the sound and the now-playing line; unmute starts it. Kill and relaunch the app: the mute choice is kept.
+5. Home or switch apps: music pauses. Return to the open Wrapped: it resumes (not if muted).
+6. Close Wrapped: music stops.
+7. Start audio in another app while Wrapped plays: Wrapped pauses and nothing crashes.
+8. Release APK: `npm run check:apk -- <apk> --expect-no-internet` lists no `RECORD_AUDIO` or other microphone permission.
+9. Expo Go or an old dev client: Wrapped opens, there is no mute button, nothing crashes.
+
 ### Reading the data (piece 4a)
 
 Every read is a function in `src/data/queries` over the `Db` interface (listed in `data-model.md`), wrapped by a TanStack Query hook in the feature that uses it. Keys include the month, day and filters. After a write, call `useQueryClient().invalidateQueries()` (all of it derives from SQLite) or the narrower `CATEGORIES_KEY` from `src/features/categories`.
