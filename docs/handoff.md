@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built and run on sample data. There is no SMS module, no ledger and no scan. The SQLite layer exists in `src/data` but nothing imports it yet. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. Only the backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Every other screen, Home included, still runs on sample data and does not read the database. There is no SMS module and no scan. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
 
 ## 2. Real versus stand-in
 
@@ -22,7 +22,8 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Categories | Seed only. `src/domain/category/seed.ts`, resolved by `src/features/categories/lookup.ts` | `categories` table; `categoryById` reads from it |
 | Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view |
 | "Today" | Device clock via `useToday()` | Keep; sample data assumes Tue 20 Oct 2026 |
-| Permission, importing | Screens. Importing shows real progress for a picked backup file (payments stubbed, see section 5); the "Allow SMS access" path is still sample | Wire to the `momo-sms` module and the first-run flow |
+| Permission, importing | Real for a picked backup file: progress, payments found, then an "Import complete" summary and a Home button. The "Allow SMS access" path is still sample | Wire to the `momo-sms` module and the first-run flow |
+| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue. Category is a placeholder (`categoryStub.ts`, section 5) | The categoriser piece replaces `resolveCategoryStub` |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
 
@@ -48,7 +49,7 @@ These hold user input in memory only. They reset on reload.
 
 ## 5. Data layer, and what is not built yet
 
-`src/data` holds the schema and nothing else. Nothing in `src/app`, `src/features` or `src/ui` imports it, so every screen still runs on the stand-ins in section 2. The schema and the reasons for it are in [`data-model.md`](data-model.md); it supersedes `system-design.md` section 6.
+`src/data` holds the schema. Only `src/features/app` (`DbProvider`) and `src/ledger` use it, so every screen except Importing still runs on the stand-ins in section 2. The schema and the reasons for it are in [`data-model.md`](data-model.md); it supersedes `system-design.md` section 6.
 
 - `db.ts` defines the async `Db` interface (`exec`, `run`, `all`, `get`, `transaction`) and `openDatabase(name?)`, the only file that imports `expo-sqlite`. `transaction` is exclusive and a nested call joins the open one.
 - `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0002_*.ts` and append it to `migrations/index.ts`. Every table is STRICT, and triggers go through `execAsync` like any other statement.
@@ -57,15 +58,20 @@ These hold user input in memory only. They reset on reload.
 
 Reading the data: totals come from the view `ledger_lines` (one SUM each for spend, income and fees; refunds and reversals are already netted), lists and detail from `transaction_list`. Both expose the effective category: the user's tag, else the categoriser's, else Misc. Writers: the ledger writes `sms_*`, SMS `transactions` and `auto_category_*`; the user's tag, note and snooze go only in `transaction_annotations`.
 
-### Backup import
+### Backup import and the ledger
 
-The schema (`sms_messages.source`, nullable `android_sms_id`, `backup_key`), the reader, the Expo adapters, the `importBackup` orchestrator and the UI are built. The parser and ledger are not, so the import reads the whole file and stores nothing. What is stubbed:
+Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, and `src/ledger`. A picked file is read in batches of 200, each batch is parsed and written in one transaction, and `finishImport` closes the import. Home and the other screens do not read these rows yet.
 
-- `ingestBatch` in `src/backup/startImport.ts` (`pendingIngest`) returns `{ payments: 0 }`. This is the seam. Pass a real function to `startImport(uri, ingestBatch)`: parse each `BackupMessage { body, receivedAt, address }`, write fragments and transactions in one transaction, set `sms_messages.source = 'backup'` with `backup_key = '<received_at>:<momo_txn_id>:<template_name>'` (only for parsed messages), and return how many payments the batch made. A key hit means the message is already stored, so the insert should be `ON CONFLICT DO NOTHING`.
-- `ImportState.ingestIsStub` is true while the stub runs, and the Importing screen then says "Payments are not counted yet". Drop the flag when the real ingest lands.
-- `meta.first_import_done` is not set and nothing navigates after `phase === 'done'`. The caller of the ingest step should set the flag, then route to Home and ask once for SMS access.
+- `src/ledger/writeQueue.ts`: `ledgerQueue.run(task)` serialises every ledger write in the process; `runCoalesced` is the single-flight variant for scans (a request made mid-run sets a rerun flag). Route every new ledger writer through it.
+- `src/ledger/ingest.ts`: `ingest(db, items, now?)` takes `{ source: 'backup' | 'inbox', body, receivedAt, androidId? }`. One exclusive transaction per batch and a `SAVEPOINT` per message; a message that throws rolls back to its savepoint and is counted in `errors`. Parsed messages upsert `sms_messages` (backup key `<received_at>:<momo_txn_id>:<template_name>`) and `sms_fragments`, then the transaction is re-derived with `mergeAll` over all its stored fragments, so re-ingest and arrival order never change the result. Ignored and unparsed backup messages are only counted. Inbox messages are stored with their status (this is for the scan piece; nothing calls it with `inbox` yet). It never touches `transaction_annotations`. The result also carries `paymentIds` so a caller can count a payment whose two messages fall in different batches once (`createLedgerSink` does this).
+- Inbox messages that throw are counted but not recorded as `error` rows yet; the scan piece should add that.
+- `src/ledger/finishImport.ts`: links every unlinked credit with `linkReversals` (`linked_by 'auto'`, confidence `exact` or `ambiguous`) and sets `meta.first_import_done`, `first_import_at` (first run only) and `parser_version`. Safe to run again.
+- `src/ledger/importSummary.ts`: transaction and payment counts plus net spend for the latest month with spend, from `ledger_lines`.
+- `src/features/app`: `DbProvider` (renders nothing until migrate and seed finish; shows `dbErrorScreen` if they fail), `useDb`, and `createLedgerSink(db)`, the `ImportSink` that `startImport(uri, sink)` needs.
+- The Importing screen shows `importSummary` text and `importHomeBtn` ("Go to Home") when the phase is `done`. `meta.first_import_done` is set, but nothing routes on it yet: the app still opens on Home, and the permission screen is reachable only by deep link (`momospend://permission`).
+- Placeholders in the ledger: `resolveCategoryStub` (cash out is Cash, incoming is Income, everything else Misc, source `default`) in `src/ledger/categoryStub.ts` is the single seam the categoriser replaces; `is_self_transfer` is always 0; `reference_clean` is never set, so a transaction's note is empty until the categoriser cleans `sms_reference`.
 - "Allow SMS access" still goes to Importing with no scan behind it, so the screen shows labelled sample numbers (`importSampleNote`).
-- Nothing here has run on a device. The file picker, the `expo-file-system` handle reads (`src/backup/expoFileSource.ts`) and the cache deletion are untested; the reader itself is tested in Node, including against a real 2.4 MB export.
+- The real export (2,488 messages) gives 1,913 parsed, 575 ignored, 0 unparsed, 0 errors, 1,640 transactions (1,328 payments) and 6 reversal links. The optional test `src/ledger/__tests__/realFile.test.ts` checks this when `/mnt/c/Users/Desmond Opoku Mends/Downloads/sms-20260621002856.xml` exists and prints monthly totals; it never prints message text.
 - Only `expoFileSource.ts` and `pickBackupFile.ts` may import Expo inside `src/backup` (ESLint enforces it, and bans `console` there because message bodies flow through).
 - The picker filters on `text/xml` and `application/xml`. Some file managers label the export differently and will grey it out; widen the filter if that shows up.
 
@@ -77,11 +83,11 @@ Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` 
 
 Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
 
-Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` and `queries`, `src/ledger` (ingest, project, recategorise, `deleteCategory`), `src/scan`.
+Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` and `queries`, the rest of `src/ledger` (recategorise, reparse, `deleteCategory`), `src/scan`.
 
-### The SMS parser (built, not wired in)
+### The SMS parser
 
-`src/domain/parse` is pure and tested; nothing outside its tests and `scripts/` imports it yet.
+`src/domain/parse` is pure and tested; `src/ledger/ingest.ts` is its only caller.
 
 - `parseSms(sms: RawSms): ParseResult` classifies in the order OTP, no transaction-id label, failed, then the 11 templates in `registry.ts`. It never throws. A `parsed` result carries a `ParsedFragment`; the ledger writes it to `sms_fragments`.
 - The ledger derives `flow` itself. Fragment `kind` to `flow`: `payment_out`, `cash_out`, `transfer_out` are `spend`; `payment_in`, `cash_in`, `interest` are `income`; `refund`, `reversal` are `credit`.

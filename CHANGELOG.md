@@ -27,6 +27,8 @@ Everything below is in PR #7 (into `dev`) unless noted.
   - Permission screen has "Import a backup file", which opens the steps sheet (`/sheets/import-steps`) and its "Choose file" button. Importing shows real read and total counts. Payments are not counted until the parser is connected.
   - New dependencies `expo-document-picker` and `expo-file-system`; Maestro flow `import-backup.yml`.
 
+- **Real backup import (`src/ledger`, `src/features/app`).** Importing a backup file now writes real rows. `ingest` parses each batch in one transaction with a savepoint per message, stores parsed messages and fragments, and re-derives each transaction with `mergeAll`, so re-importing or reordering gives identical rows and a user's annotation survives. `finishImport` links reversals and refunds and sets `meta.first_import_done`. All ledger writes go through one single-flight `writeQueue`. `DbProvider` migrates and seeds the database at startup. The Importing screen counts real payments and ends on "Import complete" with a summary (transactions, payments, spend for the latest month) and a Go to Home button. On the sample export: 1,913 parsed, 575 ignored, 1,640 transactions, 6 reversal links. Home and the other screens still show sample data; the category is a placeholder (`resolveCategoryStub`) until the categoriser lands.
+
 ### Changed
 
 - Text line heights raised to at least 1.3x the font size, fixing clipped y, g and p on Android.
