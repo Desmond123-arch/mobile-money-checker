@@ -426,7 +426,7 @@ No keyset paging is needed now: the id list is cheap and bodies are read by id i
 
 ## 10. Privacy and safety, enforced structurally
 
-- **No network.** The release build strips the `INTERNET` permission through a config plugin (the dev client keeps it for Metro). A build with no network permission is a stronger guarantee than a promise.
+- **No network.** The release build strips the `INTERNET` permission through `app.config.js`, keyed on the EAS build profile (the dev client keeps it for Metro). A build with no network permission is a stronger guarantee than a promise.
 - **No cloud backup.** `android:allowBackup="false"` and `dataExtractionRules` exclude the database.
 - **Narrow reads.** The sender filter lives in Kotlin, including `readMessageById`, which refuses any message not from an allowed sender.
 - **No message text is stored.** The app keeps parsed fields and message ids only. OTPs, promos and unknown messages are never copied. The "Original message" row and the unread list read the text live from the inbox and discard it. The one thing in the database that came from message text is the parsed fields (amount, counterparty name and number, the reference).
@@ -488,7 +488,7 @@ The domain package never imports `react-native` or `expo-*`, enforced by an ESLi
 | 5 (M4a) | Categoriser, seed data, overrides, `recategorise`, needs-a-reference and cash-out flows | Categorisation table tests; 70% on the export |
 | 6 (M4b) | Summary and Insights queries and screens | Hand-checked month matches to the pesewa |
 | 7 | Settings: categories, words, names, unread messages, app lock | Edit a keyword and watch Home change |
-| 8 | Reversal linking, polish, release build without `INTERNET` | `aapt dump permissions` shows no network permission |
+| 8 | Reversal linking, polish, release build without `INTERNET` | `aapt dump permissions` or `npm run check:apk` shows no network permission |
 
 Each step ends in something that runs. Design screens are already done, so steps 1 to 8 are implementation only.
 

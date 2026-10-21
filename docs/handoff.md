@@ -191,8 +191,9 @@ Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger`
   - New test ids: `addExpenseLinkedNote`, `addExpenseError`, `addNoteDoneBtn`, `addNoteError`, `cashOutError`, `cashOutLink-<id>`, `detailError`, `editCategoryError`, `newCategoryError`, `newCategoryWordInput`, `newCategoryWord-<word>`, `familyNameError`, `friendNameError`, `unreadError`.
 
   A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
-- **`INTERNET` is still in the manifest.** This piece did not touch it (a later release-build task strips it, and a dev build needs it for Metro). Until that lands the Privacy screen makes no internet claim, and the privacy argument for `READ_SMS` rests on the code, not the manifest.
-- **Privacy screen copy** no longer claims the app lacks internet access, because `INTERNET` is not stripped yet (design requires it for release builds; dev builds need it for Metro). When the release-build stripping lands, restore the stronger line "The app does not ask for internet access, so it cannot send anything out." in `PrivacyScreen.tsx`.
+- **`INTERNET` is stripped from release builds only.** `app.config.js` wraps the static `app.json` and adds `android.permission.INTERNET` to `android.blockedPermissions` (a `tools:node="remove"` entry in the manifest) when `EAS_BUILD_PROFILE` is `production` or `preview`, or when `APP_STRIP_INTERNET=1` is set. The `development` profile and local `expo start` keep `INTERNET` because the dev client loads JS from Metro. `expo-file-system` merges `INTERNET` in from its library manifest; the remove entry in the app manifest wins over it. `ACCESS_LOCAL_NETWORK` and `CHANGE_WIFI_MULTICAST_STATE` come from debug-only source sets of React Native and the dev launcher, so release variants never get them. `ACCESS_NETWORK_STATE` is not a network-use permission and is left alone.
+- **Prove it on the APK, not the config.** `npm run check:apk -- path/to/app.apk --expect-no-internet` unzips the APK, decodes the binary `AndroidManifest.xml` and lists the `uses-permission` entries; it exits 1 if `INTERNET` is present. The dev APK lists `INTERNET`; a `production` or `preview` APK must not. Prebuild with `APP_STRIP_INTERNET=1` was checked in a temp copy (the removal entry is there), but the final APK from a production EAS build is still to be checked.
+- **Privacy screen describes release builds.** It says "The app does not ask for internet access". That is true for `production` and `preview` builds only; a dev build still carries `INTERNET` for Metro.
 - **Typed routes:** `.expo/types/router.d.ts` goes stale after adding routes and then `tsc` rejects new `router.push` paths locally. Delete the file; CI never has it.
 - **Metro in CI mode** (`CI=1`) does not hot reload. Relaunch the app to pick up changes.
 - **Dev client** built before `expo-clipboard` was added lacks the native module. Rebuild it (`npm run build:dev`). Copy text degrades to "Could not copy" instead of crashing.
@@ -203,6 +204,7 @@ Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger`
 ## 7. Checking your work
 
 - `npm run check:categories -- <export.xml>` ingests an export in memory and prints the category split and redacted skeletons of unmatched references (counts only).
+- `npm run check:apk -- <apk> --expect-no-internet` prints an APK's requested permissions and fails if `INTERNET` is among them.
 - `npm run check` runs typecheck, lint, format and the Jest suite with the 95% domain coverage gate.
 - `.claude/skills/verify-momo-spend` drives the app on an adb emulator through Expo Go and reads `testID`s as resource-ids. Prefer `tap-id` and `has-id`.
 - Every element a flow or test touches gets a camelCase `testID`; naming is in `maestro/README.md`.
