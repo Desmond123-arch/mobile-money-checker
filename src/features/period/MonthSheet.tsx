@@ -14,7 +14,7 @@ export function MonthSheet() {
     <Sheet testID="monthSheet">
       <SheetTitle title="Choose a month" body="Home and Insights show the month you pick." />
       <View>
-        {[...months].reverse().map((option, index, all) => {
+        {[...months].reverse().map((option) => {
           const selected = option.id === month.id;
           return (
             <Pressable
@@ -26,7 +26,7 @@ export function MonthSheet() {
                 selectMonth(option.id);
                 router.back();
               }}
-              className={`flex-row items-center gap-3 border-t border-hairline py-[14px] ${index === all.length - 1 ? 'border-b' : ''}`}
+              className="flex-row items-center gap-3 py-[14px]"
             >
               <View className="flex-1">
                 <Text

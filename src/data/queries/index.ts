@@ -14,6 +14,7 @@ export { daySpend, monthlyFlows, weekdayAverage, type SpendBreakdown } from './i
 export { monthsWithData, type MonthTotals } from './months';
 export { cashOutPrompts, needsNoteCount, needsNoteList } from './needsNote';
 export { monthFacts, monthSummary } from './summary';
+export { allTimeSummary, yearsWithData, yearSummary } from './years';
 export {
   listTransactions,
   paymentCount,

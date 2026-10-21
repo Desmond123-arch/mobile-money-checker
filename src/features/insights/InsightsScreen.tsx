@@ -18,25 +18,26 @@ import {
 } from '@/ui';
 
 import { Legend, MonthlyChart } from './components/BarCharts';
+import { Notice } from './components/Notice';
+import { AllTimeView } from './AllTimeView';
+import { YearView } from './YearView';
 import { useDaySpend, useMonthlyFlows, useWeekdayAverage } from './useInsights';
-
-function Notice({ testID, title, body }: { testID: string; title: string; body: string }) {
-  return (
-    <View testID={testID} className="items-start gap-2 pt-4">
-      <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">{title}</Text>
-      <Text className="font-inter text-body leading-6 text-muted">{body}</Text>
-    </View>
-  );
-}
 
 export function InsightsScreen() {
   const router = useRouter();
   const today = useToday();
-  const { period, month, selectMonth } = usePeriod();
+  const { period, scope, month, selectMonth } = usePeriod();
   const flows = useMonthlyFlows(month.id);
 
   const openCalendar = () => router.push('/sheets/calendar');
-  const label = period.kind === 'day' ? shortDate(period.iso) : month.label;
+  const label =
+    scope.kind === 'year'
+      ? String(scope.year)
+      : scope.kind === 'all'
+        ? 'All time'
+        : period.kind === 'day'
+          ? shortDate(period.iso)
+          : month.label;
   const heading = flows ? trendHeading(flows) : null;
 
   return (
@@ -53,19 +54,25 @@ export function InsightsScreen() {
         }
       />
 
-      <View testID="insightsWhereItWent" className="px-5 pt-9">
-        {period.kind === 'month' ? (
-          <MonthContent monthId={month.id} monthLabel={month.label} />
-        ) : (
-          <DayContent
-            iso={period.iso}
-            state={dayState(period.iso, today)}
-            onWholeMonth={() => selectMonth(month.id)}
-          />
-        )}
-      </View>
+      {scope.kind === 'year' || scope.kind === 'all' ? (
+        <View className="px-5 pt-9">
+          {scope.kind === 'year' ? <YearView year={scope.year} /> : <AllTimeView />}
+        </View>
+      ) : (
+        <View testID="insightsWhereItWent" className="px-5 pt-9">
+          {period.kind === 'month' ? (
+            <MonthContent monthId={month.id} monthLabel={month.label} />
+          ) : (
+            <DayContent
+              iso={period.iso}
+              state={dayState(period.iso, today)}
+              onWholeMonth={() => selectMonth(month.id)}
+            />
+          )}
+        </View>
+      )}
 
-      {flows && heading ? (
+      {(scope.kind === 'day' || scope.kind === 'month') && flows && heading ? (
         <View className="gap-1 px-5 pt-10">
           <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">
             {heading.title}

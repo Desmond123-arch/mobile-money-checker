@@ -83,6 +83,9 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `needsNoteCount` / `needsNoteList(db, range, now)` | Outgoing SMS payments in Misc with no note and no live snooze, after `meta.first_import_at` (nothing when it is unset) |
 | `cashOutPrompts(db, range, now)` | Cash-outs with no user note and no manual category, at or after `meta.first_import_at`, not snoozed (`prompt_snoozed_until` null or `<= now`); nothing when it is unset |
 | `monthlyFlows(db, endMonthId, count)` | Money out and in for `count` months ending at a month, zero for empty ones |
+| `yearsWithData(db)` | Money out and in per year that has a ledger line, oldest first |
+| `yearSummary(db, year)` | A year's twelve months (`monthlyFlows` ending in December), payment count and the year before's spend, built into a `YearSummary` |
+| `allTimeSummary(db)` | Totals since the first payment, first and last month, a total per year, the busiest year and month, built into an `AllTimeSummary`. A year or all time is the same sums over a wider range: `categorySpend` takes `yearRange(year)` or `ALL_TIME` |
 | `daySpend(db, iso)` | A day's total and category split |
 | `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |
 | `listCategories(db)` | The categories table in display order with UI ids |
