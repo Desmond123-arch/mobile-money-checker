@@ -12,7 +12,7 @@ export {
 } from './config';
 export { daySpend, monthlyFlows, weekdayAverage, type SpendBreakdown } from './insights';
 export { monthsWithData, type MonthTotals } from './months';
-export { needsNoteCount, needsNoteList } from './needsNote';
+export { cashOutPrompts, needsNoteCount, needsNoteList } from './needsNote';
 export { monthFacts, monthSummary } from './summary';
 export {
   listTransactions,
