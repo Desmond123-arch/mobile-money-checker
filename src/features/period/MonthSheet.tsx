@@ -4,18 +4,17 @@ import { Pressable, Text, View } from 'react-native';
 import { formatPlain } from '@/domain/money';
 import { Icon, Sheet, SheetTitle } from '@/ui';
 
-import { MONTH_OPTIONS } from './months';
 import { usePeriod } from './PeriodProvider';
 
 export function MonthSheet() {
   const router = useRouter();
-  const { month, selectMonth } = usePeriod();
+  const { month, months, selectMonth } = usePeriod();
 
   return (
     <Sheet testID="monthSheet">
       <SheetTitle title="Choose a month" body="Home and Insights show the month you pick." />
       <View>
-        {[...MONTH_OPTIONS].reverse().map((option, index, all) => {
+        {[...months].reverse().map((option, index, all) => {
           const selected = option.id === month.id;
           return (
             <Pressable

@@ -22,14 +22,15 @@ export function Legend({ items }: { items: readonly { label: string; color: stri
 }
 
 export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
-  const max = Math.max(...months.flatMap((m) => [m.out, m.in]));
+  // A run of empty months has max 0; dividing by 1 keeps every bar at its minimum height.
+  const max = Math.max(1, ...months.flatMap((m) => [m.out, m.in]));
   const peak = Math.max(...months.map((m) => m.out));
   const h = (v: number) => Math.max(4, Math.round((v / max) * MONTH_MAX_HEIGHT));
   return (
     <View>
       <View className="mt-3 h-[148px] flex-row items-end justify-between">
         {months.map((m) => {
-          const isPeak = m.out === peak;
+          const isPeak = peak > 0 && m.out === peak;
           return (
             <View
               key={m.label}
@@ -62,7 +63,7 @@ export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
         {months.map((m) => (
           <Text
             key={m.label}
-            className={`w-12 text-center text-caption ${m.out === peak ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
+            className={`w-12 text-center text-caption ${peak > 0 && m.out === peak ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
           >
             {m.label}
           </Text>

@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { SEED_CATEGORIES } from '@/domain/category/seed';
-import { categoryById } from '@/features/categories';
+import { categoryById, useCategories } from '@/features/categories';
 import { Button, CategoryChip, Hint, Icon, Sheet, SheetTitle, TextField } from '@/ui';
 
 export function AddNoteSheet() {
   const router = useRouter();
+  useCategories();
   const [note, setNote] = useState('');
   const [categoryId, setCategoryId] = useState('shopping');
   const [picking, setPicking] = useState(false);

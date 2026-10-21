@@ -5,7 +5,6 @@ import { Pressable, Text, View } from 'react-native';
 import { dayState, monthGrid } from '@/domain/calendar/week';
 import { FilterPill, Icon, Sheet, SheetTitle } from '@/ui';
 
-import { MONTH_OPTIONS } from './months';
 import { usePeriod } from './PeriodProvider';
 import { useToday } from './useToday';
 
@@ -16,20 +15,20 @@ const HEADINGS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 export function CalendarSheet() {
   const router = useRouter();
   const today = useToday();
-  const { period, month, selectDay, selectMonth } = usePeriod();
+  const { period, month, months, selectDay, selectMonth } = usePeriod();
   const [mode, setMode] = useState<Mode>(period.kind);
   const [shownId, setShownId] = useState(month.id);
 
   const shownIndex = Math.max(
     0,
-    MONTH_OPTIONS.findIndex((m) => m.id === shownId),
+    months.findIndex((m) => m.id === shownId),
   );
-  const shown = MONTH_OPTIONS[shownIndex] ?? month;
+  const shown = months[shownIndex] ?? month;
   const [year = 2026, monthNumber = 1] = shown.id.split('-').map(Number);
   const rows = monthGrid(year, monthNumber - 1);
 
   const step = (delta: number) => {
-    const next = MONTH_OPTIONS[shownIndex + delta];
+    const next = months[shownIndex + delta];
     if (next) setShownId(next.id);
   };
 
@@ -71,9 +70,9 @@ export function CalendarSheet() {
               testID="calendarNext"
               accessibilityRole="button"
               accessibilityLabel="Next month"
-              disabled={shownIndex === MONTH_OPTIONS.length - 1}
+              disabled={shownIndex === months.length - 1}
               onPress={() => step(1)}
-              className={`size-11 items-center justify-center rounded-[22px] border-hard border-ink ${shownIndex === MONTH_OPTIONS.length - 1 ? 'opacity-30' : ''}`}
+              className={`size-11 items-center justify-center rounded-[22px] border-hard border-ink ${shownIndex === months.length - 1 ? 'opacity-30' : ''}`}
             >
               <View style={{ transform: [{ rotate: '180deg' }] }}>
                 <Icon name="back" size={20} strokeWidth={2} />
@@ -136,7 +135,7 @@ export function CalendarSheet() {
         </View>
       ) : (
         <View testID="calendarMonths" className="flex-row flex-wrap gap-2">
-          {MONTH_OPTIONS.map((option) => {
+          {months.map((option) => {
             const selected = period.kind === 'month' && period.month.id === option.id;
             return (
               <Pressable

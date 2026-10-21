@@ -4,7 +4,7 @@ import { formatPlain } from '@/domain/money';
 import type { TransactionRow as Row } from '@/domain/transaction/transaction';
 import { Icon } from '@/ui';
 
-import { categoryById, categoryIcon } from '@/features/categories';
+import { categoryById, categoryIcon, useCategories } from '@/features/categories';
 
 interface Props {
   row: Row;
@@ -15,9 +15,15 @@ interface Props {
 }
 
 export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote }: Props) {
+  useCategories();
   const category = categoryById(row.categoryId);
   const incoming = row.direction === 'in';
-  const needsNote = row.note === null;
+  // Same rule as Home's "What were these for?" card: a payment out that no category claimed.
+  const needsNote =
+    row.note === null &&
+    !incoming &&
+    !row.manual &&
+    (row.categoryId === null || row.categoryId === 'other');
 
   const disc = needsNote
     ? { bg: '#F5B800', icon: 'exclaim' as const, stroke: '#14110F', width: 2 }
