@@ -1,0 +1,19 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarInsightsBtn'
+- tapOn:
+    id: 'insightsPeriodPill'
+- assertVisible:
+    id: 'calendarSheet'
+- tapOn:
+    label: 'The sheet can switch to a year'
+    id: 'calendarModeYear'
+- assertVisible:
+    id: 'calendarYears'
+- tapOn:
+    label: 'The sheet can switch to all time'
+    id: 'calendarModeAll'
+- assertVisible:
+    id: 'calendarAllConfirm'
