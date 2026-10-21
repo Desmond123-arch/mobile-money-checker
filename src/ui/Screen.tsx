@@ -2,7 +2,9 @@ import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export const TAB_BAR_CLEARANCE = 108;
+import { useBottomInset } from './useBottomInset';
+
+export { TAB_BAR_CLEARANCE } from './insets';
 
 interface ScreenProps {
   children: ReactNode;
@@ -13,6 +15,7 @@ interface ScreenProps {
 
 export function Screen({ children, safeTop = true, bottomPad = 32, testID }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const bottom = useBottomInset();
   return (
     <KeyboardAvoidingView behavior="padding" className="flex-1 bg-ground">
       <ScrollView
@@ -21,7 +24,7 @@ export function Screen({ children, safeTop = true, bottomPad = 32, testID }: Scr
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingTop: safeTop ? insets.top : 0,
-          paddingBottom: bottomPad + insets.bottom,
+          paddingBottom: bottomPad + bottom,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -33,12 +36,13 @@ export function Screen({ children, safeTop = true, bottomPad = 32, testID }: Scr
 
 export function FixedScreen({ children, testID }: { children: ReactNode; testID?: string }) {
   const insets = useSafeAreaInsets();
+  const bottom = useBottomInset();
   return (
     <KeyboardAvoidingView
       behavior="padding"
       testID={testID}
       className="flex-1 bg-ground"
-      style={{ paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 12) }}
+      style={{ paddingTop: insets.top, paddingBottom: bottom }}
     >
       {children}
     </KeyboardAvoidingView>
