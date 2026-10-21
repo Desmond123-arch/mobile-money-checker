@@ -125,6 +125,24 @@ const GLYPHS = {
       </>
     ),
   },
+  speaker: {
+    viewBox: '0 0 24 24',
+    draw: (p) => (
+      <>
+        {line('M4 9.5h3.5L12 6v12l-4.5-3.5H4z', p)}
+        {line('M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11', p)}
+      </>
+    ),
+  },
+  speakerOff: {
+    viewBox: '0 0 24 24',
+    draw: (p) => (
+      <>
+        {line('M4 9.5h3.5L12 6v12l-4.5-3.5H4z', p)}
+        {line('M16 9.5l5 5M21 9.5l-5 5', p)}
+      </>
+    ),
+  },
   tag: { viewBox: '0 0 24 24', draw: (p) => line('M4 12V5a1 1 0 0 1 1-1h7l8 8-8 8z', p) },
   message: {
     viewBox: '0 0 48 48',

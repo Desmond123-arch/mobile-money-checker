@@ -4,20 +4,27 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import type { Track } from '../../../assets/audio/tracks';
 import type { WrappedSlide } from '@/domain/summary/wrapped';
 import { Button, Icon, useBottomInset } from '@/ui';
 
 import { SlideView } from './components/SlideView';
 import { parseWrappedScope, stepSlide } from './scope';
 import { useWrapped } from './useWrapped';
+import { useWrappedMusic, type WrappedMusic } from './useWrappedMusic';
 
 const BAR_HEIGHT = 72;
+const NOW_PLAYING_HEIGHT = 20;
+
+/** The title, then the licence credit when the track needs one. */
+const nowPlayingLine = (t: Track) => (t.credit ? `${t.title} · ${t.credit}` : t.title);
 
 export function WrappedScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ scope?: string; year?: string }>();
   const scope = parseWrappedScope(params.scope, params.year);
   const slides = useWrapped(scope);
+  const music = useWrappedMusic(slides !== undefined && slides.length > 0);
   const [index, setIndex] = useState(0);
   const insets = useSafeAreaInsets();
   const barTop = insets.top;
@@ -69,6 +76,7 @@ export function WrappedScreen() {
             />
           ))}
         </View>
+        {music.available ? <MuteButton music={music} color={slide.tone.fg} /> : null}
         <Pressable
           testID="wrappedClose"
           accessibilityRole="button"
@@ -80,8 +88,50 @@ export function WrappedScreen() {
         </Pressable>
       </View>
 
+      {music.track ? (
+        <NowPlaying
+          line={nowPlayingLine(music.track)}
+          color={slide.tone.fg}
+          top={barTop + BAR_HEIGHT - NOW_PLAYING_HEIGHT}
+        />
+      ) : null}
+
       {last ? <DoneButton onPress={close} /> : null}
     </Frame>
+  );
+}
+
+function MuteButton({ music, color }: { music: WrappedMusic; color: string }) {
+  return (
+    <Pressable
+      testID="wrappedMuteBtn"
+      accessibilityRole="button"
+      accessibilityLabel={music.muted ? 'Turn music on' : 'Turn music off'}
+      onPress={music.toggleMute}
+      className="size-11 items-center justify-center"
+    >
+      <Icon name={music.muted ? 'speakerOff' : 'speaker'} size={20} color={color} strokeWidth={2} />
+    </Pressable>
+  );
+}
+
+// Sits in the bottom of the top bar, above the tap zones, and lets every touch through.
+function NowPlaying({ line, color, top }: { line: string; color: string; top: number }) {
+  return (
+    <View
+      pointerEvents="none"
+      className="absolute inset-x-0 px-5"
+      style={{ top, height: NOW_PLAYING_HEIGHT, paddingRight: 96 }}
+    >
+      <Text
+        testID="wrappedNowPlaying"
+        numberOfLines={1}
+        className="font-inter text-[12px] leading-4"
+        style={{ color, opacity: 0.7 }}
+      >
+        {line}
+      </Text>
+    </View>
   );
 }
 
