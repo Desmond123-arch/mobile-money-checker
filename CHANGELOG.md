@@ -2,16 +2,43 @@
 
 Notable changes to momo-spend. For why and how the data layer should replace the stand-ins listed here, read [`docs/handoff.md`](docs/handoff.md). Commit history has the detail; this file is the map.
 
-The app is a local-first proof of concept. Screens read and write SQLite; the stand-ins left are "Allow SMS access" (no SMS module) and "Lock the app".
+The app is a local-first proof of concept. Screens read and write SQLite. The one way real messages get in today is importing an SMS Backup & Restore XML file; live reading of the phone's inbox is not built, and "Allow SMS access" and "Lock the app" are stand-ins.
+
+## Where we are
+
+Last updated 21 Oct 2026. The pull requests are stacked: #7, then #8, then #9, then #10, then #11, each into `dev`. Merge them in that order.
+
+| Area                                                                                         | State                                                                                                                                                     | PR  |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| 14 screens, sheets, interactions                                                             | Built. Add an expense, month picker, filters and search, Insights calendar, Privacy                                                                       | #7  |
+| SQLite layer and schema (`src/data`)                                                         | Built and tested on `node:sqlite`. The expo-sqlite adapter has run on the emulator, not on a real phone                                                   | #8  |
+| SMS parser (`src/domain/parse`)                                                              | Built. 99.69% of labelled messages parse on the author's export, 0 unparsed                                                                               | #9  |
+| Backup import and first-run gate                                                             | Built. Verified on the emulator: 1,640 transactions, 6 reversal links. Settings has an "Import a backup file" row                                         | #9  |
+| Categoriser                                                                                  | Built. 77.1% of outgoing non-cash-out payments land outside Misc on the author's export, which overstates it because the rules were written on that phone | #10 |
+| Home, Transactions, Insights reading real data                                               | Built, with typechecked and tested queries. Not yet seen on a screen with real data by anyone but the author                                              | #10 |
+| Writes: expenses, notes, category edits, keywords, family and friend names, ignored messages | Built and tested by closing and reopening a database file. Not run on a device                                                                            | #11 |
+
+### What is left
+
+- **Live SMS reading (milestone M1).** `modules/momo-sms` (Kotlin), the `READ_SMS` permission and its request, the inbox scan and foreground observer, the "SMS access is off" banner, and the blocked-permission screen for Android 13+ restricted settings. Today "Allow SMS access" leads to a sample Importing screen and nothing is read.
+- **Device checks.** Everything above ran on an emulator or in Node. Nothing has run on a real phone, including the file picker, the foreign-key setting in `src/data/db.ts`, and layout with 27 months or long names.
+- **Maestro.** Not installed here, and the flows assume sample data and a Home launch. They need a seeded fixture or test mode.
+- **Release build.** Strip `INTERNET` from release builds so the Privacy screen's claim is true.
+- **App lock.** The toggle is a stand-in.
+- **Reparse.** A parser version bump should re-read messages and move user annotations when a transaction id changes. Not built.
+- **Validation.** The 70% categorisation target needs a second phone. Fixtures and the denylist hygiene check need a skim before the first public push.
+- **After the proof of concept.** Budgeting (per-category monthly limits, alerts). `docs/data-model.md` has the migration sketch and the schema already leaves room for it.
+
+> > > > > > > feat/read-queries
 
 ## Unreleased
 
-Everything below is in PR #7 (into `dev`) unless noted.
+Entries are grouped by area, not by PR; the table above maps work to pull requests.
 
 ### Added
 
-- **SMS parser (`src/domain/parse`, not wired into the app yet).** `parseSms` for all 11 MoMo message shapes plus OTP, no-transaction-id and failed-payment classification; `mergeAll` (commutative per-field merge of a transaction's messages); `linkReversals`; `reconcileBalances`; `parseBodyTime` in `src/domain/time.ts`. On the sample export (2,488 messages) 1,913 of 1,919 transaction-labelled messages parse; the other 6 are failed payments and are ignored. Dev tools: `npm run check:sms -- <export.xml>` (real-data check) and `npm run anonymise:sms -- <export.xml>` (writes `fixtures/sms`). Branch `feat/sms-parser`, into `dev`.
-- **SQLite layer (`src/data`, not wired into any screen yet).** `Db` interface and `openDatabase` over `expo-sqlite` (WAL, foreign keys on, exclusive transactions), a `PRAGMA user_version` migrator, and migration `0001_init`, chosen from three candidate schemas (see the arena record in `docs/data-model.md`). Every table is STRICT. Observed (`sms_messages`, `sms_fragments`), derived (SMS `transactions`) and user-owned (`transaction_annotations`, `message_dismissals`, config, manual transactions) data live in separate tables. The categoriser writes `transactions.auto_category_id`; the user's tag lives only in `transaction_annotations`. The `ledger_lines` view is the single accounting rule: refunds net into the original's month and category, capped at the original amount. Triggers protect the five system categories and SMS rows even when foreign keys are off. `seedDatabase` adds the UI categories once per seed version. Deliberate changes to `system-design.md` section 6 are listed in `docs/data-model.md`, which supersedes it. Tests run on Node's `node:sqlite`.
+- **SMS parser (`src/domain/parse`).** `parseSms` for all 11 MoMo message shapes plus OTP, no-transaction-id and failed-payment classification; `mergeAll` (commutative per-field merge of a transaction's messages); `linkReversals`; `reconcileBalances`; `parseBodyTime` in `src/domain/time.ts`. On the sample export (2,488 messages) 1,913 of 1,919 transaction-labelled messages parse; the other 6 are failed payments and are ignored. Dev tools: `npm run check:sms -- <export.xml>` (real-data check) and `npm run anonymise:sms -- <export.xml>` (writes `fixtures/sms`). Branch `feat/sms-parser`, into `dev`.
+- **SQLite layer (`src/data`).** `Db` interface and `openDatabase` over `expo-sqlite` (WAL, foreign keys on, exclusive transactions), a `PRAGMA user_version` migrator, and migration `0001_init`, chosen from three candidate schemas (see the arena record in `docs/data-model.md`). Every table is STRICT. Observed (`sms_messages`, `sms_fragments`), derived (SMS `transactions`) and user-owned (`transaction_annotations`, `message_dismissals`, config, manual transactions) data live in separate tables. The categoriser writes `transactions.auto_category_id`; the user's tag lives only in `transaction_annotations`. The `ledger_lines` view is the single accounting rule: refunds net into the original's month and category, capped at the original amount. Triggers protect the five system categories and SMS rows even when foreign keys are off. `seedDatabase` adds the UI categories once per seed version. Deliberate changes to `system-design.md` section 6 are listed in `docs/data-model.md`, which supersedes it. Tests run on Node's `node:sqlite`.
 - **Insights calendar.** The period pill opens a sheet with a Day and a Month switch. A day replaces "Where it went" with that date's spending, an empty state for days without payments, and a "not happened yet" state with an average day of that name. Pure helpers in `src/domain/calendar/week.ts`.
 - **Add an expense.** A "+" on Home and Transactions opens a sheet (amount, what for, category, Today or Yesterday). Expenses are tagged "Added by you" and count towards Home's totals, categories and recent list. Saved as a manual transaction (see the write-side entry below).
 - **Month picker.** The month pill on Home opens a sheet; the choice drives Home and Insights (`PeriodProvider`).
