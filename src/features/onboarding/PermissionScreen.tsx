@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
+import { useDb } from '@/features/app';
 import { Button, FixedScreen, Icon, TextLink } from '@/ui';
 
 import { Headline, IconTile, Lede, RuledList } from './components/Parts';
+import { recordNotNow } from './recordNotNow';
 
 const PROMISES = [
   'We only read messages from MobileMoney. Nothing else.',
@@ -13,6 +15,11 @@ const PROMISES = [
 
 export function PermissionScreen() {
   const router = useRouter();
+  const db = useDb();
+  const notNow = async () => {
+    await recordNotNow(db).catch(() => undefined);
+    router.replace('/');
+  };
   return (
     <FixedScreen testID="permissionScreen">
       <View className="flex-1 justify-between px-5 pb-1 pt-6">
@@ -47,11 +54,7 @@ export function PermissionScreen() {
             variant="outline"
             onPress={() => router.push('/sheets/import-steps')}
           />
-          <TextLink
-            testID="notNowLink"
-            label="Not now"
-            onPress={() => router.replace('/permission-denied')}
-          />
+          <TextLink testID="permissionNotNowBtn" label="Not now" onPress={() => void notNow()} />
         </View>
       </View>
     </FixedScreen>

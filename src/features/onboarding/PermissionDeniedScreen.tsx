@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { Linking, Text, View } from 'react-native';
 
+import { useDb } from '@/features/app';
 import { Button, FixedScreen, TextLink } from '@/ui';
 
 import { Headline, IconTile, Lede, RuledList } from './components/Parts';
+import { recordNotNow } from './recordNotNow';
 
 const STEPS = [
   'Tap "Open phone settings" below',
@@ -13,6 +15,11 @@ const STEPS = [
 
 export function PermissionDeniedScreen() {
   const router = useRouter();
+  const db = useDb();
+  const keepLooking = async () => {
+    await recordNotNow(db).catch(() => undefined);
+    router.replace('/');
+  };
   return (
     <FixedScreen testID="permissionDeniedScreen">
       <View className="flex-1 justify-between px-5 pb-1 pt-6">
@@ -45,7 +52,7 @@ export function PermissionDeniedScreen() {
           <TextLink
             testID="keepLookingLink"
             label="Keep looking around without it"
-            onPress={() => router.replace('/')}
+            onPress={() => void keepLooking()}
           />
         </View>
       </View>
