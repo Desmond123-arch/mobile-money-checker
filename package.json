@@ -13,6 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:sms": "node --no-warnings --import ./scripts/lib/register.mjs scripts/real-data-check.ts",
+    "check:categories": "node --no-warnings --import ./scripts/lib/register.mjs scripts/categorise-report.ts",
     "anonymise:sms": "node --no-warnings --import ./scripts/lib/register.mjs scripts/anonymise-sms.ts",
     "test": "jest",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run test:ci",
