@@ -55,7 +55,8 @@ export async function needsNoteList(
   return rows.map(mapRow);
 }
 
-// Cash-outs stay in Cash until the user says what the money was for (categorisation.md, design 3.4).
+// Cash-outs stay in Cash until the user says what the money was for (categorisation.md, design 3.4):
+// a note, a manual category, or at least one allocation. A partly broken-down cash-out is not nagged.
 // Same history cut-off as above, inclusive, and the same snooze rule: "Ask me later" hides the row
 // until `prompt_snoozed_until` passes.
 export async function cashOutPrompts(
@@ -73,6 +74,7 @@ export async function cashOutPrompts(
        AND l.category_source IS NOT 'manual'
        AND NOT EXISTS (SELECT 1 FROM transaction_annotations a
                        WHERE a.transaction_id = l.id AND a.note IS NOT NULL)
+       AND NOT EXISTS (SELECT 1 FROM cash_allocations x WHERE x.cash_out_txn_id = l.id)
        AND l.occurred_at >= ?
        AND (l.prompt_snoozed_until IS NULL OR l.prompt_snoozed_until <= ?)
        AND ${time.sql}
