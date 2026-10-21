@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatPlain } from '@/domain/money';
@@ -35,6 +35,10 @@ export function TransactionsScreen() {
 
   const needle = query.trim().toLowerCase();
   const category = categoryById(categoryId);
+  // A filter on a category that has since been deleted would show nothing and cannot be seen.
+  useEffect(() => {
+    if (categoryId !== null && category === null) setCategoryId(null);
+  }, [categoryId, category, setCategoryId]);
   const filtered = direction !== 'all' || categoryId !== null || needle !== '';
 
   const rows = useTransactions({

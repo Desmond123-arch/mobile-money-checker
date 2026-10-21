@@ -2,6 +2,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
+import { SEED_KEYWORDS } from '@/domain/categorise/seed';
+import { useWrite } from '@/features/app';
+import { addKeyword, deleteCategory, removeKeyword } from '@/ledger/categories';
 import {
   BackButton,
   Button,
@@ -14,36 +17,70 @@ import {
 } from '@/ui';
 
 import { categoryById, useCategories } from './lookup';
+import { problemMessage } from './messages';
+import { useCategoryImpact, useCategoryKeywords } from './useCategoryWords';
 
-const SAMPLE_WORDS = [
-  'jollof',
-  'waakye',
-  'banku',
-  'kenkey',
-  'red red',
-  'fufu',
-  'kelewele',
-  'bread',
-  'koko',
-  'groceries',
-];
-const SUGGESTIONS = ['hausa koko', 'shawarma', 'sobolo', 'tilapia'];
+const COLLAPSED_WORDS = 12;
+const SUGGESTION_COUNT = 4;
 
 export function EditCategoryScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   useCategories();
   const category = categoryById(id ?? null);
+  const words = useCategoryKeywords(id ?? '');
+  const impact = useCategoryImpact(id ?? '');
+  const { run, busy, error } = useWrite();
   const [word, setWord] = useState('');
-  const [words, setWords] = useState(SAMPLE_WORDS);
-
-  const add = (w: string) => {
-    const trimmed = w.trim();
-    if (trimmed && !words.includes(trimmed)) setWords([trimmed, ...words]);
-    setWord('');
-  };
+  const [showAll, setShowAll] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
 
   if (!category) return null;
+
+  const add = async (text: string) => {
+    setProblem(null);
+    const saved = await run((db) => addKeyword(db, category.id, text), ['money', 'settings']);
+    if (!saved) return;
+    if (saved.value.ok) setWord('');
+    else setProblem(problemMessage(saved.value, { word: text.trim() }));
+  };
+
+  const remove = (value: string) => {
+    setProblem(null);
+    void run((db) => removeKeyword(db, category.id, value), ['money', 'settings']);
+  };
+
+  const confirmDelete = () => {
+    if (!impact) return;
+    const parts = [
+      `${impact.transactions} ${impact.transactions === 1 ? 'payment moves' : 'payments move'} to Other.`,
+      `${impact.keywords} ${impact.keywords === 1 ? 'word is' : 'words are'} removed.`,
+      `${impact.rules} ${impact.rules === 1 ? 'recipient rule is' : 'recipient rules are'} removed.`,
+      ...(impact.budgets > 0
+        ? [`${impact.budgets} ${impact.budgets === 1 ? 'budget is' : 'budgets are'} removed.`]
+        : []),
+      'Your notes stay.',
+    ];
+    Alert.alert(`Delete ${category.name}?`, parts.join('\n'), [
+      { text: 'Keep it', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          void run((db) => deleteCategory(db, category.id), ['money', 'settings']).then(
+            (done) => done && router.back(),
+          );
+        },
+      },
+    ]);
+  };
+
+  const list = words ?? [];
+  const shown = showAll ? list : list.slice(0, COLLAPSED_WORDS);
+  const have = new Set(list.map((w) => w.value));
+  const removedSeed = (SEED_KEYWORDS.find((s) => s.systemKey === category.id)?.words ?? [])
+    .filter((w) => !have.has(w))
+    .slice(0, SUGGESTION_COUNT);
 
   return (
     <Screen testID="editCategoryScreen">
@@ -74,7 +111,7 @@ export function EditCategoryScreen() {
               value={word}
               onChangeText={setWord}
               placeholder="fried rice"
-              onSubmitEditing={() => add(word)}
+              onSubmitEditing={() => void add(word)}
               returnKeyType="done"
             />
           </View>
@@ -84,57 +121,77 @@ export function EditCategoryScreen() {
               label="Add"
               size="md"
               block={false}
-              onPress={() => add(word)}
+              disabled={busy}
+              onPress={() => void add(word)}
             />
           </View>
         </View>
-        <Text className="pt-1 font-inter text-caption leading-[18px] text-muted">
-          Two words are fine. Try “fried rice” or “kenkey and fish”.
-        </Text>
+        {problem || error ? (
+          <Text
+            testID="editCategoryError"
+            className="font-inter text-caption leading-[18px] text-warn"
+          >
+            {problem ?? error}
+          </Text>
+        ) : (
+          <Text className="pt-1 font-inter text-caption leading-[18px] text-muted">
+            Two words are fine. Try “fried rice” or “kenkey and fish”.
+          </Text>
+        )}
       </View>
 
       <View className="gap-3 px-5 pt-8">
-        <SubHeading title="Your words" aside={String(words.length)} />
+        <SubHeading title="Your words" aside={String(list.length)} />
         <View className="flex-row flex-wrap gap-2">
-          {words.map((w) => (
+          {shown.map((w) => (
             <WordChip
-              key={w}
-              testID={`categoryWord-${w}`}
-              label={w}
+              key={w.value}
+              testID={`categoryWord-${w.value}`}
+              label={w.value}
               tint={category.tint}
-              onRemove={() => setWords(words.filter((x) => x !== w))}
+              onRemove={() => remove(w.value)}
             />
           ))}
-          <DashedChip testID="editCategoryShowAllBtn" label="Show all 64" />
+          {list.length > COLLAPSED_WORDS ? (
+            <DashedChip
+              testID="editCategoryShowAllBtn"
+              label={showAll ? 'Show fewer' : `Show all ${list.length}`}
+              onPress={() => setShowAll(!showAll)}
+            />
+          ) : null}
         </View>
       </View>
 
-      <View className="gap-3 px-5 pt-8">
-        <Text className="font-tight-extrabold text-section tracking-[-0.01em] text-ink">
-          People often add
-        </Text>
-        <View className="flex-row flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <SuggestionChip key={s} testID={`suggestion-${s}`} label={s} onPress={() => add(s)} />
-          ))}
+      {removedSeed.length > 0 ? (
+        <View className="gap-3 px-5 pt-8">
+          <Text className="font-tight-extrabold text-section tracking-[-0.01em] text-ink">
+            Words you removed
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {removedSeed.map((s) => (
+              <SuggestionChip
+                key={s}
+                testID={`suggestion-${s}`}
+                label={s}
+                onPress={() => void add(s)}
+              />
+            ))}
+          </View>
         </View>
-      </View>
+      ) : null}
 
-      <Pressable
-        testID="deleteCategoryBtn"
-        onPress={() =>
-          Alert.alert(`Delete ${category.name}?`, 'Payments filed under it move to Other.', [
-            { text: 'Keep it', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => router.back() },
-          ])
-        }
-        accessibilityRole="button"
-        className="mx-5 mt-10 items-center border-t border-hairline p-[14px]"
-      >
-        <Text className="font-inter-semibold text-[15px] leading-[20px] text-warn">
-          Delete this category
-        </Text>
-      </Pressable>
+      {impact?.deletable ? (
+        <Pressable
+          testID="deleteCategoryBtn"
+          onPress={confirmDelete}
+          accessibilityRole="button"
+          className="mx-5 mt-10 items-center border-t border-hairline p-[14px]"
+        >
+          <Text className="font-inter-semibold text-[15px] leading-[20px] text-warn">
+            Delete this category
+          </Text>
+        </Pressable>
+      ) : null}
     </Screen>
   );
 }

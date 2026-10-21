@@ -3,17 +3,18 @@ import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { getMeta } from '@/data/meta';
-import { SEED_CATEGORIES } from '@/domain/category/seed';
 import { useDb } from '@/features/app';
+import { useCategories } from '@/features/categories';
+import { useKeywordCounts } from '@/features/categories/useCategoryWords';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
 import { importRowSubtitle } from './importRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
-import { CATEGORY_WORD_COUNTS, FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
+import { FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
 
-const LISTED = SEED_CATEGORIES.filter((c) => c.id in CATEGORY_WORD_COUNTS);
-const HIDDEN = SEED_CATEGORIES.filter((c) => !(c.id in CATEGORY_WORD_COUNTS));
+const NAME_LISTED = ['family', 'friends'];
+const wordsLabel = (n: number) => `${n} ${n === 1 ? 'word' : 'words'}`;
 
 function Heading({ children }: { children: string }) {
   return (
@@ -28,6 +29,15 @@ export function SettingsScreen() {
   const [locked, setLocked] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const db = useDb();
+  const categories = useCategories();
+  const counts = useKeywordCounts() ?? {};
+  // Categories with words, the two that use names, and every one the user made come first.
+  const isListed = (id: string) =>
+    NAME_LISTED.includes(id) || (counts[id] ?? 0) > 0 || /^\d+$/.test(id);
+  const listed = categories.filter((c) => isListed(c.id));
+  const hidden = categories.filter((c) => !isListed(c.id));
+  const asideOf = (id: string) =>
+    NAME_LISTED.includes(id) ? 'uses names' : wordsLabel(counts[id] ?? 0);
   const [lastImportAt, setLastImportAt] = useState<string | null>(null);
 
   useFocusEffect(
@@ -52,18 +62,18 @@ export function SettingsScreen() {
         <Text className="pb-2 pt-1 font-inter text-[14px] leading-5 text-muted">
           Open one to add the words that file a payment under it.
         </Text>
-        {LISTED.map((c) => (
+        {listed.map((c) => (
           <Row
             key={c.id}
             testID={`categoryRow-${c.id}`}
             swatch={c.color}
             title={c.name}
-            aside={CATEGORY_WORD_COUNTS[c.id]}
+            aside={asideOf(c.id)}
             onPress={() => router.push(`/category/${c.id}`)}
           />
         ))}
         {showAll
-          ? HIDDEN.map((c) => (
+          ? hidden.map((c) => (
               <Row
                 key={c.id}
                 testID={`categoryRow-${c.id}`}
@@ -74,16 +84,18 @@ export function SettingsScreen() {
               />
             ))
           : null}
-        <Row
-          testID="settingsMoreCategoriesRow"
-          title={showAll ? 'Show fewer' : `Health, Education and ${HIDDEN.length - 2} more`}
-          chevron={false}
-          last
-          trailing={
-            <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
-          }
-          onPress={() => setShowAll(!showAll)}
-        />
+        {hidden.length > 0 ? (
+          <Row
+            testID="settingsMoreCategoriesRow"
+            title={showAll ? 'Show fewer' : `${hidden.length} more without words`}
+            chevron={false}
+            last
+            trailing={
+              <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
+            }
+            onPress={() => setShowAll(!showAll)}
+          />
+        ) : null}
         <Pressable
           testID="settingsNewCategoryBtn"
           accessibilityRole="button"
