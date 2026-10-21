@@ -10,6 +10,7 @@ import { SectionHeader } from '@/ui';
 
 import { Legend, MonthlyChart } from './components/BarCharts';
 import { Notice } from './components/Notice';
+import { WrappedButton } from './components/WrappedButton';
 import { ComparisonLine, Stat } from './components/Stats';
 import { useYearSummary } from './useInsights';
 
@@ -46,6 +47,12 @@ export function YearView({ year }: { year: number }) {
       {comparison ? (
         <ComparisonLine testID="insightsYearComparison" comparison={comparison} />
       ) : null}
+      <WrappedButton
+        scope={{ kind: 'year', year }}
+        spent={summary.spent}
+        payments={summary.payments}
+        emptyNote={`No money went out in ${year}, so there is no wrapped to show yet.`}
+      />
 
       <View className="gap-1 pt-10">
         <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">

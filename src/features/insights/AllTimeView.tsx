@@ -9,6 +9,7 @@ import { SectionHeader } from '@/ui';
 
 import { Legend, MonthlyChart } from './components/BarCharts';
 import { Notice } from './components/Notice';
+import { WrappedButton } from './components/WrappedButton';
 import { Stat } from './components/Stats';
 import { useAllTimeSummary } from './useInsights';
 
@@ -46,6 +47,12 @@ export function AllTimeView() {
         <Stat testID="insightsAllIn" label="Money in" value={formatGhs(summary.moneyIn)} />
         <Stat testID="insightsAllPayments" label="Payments" value={String(summary.payments)} />
       </View>
+      <WrappedButton
+        scope={{ kind: 'all' }}
+        spent={summary.spent}
+        payments={summary.payments}
+        emptyNote="No money has gone out yet, so there is no wrapped to show."
+      />
 
       <View className="gap-1 pt-10">
         <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">
