@@ -17,7 +17,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
-import { DbProvider, FirstRunGate, QueryProvider, ScanProvider } from '@/features/app';
+import { DbProvider, FirstRunGate, LockGate, QueryProvider, ScanProvider } from '@/features/app';
 import { PeriodProvider } from '@/features/period';
 import { TransactionFilterProvider } from '@/features/transactions';
 
@@ -41,26 +41,31 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <DbProvider>
-        <ScanProvider>
-          <PeriodProvider>
-            <TransactionFilterProvider>
-              <StatusBar style="dark" />
-              <FirstRunGate />
-              <Stack
-                screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
-              >
-                <Stack.Screen
-                  name="sheets"
-                  options={{
-                    presentation: 'transparentModal',
-                    animation: 'slide_from_bottom',
-                    contentStyle: { backgroundColor: 'transparent' },
+        <LockGate>
+          <ScanProvider>
+            <PeriodProvider>
+              <TransactionFilterProvider>
+                <StatusBar style="dark" />
+                <FirstRunGate />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: '#FFFFFF' },
                   }}
-                />
-              </Stack>
-            </TransactionFilterProvider>
-          </PeriodProvider>
-        </ScanProvider>
+                >
+                  <Stack.Screen
+                    name="sheets"
+                    options={{
+                      presentation: 'transparentModal',
+                      animation: 'slide_from_bottom',
+                      contentStyle: { backgroundColor: 'transparent' },
+                    }}
+                  />
+                </Stack>
+              </TransactionFilterProvider>
+            </PeriodProvider>
+          </ScanProvider>
+        </LockGate>
       </DbProvider>
     </QueryProvider>
   );
