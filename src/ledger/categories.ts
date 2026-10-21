@@ -128,7 +128,7 @@ export function removeKeyword(db: Db, categoryId: string, word: string): Promise
 }
 
 /**
- * system-design 7.8. Payments that showed under the category move to Misc, its words and rules
+ * system-design 7.8. Payments and cash-out breakdown entries under the category move to Misc, its words and rules
  * go, notes stay. Protected and seeded categories (those with a system key) cannot be deleted.
  * The auto category is RESTRICT, so the recategorise runs before the delete.
  */
@@ -146,6 +146,7 @@ export function deleteCategory(db: Db, categoryId: string): Promise<void> {
         misc,
         id,
       ]);
+      await tx.run('UPDATE cash_allocations SET category_id = ? WHERE category_id = ?', [misc, id]);
       await tx.run('DELETE FROM recipient_rules WHERE category_id = ?', [id]);
       await tx.run('DELETE FROM keywords WHERE category_id = ?', [id]);
       await recategoriseIn(tx);

@@ -37,6 +37,8 @@ export interface CategoryImpact {
   transactions: number;
   keywords: number;
   rules: number;
+  /** Cash-out breakdown entries that move to Misc. */
+  allocations: number;
   /** 0 until the budgets migration exists. */
   budgets: number;
 }
@@ -60,6 +62,7 @@ export async function categoryImpact(db: Db, categoryId: string): Promise<Catego
     ),
     keywords: await count('SELECT COUNT(*) AS n FROM keywords WHERE category_id = ?'),
     rules: await count('SELECT COUNT(*) AS n FROM recipient_rules WHERE category_id = ?'),
+    allocations: await count('SELECT COUNT(*) AS n FROM cash_allocations WHERE category_id = ?'),
     budgets: hasBudgets
       ? await count('SELECT COUNT(*) AS n FROM budgets WHERE category_id = ?')
       : 0,

@@ -193,6 +193,7 @@ describe('deleteCategory', () => {
       transactions: 3,
       keywords: 1,
       rules: 1,
+      allocations: 0,
       budgets: 0,
     });
 

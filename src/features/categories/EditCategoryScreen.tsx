@@ -54,6 +54,11 @@ export function EditCategoryScreen() {
     if (!impact) return;
     const parts = [
       `${impact.transactions} ${impact.transactions === 1 ? 'payment moves' : 'payments move'} to Other.`,
+      ...(impact.allocations > 0
+        ? [
+            `${impact.allocations} cash ${impact.allocations === 1 ? 'entry moves' : 'entries move'} to Other.`,
+          ]
+        : []),
       `${impact.keywords} ${impact.keywords === 1 ? 'word is' : 'words are'} removed.`,
       `${impact.rules} ${impact.rules === 1 ? 'recipient rule is' : 'recipient rules are'} removed.`,
       ...(impact.budgets > 0
