@@ -9,7 +9,9 @@ export type MetaKey =
   | 'owner_name'
   | 'owner_number'
   | 'parser_version'
-  | 'seed_version';
+  | 'seed_version'
+  | 'wrapped_muted'
+  | 'wrapped_track';
 
 export const getMeta = async (db: Db, key: MetaKey): Promise<string | null> =>
   (await db.get<{ value: string }>('SELECT value FROM meta WHERE key = ?', [key]))?.value ?? null;
