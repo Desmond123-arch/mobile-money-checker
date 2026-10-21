@@ -11,6 +11,7 @@ import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
 import { DailyChart } from './components/DailyChart';
 import { HeroSummary, TotalsRow } from './components/HeroSummary';
 import { NeedsNoteCard } from './components/NeedsNoteCard';
+import { SmsOffBanner } from './components/SmsOffBanner';
 import { HomeEmptyState } from './HomeEmptyState';
 import { useHomeData } from './useHomeData';
 
@@ -46,6 +47,8 @@ export function HomeScreen() {
           average={dailyAverage(month.spent, month.today)}
         />
       </HeroSummary>
+
+      <SmsOffBanner />
 
       {month.needNote > 0 ? (
         <NeedsNoteCard count={month.needNote} onPress={() => router.push('/sheets/add-note')} />

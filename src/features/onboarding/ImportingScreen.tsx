@@ -1,18 +1,25 @@
 import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 
+import { useScan } from '@/features/app';
 import { Button, FixedScreen, Hint, hardShadow } from '@/ui';
 
 import { summaryLine } from './summaryLine';
 import { useImportState } from './useImportState';
 
-// Shown only when the screen is opened without an import (deep link, or "Allow SMS access",
-// which has no scan behind it yet).
+// Shown only when the screen is opened without an import or scan running (a deep link).
 const SAMPLE = { read: 1284, total: 2488, payments: 612 };
 
 export function ImportingScreen() {
   const router = useRouter();
   const state = useImportState();
+  const scan = useScan();
+  useEffect(() => {
+    if (state.kind === 'scan' && state.phase === 'done' && state.empty) {
+      router.replace('/no-messages');
+    }
+  }, [router, state.kind, state.phase, state.empty]);
   const isSample = state.phase === 'idle';
   const progress = isSample ? SAMPLE : state;
   const percent = progress.total > 0 ? Math.round((progress.read * 100) / progress.total) : 0;
@@ -78,9 +85,22 @@ export function ImportingScreen() {
           </View>
         ) : null}
         {state.phase === 'failed' ? (
-          <Text testID="importFailedNote" className="pb-3 font-inter text-caption text-warn">
-            We could not read that file. Go back and pick it again.
-          </Text>
+          <View className="gap-3 pb-3">
+            <Text testID="importFailedNote" className="font-inter text-caption text-warn">
+              {state.kind === 'scan'
+                ? 'We could not read your messages. Nothing was lost, and what we read is kept.'
+                : 'We could not read that file. Go back and pick it again.'}
+            </Text>
+            {state.kind === 'scan' ? (
+              <Button
+                testID="importRetryBtn"
+                label="Try again"
+                variant="outline"
+                size="md"
+                onPress={() => void scan.afterGrant()}
+              />
+            ) : null}
+          </View>
         ) : null}
         <Hint title="You can leave this screen">
           It keeps going in the background. We skip login codes and anything that isn’t from

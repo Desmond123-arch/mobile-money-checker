@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import type { MonthSummary } from '@/domain/summary/month';
+import { useScan } from '@/features/app';
 import { Button, Screen, TAB_BAR_CLEARANCE } from '@/ui';
 
 import { HeroSummary } from './components/HeroSummary';
@@ -13,6 +14,7 @@ export function HomeEmptyState({
   /** True when some other month has payments, so "nothing yet" would be a lie about the app. */
   otherMonthsHaveData: boolean;
 }) {
+  const scan = useScan();
   return (
     <Screen testID="homeEmptyState" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary monthLabel={month.label} spent={month.spent}>
@@ -38,6 +40,7 @@ export function HomeEmptyState({
             size="md"
             variant="signal"
             block={false}
+            onPress={() => void scan.scan()}
           />
         </View>
       </View>

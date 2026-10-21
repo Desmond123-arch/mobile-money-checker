@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { useState } from 'react';
+import { Text, View } from 'react-native';
 
-import { useDb } from '@/features/app';
+import { useDb, useRequestSms } from '@/features/app';
 import { Button, FixedScreen, Icon, TextLink } from '@/ui';
 
 import { Headline, IconTile, Lede, RuledList } from './components/Parts';
@@ -16,10 +17,29 @@ const PROMISES = [
 export function PermissionScreen() {
   const router = useRouter();
   const db = useDb();
+  const request = useRequestSms();
+  const [busy, setBusy] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+
   const notNow = async () => {
     await recordNotNow(db).catch(() => undefined);
     router.replace('/');
   };
+
+  const allow = async () => {
+    setBusy(true);
+    setUnavailable(false);
+    try {
+      const status = await request();
+      if (status === null) setUnavailable(true);
+      else if (status === 'blocked')
+        router.replace({ pathname: '/permission-denied', params: { state: 'blocked' } });
+      else if (status !== 'granted') router.replace('/permission-denied');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <FixedScreen testID="permissionScreen">
       <View className="flex-1 justify-between px-5 pb-1 pt-6">
@@ -42,11 +62,17 @@ export function PermissionScreen() {
           </View>
         </View>
         <View className="gap-4">
+          {unavailable ? (
+            <Text testID="allowSmsUnavailableNote" className="font-inter text-caption text-warn">
+              This build of the app cannot read messages. Import a backup file instead.
+            </Text>
+          ) : null}
           <Button
             testID="allowSmsBtn"
             label="Allow SMS access"
             variant="ink"
-            onPress={() => router.replace('/importing')}
+            disabled={busy}
+            onPress={() => void allow()}
           />
           <Button
             testID="importBackupBtn"
