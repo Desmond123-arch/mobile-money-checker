@@ -9,7 +9,18 @@ const NATIVE_SMS = {
 
 module.exports = [
   ...expo,
-  { ignores: ['node_modules/', 'dist/', '.expo/', 'android/', 'ios/', 'coverage/'] },
+  {
+    // Agent worktrees hold full stale copies of other branches; linting them reports files that no longer exist here.
+    ignores: [
+      'node_modules/',
+      'dist/',
+      '.expo/',
+      'android/',
+      'ios/',
+      'coverage/',
+      '.claude/worktrees/',
+    ],
+  },
   {
     // The domain is pure: no React Native, no Expo, no SQLite. This is what keeps its tests fast and its logic portable.
     files: ['src/domain/**/*.ts'],
