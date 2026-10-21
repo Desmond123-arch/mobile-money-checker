@@ -13,7 +13,7 @@ import {
   WordChip,
 } from '@/ui';
 
-import { categoryById } from './lookup';
+import { categoryById, useCategories } from './lookup';
 
 const SAMPLE_WORDS = [
   'jollof',
@@ -32,6 +32,7 @@ const SUGGESTIONS = ['hausa koko', 'shawarma', 'sobolo', 'tilapia'];
 export function EditCategoryScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  useCategories();
   const category = categoryById(id ?? null);
   const [word, setWord] = useState('');
   const [words, setWords] = useState(SAMPLE_WORDS);

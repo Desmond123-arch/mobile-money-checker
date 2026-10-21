@@ -3,9 +3,10 @@ import { Text, View } from 'react-native';
 import { formatGhs } from '@/domain/money';
 import { categoryShares, type CategorySpend } from '@/domain/category/share';
 
-import { categoryById } from '../lookup';
+import { categoryById, useCategories } from '../lookup';
 
 export function ShareBar({ spend }: { spend: readonly CategorySpend[] }) {
+  useCategories();
   const shares = categoryShares(spend);
   return (
     <View testID="shareBar" className="h-4 flex-row gap-[2px]">
@@ -30,6 +31,7 @@ export function ShareBar({ spend }: { spend: readonly CategorySpend[] }) {
 }
 
 export function ShareLegend({ spend, limit }: { spend: readonly CategorySpend[]; limit?: number }) {
+  useCategories();
   const rows = categoryShares(spend).slice(0, limit);
   return (
     <View className="pt-2">

@@ -17,7 +17,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
-import { DbProvider, FirstRunGate } from '@/features/app';
+import { DbProvider, FirstRunGate, QueryProvider } from '@/features/app';
 import { ExpensesProvider } from '@/features/expenses';
 import { PeriodProvider } from '@/features/period';
 import { TransactionFilterProvider } from '@/features/transactions';
@@ -40,27 +40,29 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <DbProvider>
-      <PeriodProvider>
-        <ExpensesProvider>
-          <TransactionFilterProvider>
-            <StatusBar style="dark" />
-            <FirstRunGate />
-            <Stack
-              screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
-            >
-              <Stack.Screen
-                name="sheets"
-                options={{
-                  presentation: 'transparentModal',
-                  animation: 'slide_from_bottom',
-                  contentStyle: { backgroundColor: 'transparent' },
-                }}
-              />
-            </Stack>
-          </TransactionFilterProvider>
-        </ExpensesProvider>
-      </PeriodProvider>
-    </DbProvider>
+    <QueryProvider>
+      <DbProvider>
+        <PeriodProvider>
+          <ExpensesProvider>
+            <TransactionFilterProvider>
+              <StatusBar style="dark" />
+              <FirstRunGate />
+              <Stack
+                screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}
+              >
+                <Stack.Screen
+                  name="sheets"
+                  options={{
+                    presentation: 'transparentModal',
+                    animation: 'slide_from_bottom',
+                    contentStyle: { backgroundColor: 'transparent' },
+                  }}
+                />
+              </Stack>
+            </TransactionFilterProvider>
+          </ExpensesProvider>
+        </PeriodProvider>
+      </DbProvider>
+    </QueryProvider>
   );
 }
