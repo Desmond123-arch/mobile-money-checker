@@ -10,16 +10,16 @@ const SECTIONS = [
     points: [
       'Only text messages from MobileMoney, the sender MTN uses for your payments.',
       'Login codes arrive from the same sender. We skip them and never save them.',
-      'We ask for SMS access once, and you can turn it off in your phone’s settings any time.',
+      'If you allow SMS access, we ask once, and you can turn it off in your phone’s settings any time. You can import a backup file instead.',
     ],
   },
   {
     id: 'keep',
     title: 'What we keep',
     points: [
-      'The amount, balance, who you paid and when, for each payment.',
+      'The amount, fee and tax, balance, who you paid and when, for each payment.',
       'The notes and categories you choose, and the words and names you add.',
-      'We do not copy the message text. When we need it, we read it from your inbox and show it, never save it.',
+      'We do not copy the message text. If you import a backup file, we read it once, keep only the payments, and delete our copy of the file.',
     ],
   },
   {
@@ -27,7 +27,7 @@ const SECTIONS = [
     title: 'What never happens',
     points: [
       'Nothing is uploaded. There is no account, no server and no analytics.',
-      'The app does not ask for internet access, so it cannot send anything out.',
+      'Nothing in the app connects to a server or sends your data anywhere.',
       'Deleting the app deletes everything it stored.',
     ],
   },

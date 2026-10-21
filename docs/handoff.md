@@ -191,8 +191,8 @@ Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger`
   - New test ids: `addExpenseLinkedNote`, `addExpenseError`, `addNoteDoneBtn`, `addNoteError`, `cashOutError`, `cashOutLink-<id>`, `detailError`, `editCategoryError`, `newCategoryError`, `newCategoryWordInput`, `newCategoryWord-<word>`, `familyNameError`, `friendNameError`, `unreadError`.
 
   A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
-- **`INTERNET` is still in the manifest.** This piece did not touch it (a later release-build task strips it, and a dev build needs it for Metro). Until that lands, Privacy's "does not ask for internet access" is false for every build, and the privacy argument for `READ_SMS` rests on the code, not the manifest.
-- **Privacy screen copy** says the app does not ask for internet access. That is only true once `INTERNET` is stripped from release builds (design requires it; not done). Dev builds need it for Metro.
+- **`INTERNET` is still in the manifest.** This piece did not touch it (a later release-build task strips it, and a dev build needs it for Metro). Until that lands the Privacy screen makes no internet claim, and the privacy argument for `READ_SMS` rests on the code, not the manifest.
+- **Privacy screen copy** no longer claims the app lacks internet access, because `INTERNET` is not stripped yet (design requires it for release builds; dev builds need it for Metro). When the release-build stripping lands, restore the stronger line "The app does not ask for internet access, so it cannot send anything out." in `PrivacyScreen.tsx`.
 - **Typed routes:** `.expo/types/router.d.ts` goes stale after adding routes and then `tsc` rejects new `router.push` paths locally. Delete the file; CI never has it.
 - **Metro in CI mode** (`CI=1`) does not hot reload. Relaunch the app to pick up changes.
 - **Dev client** built before `expo-clipboard` was added lacks the native module. Rebuild it (`npm run build:dev`). Copy text degrades to "Could not copy" instead of crashing.
