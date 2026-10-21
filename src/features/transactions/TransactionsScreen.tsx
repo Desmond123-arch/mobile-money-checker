@@ -5,8 +5,6 @@ import { Pressable, Text, View } from 'react-native';
 import { formatPlain } from '@/domain/money';
 import { groupByDay } from '@/domain/transaction/day';
 import { categoryById, useCategories } from '@/features/categories';
-import { useExpenses } from '@/features/expenses';
-import { matchesFilter, mergeRows } from '@/features/expenses/merge';
 import { usePeriod, useToday } from '@/features/period';
 import {
   ClearButton,
@@ -27,7 +25,6 @@ type Direction = 'all' | 'out' | 'in';
 export function TransactionsScreen() {
   const router = useRouter();
   const { categoryId, setCategoryId } = useTransactionFilter();
-  const { added } = useExpenses();
   const [direction, setDirection] = useState<Direction>('all');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
@@ -40,23 +37,12 @@ export function TransactionsScreen() {
   const category = categoryById(categoryId);
   const filtered = direction !== 'all' || categoryId !== null || needle !== '';
 
-  const stored = useTransactions({
+  const rows = useTransactions({
     monthId: month.id,
     direction: direction === 'all' ? null : direction,
     categoryId,
     search: query,
   });
-  const rows =
-    stored === undefined
-      ? undefined
-      : mergeRows(stored, month.isCurrent ? added : [], today, (row) =>
-          matchesFilter(row, {
-            direction: direction === 'all' ? null : direction,
-            categoryId,
-            search: query,
-            categoryName: (id) => categoryById(id)?.name ?? '',
-          }),
-        );
   const days = groupByDay(rows ?? [], today);
 
   const toggleSearch = () => {

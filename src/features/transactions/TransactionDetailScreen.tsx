@@ -18,9 +18,6 @@ import {
 } from '@/ui';
 
 import { categoryIcon, categoryById, useCategories } from '@/features/categories';
-import { useExpenses } from '@/features/expenses';
-import { detailOfAdded } from '@/features/expenses/merge';
-import { useToday } from '@/features/period';
 
 import { useTransactionDetail } from './useTransactions';
 
@@ -37,11 +34,7 @@ function BreakdownRow({ label, value }: { label: string; value: string }) {
 
 export function TransactionDetailScreen() {
   const { id = '' } = useLocalSearchParams<{ id: string }>();
-  const today = useToday();
-  const { added } = useExpenses();
-  const stored = useTransactionDetail(id);
-  const mine = added.find((a) => a.row.id === id);
-  const tx = mine ? detailOfAdded(mine, today) : stored;
+  const tx = useTransactionDetail(id);
 
   if (tx === undefined) return <Screen testID="detailLoading">{null}</Screen>;
   if (tx === null) return <DetailNotFound />;

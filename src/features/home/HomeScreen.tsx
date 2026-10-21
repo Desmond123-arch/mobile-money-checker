@@ -2,9 +2,8 @@ import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
 import { dailyAverage } from '@/domain/summary/month';
+import { relativeDay } from '@/domain/transaction/label';
 import { ShareBar, ShareLegend, useCategories } from '@/features/categories';
-import { useExpenses } from '@/features/expenses';
-import { mergeSpend, mergeSummary, recentWithAdded } from '@/features/expenses/merge';
 import { usePeriod, useToday } from '@/features/period';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
@@ -13,24 +12,20 @@ import { DailyChart } from './components/DailyChart';
 import { HeroSummary, TotalsRow } from './components/HeroSummary';
 import { NeedsNoteCard } from './components/NeedsNoteCard';
 import { HomeEmptyState } from './HomeEmptyState';
-import { RECENT_COUNT, useHomeData } from './useHomeData';
+import { useHomeData } from './useHomeData';
 
 export function HomeScreen() {
   const router = useRouter();
   const today = useToday();
   const { month: selected, hasData, ready } = usePeriod();
-  const { added } = useExpenses();
   const data = useHomeData(selected.id);
   useCategories();
 
   if (!ready || data === undefined)
     return <View testID="homeLoading" className="flex-1 bg-ground" />;
 
-  // Hand-added expenses belong to the month the device clock is in.
-  const extras = selected.isCurrent ? added : [];
-  const month = mergeSummary(data.summary, extras);
-  const spend = mergeSpend(data.spend, extras);
-  const recent = recentWithAdded(data.recent, extras, today, RECENT_COUNT);
+  const { summary: month, spend } = data;
+  const recent = data.recent.map(({ iso, row }) => ({ row, when: relativeDay(iso, today) }));
 
   if (month.payments === 0) return <HomeEmptyState month={month} otherMonthsHaveData={hasData} />;
 
