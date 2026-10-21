@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. Only the backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Every other screen, Home included, still runs on sample data and does not read the database. There is no SMS module and no scan. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets now read those rows through `src/data/queries` and TanStack Query. What still runs on stand-ins is everything that writes or is not about money rows: Settings lists, add-expense, notes, category edits, name lists and unread messages (section 3). There is no SMS module and no scan. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
 
 ## 2. Real versus stand-in
 
@@ -13,15 +13,15 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Money | Real. Integer pesewas in `src/domain/money.ts` (`parseAmount`, `formatGhs`, `formatPlain`, `splitGhs`) | Keep |
 | Calendar maths | Real. `src/domain/calendar/week.ts` (UTC, Monday first) | Keep |
 | Category shares | Real. `categoryShares` and `allocate` in `src/domain/category/share.ts` | Keep |
-| Month summary shape | Real type, fake values. `MonthSummary` in `src/domain/summary/month.ts` | The summary query returns this |
-| Transactions | Fake. `src/features/transactions/sample.ts` (`SAMPLE_DAYS`, `SAMPLE_RECENT`, `SAMPLE_DETAIL`) | List, recent and detail queries returning `TransactionRow` and `TransactionDetail` |
-| Home month data | Fake. `src/features/home/sample.ts` (`SAMPLE_MONTH`, `summaryFor`) | Summary query per month |
-| Category spend | Fake. `src/features/categories/sample.ts` (`SAMPLE_SPEND`) | SQL aggregate by category for the selected period |
-| Months list | Fake. `src/features/period/months.ts` (`MONTH_OPTIONS`, May to Oct 2026, `CURRENT_MONTH` hard-coded) | Months that have data, from the database |
-| Insights | Fake. `src/features/insights/sample.ts` (`MONTHS`, `WEEKDAYS`, `daySpend`, `weekdaySpend`, `WEEKDAY_WEIGHTS`) | Aggregates by month, by day and by weekday. `daySpend(iso)` should become a query by date |
-| Categories | Seed only. `src/domain/category/seed.ts`, resolved by `src/features/categories/lookup.ts` | `categories` table; `categoryById` reads from it |
+| Month summary shape | Real. `MonthSummary` in `src/domain/summary/month.ts`, built by `buildMonthSummary` from `MonthFacts` that `monthFacts` (`src/data/queries/summary.ts`) reads | Keep |
+| Transactions | Real. `listTransactions`, `recentPayments`, `transactionDetail` in `src/data/queries/transactions.ts`, through `useTransactions`, `useTransactionDetail` and `useHomeData`. Rows keep the domain `TransactionRow` and `TransactionDetail` shapes | Keep |
+| Home month data | Real. `useHomeData` (`src/features/home`) | Keep |
+| Category spend | Real. `categorySpend` over `ledger_lines`, hook `useCategorySpend` | Keep |
+| Months list | Real. `monthsWithData` plus the current month, `useMonthOptions` and `PeriodProvider` in `src/features/period`. `MONTH_OPTIONS` and `CURRENT_MONTH` are gone | Keep |
+| Insights | Real. `monthlyFlows` (six months), `daySpend`, `weekdayAverage` (the "not happened yet" average), hooks in `src/features/insights/useInsights.ts`. The weekday bar chart stays gone (design 8.5) | Keep |
+| Categories | Real. `listCategories` feeds `useCategories` and `categoryById` (`src/features/categories/lookup.ts`); the seed is only the fallback before the first read. The add-expense, cash-out, add-note and detail pickers still list `SEED_CATEGORIES` (piece 4b) | Move those pickers to `useCategories()` |
 | Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view |
-| "Today" | Device clock via `useToday()` | Keep; sample data assumes Tue 20 Oct 2026 |
+| "Today" | Device clock via `useToday()` (UTC dates) | Keep |
 | Permission, importing | Real for a picked backup file: progress, payments found, then an "Import complete" summary and a Home button. The "Allow SMS access" path is still sample | Wire "Allow SMS access" to the `momo-sms` module and scan |
 | Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue. Category is a placeholder (`categoryStub.ts`, section 5) | The categoriser piece replaces `resolveCategoryStub` |
 
@@ -33,8 +33,8 @@ These hold user input in memory only. They reset on reload.
 
 | Where | What it holds | Becomes |
 |---|---|---|
-| `ExpensesProvider` (`src/features/expenses`) | Expenses added by hand; also merged into Home totals, categories and recent, and into Transactions | `transactions` rows with `origin = 'manual'`, their category in `transaction_annotations` |
-| `PeriodProvider` (`src/features/period`) | Selected month or day | UI state only. Keep as context or router params |
+| `ExpensesProvider` (`src/features/expenses`) | Expenses added by hand; folded into Home totals, categories and recent, and into Transactions by `src/features/expenses/merge.ts` (only for the current month) | `transactions` rows with `origin = 'manual'`, their category in `transaction_annotations`. The queries already return such rows, so delete `merge.ts` and its callers (`HomeScreen`, `TransactionsScreen`, `TransactionDetailScreen`) when the writes land |
+| `PeriodProvider` (`src/features/period`) | Selected month or day (months come from the database) | UI state only. Keep as context or router params |
 | `TransactionFilterProvider` (`src/features/transactions/filterContext.tsx`) | Selected category filter | UI state only |
 | `NameList` (settings) | Family and friend names | `name_lists` |
 | `EditCategoryScreen` | Words added and removed | `keywords` |
@@ -49,7 +49,7 @@ These hold user input in memory only. They reset on reload.
 
 ## 5. Data layer, and what is not built yet
 
-`src/data` holds the schema. Only `src/features/app` (`DbProvider`) and `src/ledger` use it, so every screen except Importing still runs on the stand-ins in section 2. The schema and the reasons for it are in [`data-model.md`](data-model.md); it supersedes `system-design.md` section 6.
+`src/data` holds the schema and the read queries. `src/features/app` (`DbProvider`), `src/ledger` and the read hooks in `src/features` use it. The schema and the reasons for it are in [`data-model.md`](data-model.md); it supersedes `system-design.md` section 6.
 
 - `db.ts` defines the async `Db` interface (`exec`, `run`, `all`, `get`, `transaction`) and `openDatabase(name?)`, the only file that imports `expo-sqlite`. `transaction` is exclusive and a nested call joins the open one.
 - `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0002_*.ts` and append it to `migrations/index.ts`. Every table is STRICT, and triggers go through `execAsync` like any other statement.
@@ -60,7 +60,7 @@ Reading the data: totals come from the view `ledger_lines` (one SUM each for spe
 
 ### Backup import and the ledger
 
-Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, and `src/ledger`. A picked file is read in batches of 200, each batch is parsed and written in one transaction, and `finishImport` closes the import. Home and the other screens do not read these rows yet.
+Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, `src/ledger` and the read queries. A picked file is read in batches of 200, each batch is parsed and written in one transaction, and `finishImport` closes the import. `QueryProvider` invalidates every cached query when the import store reaches `done`, so Home shows the import without a restart.
 
 - `src/ledger/writeQueue.ts`: `ledgerQueue.run(task)` serialises every ledger write in the process; `runCoalesced` is the single-flight variant for scans (a request made mid-run sets a rerun flag). Route every new ledger writer through it.
 - `src/ledger/ingest.ts`: `ingest(db, items, now?)` takes `{ source: 'backup' | 'inbox', body, receivedAt, androidId? }`. One exclusive transaction per batch and a `SAVEPOINT` per message; a message that throws rolls back to its savepoint and is counted in `errors`. Parsed messages upsert `sms_messages` (backup key `<received_at>:<momo_txn_id>:<template_name>`) and `sms_fragments`, then the transaction is re-derived with `mergeAll` over all its stored fragments, so re-ingest and arrival order never change the result. Ignored and unparsed backup messages are only counted. Inbox messages are stored with their status (this is for the scan piece; nothing calls it with `inbox` yet). It never touches `transaction_annotations`. The result also carries `paymentIds` so a caller can count a payment whose two messages fall in different batches once (`createLedgerSink` does this).
@@ -81,7 +81,20 @@ Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, an
 - Only `expoFileSource.ts` and `pickBackupFile.ts` may import Expo inside `src/backup` (ESLint enforces it, and bans `console` there because message bodies flow through).
 - The picker filters on `text/xml` and `application/xml`. Some file managers label the export differently and will grey it out; widen the filter if that shows up.
 
-Before connecting screens: the UI uses string category ids (`food`), the database uses integer ids with the string in `system_key`. `categoryById` in `src/features/categories/lookup.ts` needs a map between them. User-made categories have no `system_key` and no string id today.
+### Reading the data (piece 4a)
+
+Every read is a function in `src/data/queries` over the `Db` interface (listed in `data-model.md`), wrapped by a TanStack Query hook in the feature that uses it. Keys include the month, day and filters. After a write, call `useQueryClient().invalidateQueries()` (all of it derives from SQLite) or the narrower `CATEGORIES_KEY` from `src/features/categories`.
+
+- **Category ids.** The UI keeps string ids. `UI id = system_key`, except that the migration's `misc` row is `other` (the id the UI always used); a user category has no key and uses its row id as a string (`'12'`). `uiCategoryId` (`src/domain/category/ids.ts`) and `UI_CATEGORY_ID_SQL` (`src/data/queries/sql.ts`) are the two statements of the rule; the query tests exercise the SQL one. `Cash` (`cash`) now exists in the UI list and shows in legends, rows and the category filter.
+- **Which month opens.** `PeriodProvider` follows the data until the user picks something: the current month when it has data (or nothing has data at all), otherwise the latest month with data. A backup export is usually older than today, so Home opens on its newest month instead of an empty current one. The current month is always in the month and calendar sheets. Home shows a blank screen (`homeLoading`) until the months have been read, so it never flashes the wrong month.
+- **Empty states.** Home with no data anywhere keeps "Nothing here yet." If other months have data, an empty month reads "No payments in <month>." and points to the month picker. Transactions and Insights say the same for an empty month.
+- **Transactions follows the month** picked on Home (there is no month control on that screen). Direction, category and search are SQL filters (`LIKE` on name, note and category name, ASCII case-insensitive). "See all N" on Home counts payments (money out); the list also shows money in, so its row count is larger.
+- **What counts as a payment.** `flow = 'spend'`, retracted rows excluded, self-transfers included. Credits (refunds, reversals) are money in on the list and offset spend in the totals.
+- **"What were these for?"** `needsNoteCount` counts outgoing SMS payments in the Misc category with no note of any kind (a user note, a cleared note and a clean reference all count as answered), not snoozed, and occurring after `meta.first_import_at`. With no `first_import_at` nothing is counted. A backup import therefore shows no card. Rows in the list show the yellow "Add a note" state by the same rule (out, no note, Misc, not hand-added); the old rule (any row with a null note) would have marked every imported row. `needsNoteList` exists for the Add note sheet (piece 4b) but nothing calls it yet.
+- **Transaction detail.** The time shows "about" when `occurred_at_source = 'received'`, and the year when it is not the current one. "Balance after" is hidden when there is none. The line under the amount says if the payment was reversed or reverses another. Message text is never stored, so the "Original message" toggle opens a line saying so (`originalMessage` is null until the inbox scan can read it back). A route id that is not a stored transaction shows `detailNotFound` (hand-added expenses resolve from `ExpensesProvider`). The note, category chips, "always tag" and Save are still local state.
+- **Counterparty fallback.** A message with no name or merchant shows `Cash out`, `Interest`, `Refund`, `Reversal` or `MoMo payment` (`fallbackCounterparty`).
+- **Placeholder categories.** Until the categoriser lands, imported payments are Cash (cash-out) or Misc and money in is Income, so the legends are mostly Other. Nothing in the read side changes when it lands.
+- **Times** are UTC and ranges are `[start, end)`; the daily chart, the biggest day and the day view use the same UTC dates.
 
 Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` NULL, `occurred_at_source = 'user'`, `flow = 'spend'` and no auto category. The "what was it for" title goes in `counterparty_name` and the chosen category in `transaction_annotations.category_id`.
 
@@ -89,7 +102,7 @@ Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` 
 
 Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
 
-Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` and `queries`, the rest of `src/ledger` (recategorise, reparse, `deleteCategory`), `src/scan`.
+Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), the rest of `src/ledger` (recategorise, reparse, `deleteCategory`), `src/scan`.
 
 ### The SMS parser
 
@@ -115,7 +128,11 @@ Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` and `queri
 - **Deleting a category is a two-step.** `auto_category_id` is `RESTRICT`, so `deleteCategory` must recategorise first. Annotations are `SET NULL` and keep the note. Triggers refuse deleting the five protected categories and any `sms_messages` or SMS `transactions` row, even with `foreign_keys` OFF.
 - **Money must be an integer.** STRICT tables reject 10.5 in a money column at insert time; pass pesewas.
 - **Exclusive transactions open a new connection.** `expo-sqlite`'s `withExclusiveTransactionAsync` runs on a fresh native connection where `foreign_keys` is OFF and `BEGIN` is deferred. `db.ts` closes that `BEGIN`, sets the pragma, and reopens with `BEGIN IMMEDIATE`, then throws if the pragma did not stick. This is only exercised by the Node tests through a stand-in; run a RESTRICT delete inside `transaction` on a device before relying on it.
-- **Maestro flows depend on sample ids** (`t1` to `t6`, category ids, `2026-10-*` dates). When data is real they need a seeded fixture or a test mode. They have never been run (Maestro is not installed in the WSL environment).
+- **Maestro flows depend on sample data and now break.** They have never been run (Maestro is not installed in the WSL environment). They need a seeded database or a test mode that loads a fixture ledger. Without data Home renders `homeEmptyState`, not `homeScreen`, so:
+  - every flow that runs `setupApp.yml` fails at its wait for `homeScreen` (all except `first-run-gate.yml`), and `first-run-gate.yml` and `permission-flow.yml` fail at their `homeScreen` assertions;
+  - on top of that these assert sample content: `home-screen` (`homeSpentAmount`, `dailyChart`, `needsNoteCard`), `add-note-category` (`needsNoteCard`), `home-filter` (`transactionRow-t1`, `-t2`), `transactions-filters` (`-t1`, `-t4`, `addNoteLink-t5`), `transactions-search` (`-t1` to `-t3`), `transaction-detail` (`transactionRow-t3`, the original message text), `month-picker` (`monthOption-2026-08`) and `insights-calendar` (`calendarDay-2026-10-19`, `-28`, `calendarMonth-2026-08`, "Monday 19 Oct").
+
+  A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
 - **Privacy screen copy** says the app does not ask for internet access. That is only true once `INTERNET` is stripped from release builds (design requires it; not done). Dev builds need it for Metro.
 - **Typed routes:** `.expo/types/router.d.ts` goes stale after adding routes and then `tsc` rejects new `router.push` paths locally. Delete the file; CI never has it.
 - **Metro in CI mode** (`CI=1`) does not hot reload. Relaunch the app to pick up changes.

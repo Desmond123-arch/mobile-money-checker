@@ -67,6 +67,25 @@ Example: 1000 spent with a 60 fee, then refunds of 300 and 200. Spend in the ori
 
 Query plan: the time range is pushed into every branch of the view and uses `transactions_time`. The category predicate is not, because the effective category is a join result, so `transactions_cat_time (auto_category_id, occurred_at)` does not serve budget or category-spend queries. The cost is bounded by the rows in the month (a few hundred), not by the table. The index still serves recategorise and the RESTRICT check on category delete.
 
+## Read queries
+
+`src/data/queries` holds every read the screens use: plain SQL over `ledger_lines` and `transaction_list` on the `Db` interface, so they run in Node tests (`src/data/__tests__/queries.test.ts`, and `realFileQueries.test.ts` on a real export when present). Ranges are `[start, end)` in UTC epoch ms; money is integer pesewas; category ids come back as UI ids (`system_key`, with `misc` as `other`, or the row id as a string).
+
+| Function | Returns |
+|---|---|
+| `monthsWithData(db)` | Every month with a ledger line, oldest first, with spent and money in |
+| `monthFacts(db, monthId, todayIso, now)` / `monthSummary` | The inputs of `MonthSummary` (spent, money in, payments, needs-a-note count, spend per day, the previous month's spend over the same stretch) and the `MonthSummary` built from them by `buildMonthSummary` |
+| `categorySpend(db, range)` | Net spend per effective category for a month or a day, largest first, categories netting to zero or less left out |
+| `listTransactions(db, filters, limit?)` | Rows newest first as `{ iso, row: TransactionRow }`; filters: range, direction, category, search over counterparty, note and category name |
+| `recentPayments(db, range, limit)` | The latest outgoing payments |
+| `paymentCount(db, range)` | Outgoing, non-retracted transactions in the range |
+| `transactionDetail(db, id, today)` | `TransactionDetail` (kind label, time label and approximate flag, balance after, note and its source, reversed or reverses) or null |
+| `needsNoteCount` / `needsNoteList(db, range, now)` | Outgoing SMS payments in Misc with no note and no live snooze, after `meta.first_import_at` (nothing when it is unset) |
+| `monthlyFlows(db, endMonthId, count)` | Money out and in for `count` months ending at a month, zero for empty ones |
+| `daySpend(db, iso)` | A day's total and category split |
+| `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |
+| `listCategories(db)` | The categories table in display order with UI ids |
+
 ## How the hard cases work
 
 - **Re-parse after a parser change.** For each message still on the phone that is stale, unparsed, ignored or errored, replace its fragment, then re-fold every affected `momo_txn_id` (old and new). A message that is gone keeps its last fragment. A transaction left with no fragments gets `retracted_at` and is not deleted, so notes and links stay attached.
