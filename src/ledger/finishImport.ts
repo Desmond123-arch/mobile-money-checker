@@ -73,6 +73,11 @@ export async function finishImport(db: Db, now: number = Date.now()): Promise<{ 
       [String(now)],
     );
     await tx.run(
+      `INSERT INTO meta (key, value) VALUES ('last_import_at', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [String(now)],
+    );
+    await tx.run(
       `INSERT INTO meta (key, value) VALUES ('parser_version', ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
       [String(PARSER_VERSION)],

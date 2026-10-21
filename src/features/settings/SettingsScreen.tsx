@@ -1,10 +1,13 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { getMeta } from '@/data/meta';
 import { SEED_CATEGORIES } from '@/domain/category/seed';
+import { useDb } from '@/features/app';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
+import { importRowSubtitle } from './importRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
 import { CATEGORY_WORD_COUNTS, FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
@@ -24,6 +27,21 @@ export function SettingsScreen() {
   const router = useRouter();
   const [locked, setLocked] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const db = useDb();
+  const [lastImportAt, setLastImportAt] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let live = true;
+      (async () =>
+        (await getMeta(db, 'last_import_at')) ?? (await getMeta(db, 'first_import_at')))()
+        .then((value) => live && setLastImportAt(value))
+        .catch(() => undefined);
+      return () => {
+        live = false;
+      };
+    }, [db]),
+  );
 
   return (
     <Screen testID="settingsScreen" bottomPad={TAB_BAR_CLEARANCE}>
@@ -95,6 +113,12 @@ export function SettingsScreen() {
         <View className="pb-2">
           <Heading>More</Heading>
         </View>
+        <Row
+          testID="settingsImportBackupRow"
+          title="Import a backup file"
+          subtitle={importRowSubtitle(lastImportAt)}
+          onPress={() => router.push('/sheets/import-steps')}
+        />
         <Row
           testID="settingsUnreadRow"
           title="Messages we couldn't read"

@@ -148,7 +148,10 @@ describe('ledger totals and reversals', () => {
     await finishImport(db, NOW);
     const before = await db.all('SELECT * FROM meta ORDER BY key');
     expect(await finishImport(db, NOW + 99)).toEqual({ linked: 0 });
-    expect(await db.all('SELECT * FROM meta ORDER BY key')).toEqual(before);
+    const after = await db.all<{ key: string; value: string }>('SELECT * FROM meta ORDER BY key');
+    expect(after.filter((r) => r.key !== 'last_import_at')).toEqual(
+      before.filter((r: any) => r.key !== 'last_import_at'),
+    );
     expect(await db.all('SELECT * FROM reversal_links')).toHaveLength(1);
     const meta = Object.fromEntries(before.map((r: any) => [r.key, r.value]));
     expect(meta).toMatchObject({
