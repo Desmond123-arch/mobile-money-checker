@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets now read those rows through `src/data/queries` and TanStack Query. What still runs on stand-ins is everything that writes or is not about money rows: Settings lists, add-expense, notes, category edits, name lists and unread messages (section 3). There is no SMS module and no scan. `src/domain` is pure and tested; `src/features` and `src/ui` are UI only. Several screens look like they save but only change local React state.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). What is still a stand-in is small: "Allow SMS access" (no SMS module, no scan) and "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
 
 ## 2. Real versus stand-in
 
@@ -19,34 +19,57 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Category spend | Real. `categorySpend` over `ledger_lines`, hook `useCategorySpend` | Keep |
 | Months list | Real. `monthsWithData` plus the current month, `useMonthOptions` and `PeriodProvider` in `src/features/period`. `MONTH_OPTIONS` and `CURRENT_MONTH` are gone | Keep |
 | Insights | Real. `monthlyFlows` (six months), `daySpend`, `weekdayAverage` (the "not happened yet" average), hooks in `src/features/insights/useInsights.ts`. The weekday bar chart stays gone (design 8.5) | Keep |
-| Categories | Real. `listCategories` feeds `useCategories` and `categoryById` (`src/features/categories/lookup.ts`); the seed is only the fallback before the first read. The add-expense, cash-out, add-note and detail pickers still list `SEED_CATEGORIES` (piece 4b) | Move those pickers to `useCategories()` |
+| Categories | Real. `listCategories` feeds `useCategories` and `categoryById` (`src/features/categories/lookup.ts`); the seed is only the fallback before the first read. Every picker (add-expense, cash-out, add-note, detail, filter) lists `useCategories()` | Keep |
 | Categoriser | Real. `src/domain/categorise` (pure) and `src/ledger/categorise.ts` (loads the config, calls it) | Keep |
-| Settings lists | Fake. `src/features/settings/sample.ts` (word counts, family and friend names, unread messages) | `keywords`, `name_lists` and the `unread_messages` view; after any edit call `recategorise(db)` |
+| Settings lists | Real. Word counts come from `keywords` (`keywordCounts`), family and friend names from `name_lists` (`nameLists`), the unread count from the `unread_messages` view. `sample.ts` is deleted | Keep |
+| Hand-added expenses | Real. `addManualExpense` (`src/ledger/manualExpense.ts`). `ExpensesProvider` and `merge.ts` are deleted; the views return manual rows | Keep |
 | "Today" | Device clock via `useToday()` (UTC dates) | Keep |
 | Permission, importing | Real for a picked backup file: progress, payments found, then an "Import complete" summary and a Home button. The "Allow SMS access" path is still sample | Wire "Allow SMS access" to the `momo-sms` module and scan |
-| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue. Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
+| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue, and the user-side writes (`manualExpense`, `transactionEdit`, `categories`, `names`, `unread`). Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
 
-## 3. State that must move into storage
+## 3. What is still in memory or not built
 
-These hold user input in memory only. They reset on reload.
+Nothing a user types is lost on reload any more, except these.
 
 | Where | What it holds | Becomes |
 |---|---|---|
-| `ExpensesProvider` (`src/features/expenses`) | Expenses added by hand; folded into Home totals, categories and recent, and into Transactions by `src/features/expenses/merge.ts` (only for the current month) | `transactions` rows with `origin = 'manual'`, their category in `transaction_annotations`. The queries already return such rows, so delete `merge.ts` and its callers (`HomeScreen`, `TransactionsScreen`, `TransactionDetailScreen`) when the writes land |
 | `PeriodProvider` (`src/features/period`) | Selected month or day (months come from the database) | UI state only. Keep as context or router params |
 | `TransactionFilterProvider` (`src/features/transactions/filterContext.tsx`) | Selected category filter | UI state only |
-| `NameList` (settings) | Family and friend names | `name_lists` |
-| `EditCategoryScreen` | Words added and removed | `keywords` |
-| `NewCategorySheet` | New category | `categories` |
-| `UnreadMessagesScreen` | Ignored message ids | `message_dismissals`; "Add by hand" sets `transactions.source_message_id` |
-| `TransactionDetailScreen`, `AddNoteSheet`, `CashOutSheet` | Note, category, "always tag this recipient" | `transaction_annotations` (category, note, snooze) and `recipient_rules` |
-| `SettingsScreen` | Lock the app toggle | Real app lock (not built) |
+| `SettingsScreen` | "Lock the app" toggle. A stand-in: the switch moves and the subtitle says "Not built yet" | Real app lock (`meta` lock flag, biometric or PIN) |
+| `PermissionScreen` | "Allow SMS access" goes to Importing with no permission request or scan | The Kotlin `momo-sms` module and `src/scan` |
 
-## 4. Buttons that look like they save but do not
+## 4. Buttons that save, and what is left
 
-`Save changes` (`detailSaveBtn`), `Save note` (`addNoteSaveBtn`), `Save` (`cashOutSaveBtn`), `Create category` (`createCategoryBtn`), `Add by hand` (`unreadAdd-*`), `Copy text` only copies, `Delete this category` only closes. `Add expense` does keep its result, but only in memory.
+These now persist. Each runs one queued exclusive transaction (`ledgerQueue.run` then `db.transaction`), then invalidates query key prefixes (`useWrite`, `src/features/app/useWrite.ts`: `money` or `settings`). Each has a test that closes and reopens a database file and reads the result back (`createFileDb`, `src/ledger/__tests__/fileDb.ts`).
+
+| Button (testID) | Writes | Test |
+|---|---|---|
+| Add expense (`addExpenseSaveBtn`) | `transactions` (origin `manual`) plus the category in `transaction_annotations` | `manualExpense.test.ts` |
+| Save changes (`detailSaveBtn`) | Note and category in `transaction_annotations`, only the fields that changed | `transactionEdit.test.ts` |
+| Always tag this recipient (`detailAlwaysTagToggle`) | A `recipient_rules` row (number, else merchant code, else normalised name), `applies_to` the transaction's flow, then `recategoriseIn` | `transactionEdit.test.ts` |
+| Save note (`addNoteSaveBtn`) | Note and/or category in `transaction_annotations` | `transactionEdit.test.ts` |
+| Save and Ask me later (`cashOutSaveBtn`, `cashOutAskLaterLink`) | Category and note, or `prompt_snoozed_until` (24 hours ahead) | `transactionEdit.test.ts` |
+| Create category (`createCategoryBtn`) | `categories` (sort_order above the seeded ones, tint from the colour) and any starting `keywords`, then recategorise | `categories.test.ts` |
+| Add a word, remove a word, suggestion chips | `keywords`, then recategorise | `categories.test.ts` |
+| Delete this category (`deleteCategoryBtn`) | `deleteCategory` (system-design 7.8) | `categories.test.ts` |
+| Family and friends Add name / remove | `name_lists`, then recategorise | `namesUnread.test.ts` |
+| Ignore (`unreadIgnore-*`) | `message_dismissals` | `namesUnread.test.ts` |
+| Add by hand (`unreadAdd-*`) | `transactions` with `source_message_id`, dated at the message's `received_at` | `namesUnread.test.ts` |
+
+Behaviour worth knowing:
+
+- Notes and the manual category are written only to `transaction_annotations`. `note = ''` means the user cleared the SMS reference. The detail screen sends a field only when it changed, so an untouched category keeps following the categoriser.
+- The "What were these for?" card and the Transactions "Add a note" link open `/sheets/add-note`. The link passes `?id=`; the card passes nothing and the sheet takes the newest payment in the selected month from `needsNoteList`. A saved note or a category other than Misc removes the row from the card and the list.
+- The cash-out sheet opens from a "What was this for?" link on a Transactions row in Cash with no note (`cashOutLink-<id>`), with `?id=`. The snooze is stored but nothing reads it for cash-outs yet, because the needs-a-note queries only look at Misc. The link therefore shows again after "Ask me later".
+- A word belongs to one category. Adding one that exists elsewhere, or one of the junk references (`momo`, `no`, ...), is refused with a message. Family, Friends, Income, Cash and Other take no words; their edit screen says why. Aliases are listed with the words and can be removed.
+- A name belongs to one list. Adding it to the other list is refused with a message.
+- Only user-made categories (no `system_key`) can be deleted, so the button is hidden for the others. The confirmation shows the transaction, word, rule and (once the `budgets` table exists) budget counts. Payments move to Other, manual tags on it become Other, notes stay.
+- The "Words you removed" section of the edit screen offers seed words the user deleted. It replaced the hardcoded "People often add" list.
+- **Messages we couldn't read** lists inbox rows only, and message text is never stored. So the list is empty after a backup import (by design) and until the inbox scan exists. Rows show a time and "Format not known yet", not the text. "Copy text" is gone because there is nothing to copy; `expo-clipboard` is no longer used by any screen.
+
+Still not built: `modules/momo-sms` (Kotlin module), `src/scan`, "Allow SMS access", "Lock the app", reparse.
 
 ## 5. Data layer, and what is not built yet
 
@@ -93,19 +116,19 @@ Every read is a function in `src/data/queries` over the `Db` interface (listed i
 - **Empty states.** Home with no data anywhere keeps "Nothing here yet." If other months have data, an empty month reads "No payments in <month>." and points to the month picker. Transactions and Insights say the same for an empty month.
 - **Transactions follows the month** picked on Home (there is no month control on that screen). Direction, category and search are SQL filters (`LIKE` on name, note and category name, ASCII case-insensitive). "See all N" on Home counts payments (money out); the list also shows money in, so its row count is larger.
 - **What counts as a payment.** `flow = 'spend'`, retracted rows excluded, self-transfers included. Credits (refunds, reversals) are money in on the list and offset spend in the totals.
-- **"What were these for?"** `needsNoteCount` counts outgoing SMS payments in the Misc category with no note of any kind (a user note, a cleared note and a clean reference all count as answered), not snoozed, and occurring after `meta.first_import_at`. With no `first_import_at` nothing is counted. A backup import therefore shows no card. Rows in the list show the yellow "Add a note" state by the same rule (out, no note, Misc, not hand-added); the old rule (any row with a null note) would have marked every imported row. `needsNoteList` exists for the Add note sheet (piece 4b) but nothing calls it yet.
-- **Transaction detail.** The time shows "about" when `occurred_at_source = 'received'`, and the year when it is not the current one. "Balance after" is hidden when there is none. The line under the amount says if the payment was reversed or reverses another. Message text is never stored, so the "Original message" toggle opens a line saying so (`originalMessage` is null until the inbox scan can read it back). A route id that is not a stored transaction shows `detailNotFound` (hand-added expenses resolve from `ExpensesProvider`). The note, category chips, "always tag" and Save are still local state.
+- **"What were these for?"** `needsNoteCount` counts outgoing SMS payments in the Misc category with no note of any kind (a user note, a cleared note and a clean reference all count as answered), not snoozed, and occurring after `meta.first_import_at`. With no `first_import_at` nothing is counted. A backup import therefore shows no card. Rows in the list show the yellow "Add a note" state by the same rule (out, no note, Misc, not hand-added); the old rule (any row with a null note) would have marked every imported row. `needsNoteList` feeds the Add note sheet when it opens without an id.
+- **Transaction detail.** The time shows "about" when `occurred_at_source = 'received'`, and the year when it is not the current one. "Balance after" is hidden when there is none. The line under the amount says if the payment was reversed or reverses another. Message text is never stored, so the "Original message" toggle opens a line saying so (`originalMessage` is null until the inbox scan can read it back). A route id that is not a stored transaction shows `detailNotFound`. Hand-added expenses are stored rows, so they open like any other. Save changes writes the note and category (section 4); the "always tag" toggle is hidden for hand-added rows.
 - **Counterparty fallback.** A message with no name or merchant shows `Cash out`, `Interest`, `Refund`, `Reversal` or `MoMo payment` (`fallbackCounterparty`).
 - **Placeholder categories.** Until the categoriser lands, imported payments are Cash (cash-out) or Misc and money in is Income, so the legends are mostly Other. Nothing in the read side changes when it lands.
 - **Times** are UTC and ranges are `[start, end)`; the daily chart, the biggest day and the day view use the same UTC dates.
 
-Manual expenses are `transactions` rows with `origin = 'manual'`, `momo_txn_id` NULL, `occurred_at_source = 'user'`, `flow = 'spend'` and no auto category. The "what was it for" title goes in `counterparty_name` and the chosen category in `transaction_annotations.category_id`.
+Manual expenses (written by `addManualExpense`) are `transactions` rows with `origin = 'manual'`, `momo_txn_id` NULL, `occurred_at_source = 'user'`, `flow = 'spend'` and no auto category. The "what was it for" title goes in `counterparty_name` and the chosen category in `transaction_annotations.category_id`.
 
 ### How budgets will plug in
 
 Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
 
-Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), the rest of `src/ledger` (reparse, `deleteCategory`), `src/scan`.
+Still not built: `modules/momo-sms` (Kotlin module), the rest of `src/ledger` (reparse), `src/scan`. Writes live in `src/ledger` (there is no `src/data/repos`); `deleteCategory` is built and `categoryImpact` supplies the budget count for its confirmation.
 
 ### The SMS parser
 
@@ -133,7 +156,9 @@ Still not built: `modules/momo-sms` (Kotlin module), `src/data/repos` (writes), 
 - **Exclusive transactions open a new connection.** `expo-sqlite`'s `withExclusiveTransactionAsync` runs on a fresh native connection where `foreign_keys` is OFF and `BEGIN` is deferred. `db.ts` closes that `BEGIN`, sets the pragma, and reopens with `BEGIN IMMEDIATE`, then throws if the pragma did not stick. This is only exercised by the Node tests through a stand-in; run a RESTRICT delete inside `transaction` on a device before relying on it.
 - **Maestro flows depend on sample data and now break.** They have never been run (Maestro is not installed in the WSL environment). They need a seeded database or a test mode that loads a fixture ledger. Without data Home renders `homeEmptyState`, not `homeScreen`, so:
   - every flow that runs `setupApp.yml` fails at its wait for `homeScreen` (all except `first-run-gate.yml`), and `first-run-gate.yml` and `permission-flow.yml` fail at their `homeScreen` assertions;
-  - on top of that these assert sample content: `home-screen` (`homeSpentAmount`, `dailyChart`, `needsNoteCard`), `add-note-category` (`needsNoteCard`), `home-filter` (`transactionRow-t1`, `-t2`), `transactions-filters` (`-t1`, `-t4`, `addNoteLink-t5`), `transactions-search` (`-t1` to `-t3`), `transaction-detail` (`transactionRow-t3`, the original message text), `month-picker` (`monthOption-2026-08`) and `insights-calendar` (`calendarDay-2026-10-19`, `-28`, `calendarMonth-2026-08`, "Monday 19 Oct").
+  - on top of that these assert sample content: `home-screen` (`homeSpentAmount`, `dailyChart`, `needsNoteCard`), `add-note-category` (`needsNoteCard`; the sheet also needs a pending payment, and Save stays disabled until the note or category changes), `home-filter` (`transactionRow-t1`, `-t2`), `transactions-filters` (`-t1`, `-t4`, `addNoteLink-t5`), `transactions-search` (`-t1` to `-t3`), `transaction-detail` (`transactionRow-t3`, the original message text), `month-picker` (`monthOption-2026-08`) and `insights-calendar` (`calendarDay-2026-10-19`, `-28`, `calendarMonth-2026-08`, "Monday 19 Oct").
+  - Changed by the write side (piece 4b): `unread-messages` asserts `unreadMessage-u1`, `unreadAdd-u2` and `unreadIgnore-*` from the old sample messages. The list is now empty without inbox rows, so it fails at `unreadMessage-u1` (the empty state is `unreadEmpty`). `edit-category` taps `suggestion-shawarma`, which now exists only after that seed word is removed. `transactions-filters` and `home-screen` open `addNoteSheet`, which now shows the real payment, or `addNoteDoneBtn` when none is pending. `transaction-detail` needs a stored row, and `detailSaveBtn` now writes. `new-category-sheet` still follows its steps, but `createCategoryBtn` is disabled until a name is typed and a duplicate name shows `newCategoryError`. `settings-lock-toggle` is unaffected.
+  - New test ids: `addExpenseLinkedNote`, `addExpenseError`, `addNoteDoneBtn`, `addNoteError`, `cashOutError`, `cashOutLink-<id>`, `detailError`, `editCategoryError`, `newCategoryError`, `newCategoryWordInput`, `newCategoryWord-<word>`, `familyNameError`, `friendNameError`, `unreadError`.
 
   A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
 - **Privacy screen copy** says the app does not ask for internet access. That is only true once `INTERNET` is stripped from release builds (design requires it; not done). Dev builds need it for Metro.

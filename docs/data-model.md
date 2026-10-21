@@ -85,6 +85,12 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `daySpend(db, iso)` | A day's total and category split |
 | `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |
 | `listCategories(db)` | The categories table in display order with UI ids |
+| `categoryKeywords(db, id)` / `keywordCounts(db)` | A category's words (the user's first) / the word count per category |
+| `categoryImpact(db, id)` | Whether a category can be deleted and the transactions, words, rules and budgets that deleting it touches |
+| `nameLists(db)` | Family and friend names |
+| `unreadMessages(db)` | Rows of `unread_messages` (inbox only; no text) |
+
+Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCategory`, `addKeyword`, `removeKeyword`, `deleteCategory`, `addName`, `removeName`, `dismissMessage`. Each is one `ledgerQueue` task and one exclusive transaction, and each that changes the categoriser's inputs ends with `recategoriseIn`.
 
 ## How the hard cases work
 
