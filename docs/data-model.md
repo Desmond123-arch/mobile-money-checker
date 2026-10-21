@@ -86,6 +86,11 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `yearsWithData(db)` | Money out and in per year that has a ledger line, oldest first |
 | `yearSummary(db, year)` | A year's twelve months (`monthlyFlows` ending in December), payment count and the year before's spend, built into a `YearSummary` |
 | `allTimeSummary(db)` | Totals since the first payment, first and last month, a total per year, the busiest year and month, built into an `AllTimeSummary`. A year or all time is the same sums over a wider range: `categorySpend` takes `yearRange(year)` or `ALL_TIME` |
+| `topCounterparties(db, range, n, by)` | The `n` people or places paid most, by net spend or by payment count. Money out only, names only: grouped by lower-cased name, so a merchant code or number never stands in for one; payments to yourself, typed-in expenses and unnamed rows are left out |
+| `biggestPayment(db, range)` | The largest single payment by net amount (refunds off, fees not added), its name (null when the row has none) and UTC date; the earliest wins a tie |
+| `weekdayTotals(db, range)` | Net spend per UTC weekday, Sunday first, seven integers |
+| `activeDays(db, range)` | Days with net spending, and the days from the first to the last of them, both included |
+| `wrappedFacts(db, scope)` | The `WrappedFacts` for a year or all time: the totals come from `yearSummary` or `allTimeSummary` so they equal Insights, plus the queries above and `categorySpend`. `buildWrapped` turns them into slides |
 | `daySpend(db, iso)` | A day's total and category split |
 | `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |
 | `listCategories(db)` | The categories table in display order with UI ids |
