@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). What is still a stand-in is small: "Allow SMS access" (no SMS module, no scan) and "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is written and tested against a fake module, but its Kotlin has never been compiled or run (section 5, "Live SMS reading"). What is still a stand-in is small: "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
 
 ## 2. Real versus stand-in
 
@@ -24,7 +24,7 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Settings lists | Real. Word counts come from `keywords` (`keywordCounts`), family and friend names from `name_lists` (`nameLists`), the unread count from the `unread_messages` view. `sample.ts` is deleted | Keep |
 | Hand-added expenses | Real. `addManualExpense` (`src/ledger/manualExpense.ts`). `ExpensesProvider` and `merge.ts` are deleted; the views return manual rows | Keep |
 | "Today" | Device clock via `useToday()` (UTC dates) | Keep |
-| Permission, importing | Real for a picked backup file: progress, payments found, then an "Import complete" summary and a Home button. The "Allow SMS access" path is still sample | Wire "Allow SMS access" to the `momo-sms` module and scan |
+| Permission, importing | Real for a picked backup file. "Allow SMS access" now asks for `READ_SMS` and runs the first scan through the same import store and Importing screen. Built, not run on a device | Compile `modules/momo-sms` in a dev build and run the manual tests in section 5 |
 | Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue, and the user-side writes (`manualExpense`, `transactionEdit`, `categories`, `names`, `unread`). Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
@@ -38,7 +38,6 @@ Nothing a user types is lost on reload any more, except these.
 | `PeriodProvider` (`src/features/period`) | Selected month or day (months come from the database) | UI state only. Keep as context or router params |
 | `TransactionFilterProvider` (`src/features/transactions/filterContext.tsx`) | Selected category filter | UI state only |
 | `SettingsScreen` | "Lock the app" toggle. A stand-in: the switch moves and the subtitle says "Not built yet" | Real app lock (`meta` lock flag, biometric or PIN) |
-| `PermissionScreen` | "Allow SMS access" goes to Importing with no permission request or scan | The Kotlin `momo-sms` module and `src/scan` |
 
 ## 4. Buttons that save, and what is left
 
@@ -69,7 +68,7 @@ Behaviour worth knowing:
 - The "Words you removed" section of the edit screen offers seed words the user deleted. It replaced the hardcoded "People often add" list.
 - **Messages we couldn't read** lists inbox rows only, and message text is never stored. So the list is empty after a backup import (by design) and until the inbox scan exists. Rows show a time and "Format not known yet", not the text. "Copy text" is gone because there is nothing to copy; `expo-clipboard` is no longer used by any screen.
 
-Still not built: `modules/momo-sms` (Kotlin module), `src/scan`, "Allow SMS access", "Lock the app", reparse.
+Still not built: "Lock the app", reparse. `modules/momo-sms` and `src/scan` exist but are unverified on a device (section 5).
 
 ## 5. Data layer, and what is not built yet
 
@@ -88,24 +87,55 @@ Built: the schema, the reader, the Expo adapters, `importBackup`, the parser, `s
 
 - `src/ledger/writeQueue.ts`: `ledgerQueue.run(task)` serialises every ledger write in the process; `runCoalesced` is the single-flight variant for scans (a request made mid-run sets a rerun flag). Route every new ledger writer through it.
 - `src/ledger/ingest.ts`: `ingest(db, items, now?)` takes `{ source: 'backup' | 'inbox', body, receivedAt, androidId? }`. One exclusive transaction per batch and a `SAVEPOINT` per message; a message that throws rolls back to its savepoint and is counted in `errors`. Parsed messages upsert `sms_messages` (backup key `<received_at>:<momo_txn_id>:<template_name>`) and `sms_fragments`, then the transaction is re-derived with `mergeAll` over all its stored fragments, so re-ingest and arrival order never change the result. Ignored and unparsed backup messages are only counted. Inbox messages are stored with their status (this is for the scan piece; nothing calls it with `inbox` yet). It never touches `transaction_annotations`. The result also carries `paymentIds` so a caller can count a payment whose two messages fall in different batches once (`createLedgerSink` does this).
-- Inbox messages that throw are counted but not recorded as `error` rows yet; the scan piece should add that.
+- Inbox messages that throw are counted and stored as `status = 'error'`, `reason = 'error:ingest'` rows, so they show under "Messages we couldn't read" and the scan does not re-read them. Only reparse (not built) will retry them.
 - `src/ledger/finishImport.ts`: links every unlinked credit with `linkReversals` (`linked_by 'auto'`, confidence `exact` or `ambiguous`) and sets `meta.first_import_done`, `first_import_at` (first run only) and `parser_version`. Safe to run again.
 - `src/ledger/importSummary.ts`: transaction and payment counts plus net spend for the latest month with spend, from `ledger_lines`.
 - `src/features/app`: `DbProvider` (renders nothing until migrate and seed finish; shows `dbErrorScreen` if they fail), `useDb`, and `createLedgerSink(db)`, the `ImportSink` that `startImport(uri, sink)` needs.
 - The Importing screen shows `importSummary` text and `importHomeBtn` ("Go to Home") when the phase is `done`; the button goes to Home.
 - **First-run gate.** `FirstRunGate` (`src/features/app`, mounted in `src/app/_layout.tsx` inside `DbProvider`) reads `meta` once after the database is ready, calls the pure `decideStartRoute` (`startRoute.ts`, loaded by `loadStartRoute.ts`) and does one `router.replace` per launch. The splash stays up until then, so Home never flashes. Rules: `first_import_done = '1'` or any `onboarding_choice` goes to tabs; otherwise an import in the `running` phase goes to `/importing`; otherwise `/permission`. It only acts when the app opened on `/`; a deep link, sheet or restored screen is left alone. If the meta read throws, the user stays on Home.
 - **`meta.onboarding_choice`.** `'not_now'`, written by `recordNotNow` when the user taps Not now on Permission (`permissionNotNowBtn`) or "Keep looking around without it" on Permission denied. Both then go to Home. Without it the gate would send the user back to Permission on every launch. Permission denied is no longer reachable from Permission; only by the deep link `momospend://permission-denied`.
-- **Where "Allow SMS access" leads today.** `allowSmsBtn` does `router.replace('/importing')` with no scan or permission request behind it (the Kotlin `momo-sms` module does not exist). The import phase stays `idle`, so Importing shows its labelled sample numbers, and nothing is written, so the next launch lands on Permission again. Replace it with the permission request and scan when the module lands.
+- **Where "Allow SMS access" leads.** `allowSmsBtn` calls `useRequestSms` (`src/features/app/useRequestSms.ts`). Granted: `afterGrant` starts the first scan (`scanFirst`) and the app goes to Importing, which shows real progress from the import store (`kind: 'scan'`) and then "Import complete" with a Home button. Denied or undetermined: `/permission-denied` (design 3.1, "Try again" `permissionTryAgainBtn`, "Open phone settings" `openPhoneSettingsBtn`). Blocked: `/permission-denied?state=blocked`, the same screen with the Android 13+ restricted-settings steps and "Open Settings" (`Linking.openSettings`). Granted with zero MobileMoney ids: Importing replaces itself with `/no-messages` (`noMessagesScreen`; MIUI, Tecno and Infinix hint, "Check again", "Import a backup file", "Keep looking around without it"). A build with no native module (Expo Go) shows `allowSmsUnavailableNote`. The denied screen also re-checks the status when the app returns from phone settings and continues by itself if it is now granted.
 - **Settings entry.** The More section has "Import a backup file" (`settingsImportBackupRow`). It opens `/sheets/import-steps` and the same import as first run. Its subtitle is "Last imported <date>" from `meta.last_import_at` (set on every finished import; falls back to `first_import_at`), else the hint text. Re-importing is safe because ingest is idempotent.
 - **Reset to a fresh install:** `adb shell pm clear com.momospend.app` (dev build). Under Expo Go use `host.exp.exponent`. The next launch lands on Permission.
 - **Maestro:** a fresh launch lands on Permission, so `maestro/setupApp.yml` runs `flows/_skipOnboarding.yml` (taps `permissionNotNowBtn` when visible). `first-run-gate.yml` and `settings-import-row.yml` are new and, like all flows, never run.
 - **Categoriser in the ledger.** `categorise(facts, ctx)` in `src/ledger/categorise.ts` is the only seam. `loadCategoriserContext(tx)` reads categories, keywords, `name_lists`, `recipient_rules` and `meta.owner_number` / `owner_name` once per ingest batch. `ingest` writes `auto_category_id`, `auto_category_source`, `reference_clean` (the note, original case kept) and `is_self_transfer`. `recategorise(db)` (queued, one transaction) and `recategoriseIn(tx)` (for callers already in the queue, as `finishImport` is) overwrite those four columns for every SMS row and never touch `transaction_annotations`. Call `recategorise` after any edit to keywords, names, rules or categories. The manual tag is rule 1 of the contract but lives in the annotation, so `resolveCategory(facts, config)` has no manual argument.
 - Matching details that differ from a literal reading of the spec: incoming money and cash-outs skip the reference and go to Income and Cash, but a recipient rule (scoped by `applies_to`) still applies to them; refunds and reversals are Misc (their effective category comes from the original through `ledger_lines`); a priority tie between categories is broken by `categories.sort_order`, so a new user category must get a `sort_order` after the seeded ones (200 and up), not the default 0.
 - Family and friends name lists start empty, so no transaction is Family or Friends until the user adds names. Add names, then call `recategorise`.
-- "Allow SMS access" still goes to Importing with no scan behind it, so the screen shows labelled sample numbers (`importSampleNote`).
+- Importing shows labelled sample numbers (`importSampleNote`) only when opened with no import or scan running (the deep link `momospend://importing`).
 - The real export (2,488 messages) gives 1,913 parsed, 575 ignored, 0 unparsed, 0 errors, 1,640 transactions (1,328 payments) and 6 reversal links. The optional test `src/ledger/__tests__/realFile.test.ts` checks this when `/mnt/c/Users/Desmond Opoku Mends/Downloads/sms-20260621002856.xml` exists and prints monthly totals; it never prints message text.
 - Only `expoFileSource.ts` and `pickBackupFile.ts` may import Expo inside `src/backup` (ESLint enforces it, and bans `console` there because message bodies flow through).
 - The picker filters on `text/xml` and `application/xml`. Some file managers label the export differently and will grey it out; widen the filter if that shows up.
+
+### Live SMS reading (milestone M1)
+
+**State: written and unit-tested against a fake; the Kotlin has never been compiled, and nothing has run on a phone.** The lead runs an EAS dev build (`npm run build:dev`) to compile it. Do not call this verified until the manual list below passes.
+
+What is real, in the JS and SQL that Node can run:
+
+- `modules/momo-sms` (Kotlin plus `src/index.ts`). Surface and APIs used are in `modules/momo-sms/README.md`. `READ_SMS` only, declared in `app.json` `android.permissions`. Only `src/scan` may import it (ESLint `no-restricted-imports`; `src/scan/nativeSms.ts` is the one import). The binding loads the native module on first call, so Expo Go starts and a scan there ends as `failed`.
+- `src/scan/scan.ts`: `createScanner({ db, sms, onProgress })`. One scan: permission, `listMomoMessageIds`, diff against `sms_messages` inbox rows, retire gone and replaced rows (`gone_at`), revive a row that returns with the same id and date, read unseen ids in pages of 500, `ingest` with `source: 'inbox'`, then `finishScan` (`src/ledger/finishScan.ts`: link all unlinked reversals, `first_import_done`, `first_import_at` only if unset, `parser_version`, recategorise; it leaves `last_import_at` to backups). It goes through `ledgerQueue.runCoalesced`, so a request made mid-scan reruns once. Outcomes: `ok`, `no_permission`, `no_messages`, `failed`.
+- Message identity: a seen id whose `received_at` differs is a reused id. The old row gets `gone_at`, a new row is inserted. `source_on_phone` is derived from `gone_at` by the view, so nothing else is written for missing messages.
+- OTP: Kotlin returns `{ body: null, isOtp: true }`. The scan hands the parser the stub `<#>`, so the row is stored as `ignored` with reason `otp` and the code never exists in JS. A second sender check in `scan.ts` drops any row whose sender is not `MobileMoney`.
+- `src/features/app/scanController.ts` and `ScanProvider.tsx`: triggers are cold start, `AppState` becoming `active`, the inbox observer (attached only after a scan saw access, detached in the background) and the manual button. Before `first_import_done` a trigger becomes the announced first scan (import store, `kind: 'scan'`); afterwards it is silent and invalidates queries when data changed.
+- `decideStartRoute` takes `smsGranted`. Granted with no finished import resumes at `/importing`, so a scan killed halfway restarts on the next launch.
+- Home shows `smsOffBanner` (`smsOffBannerBtn`) over stored data when the permission is not granted. Settings has `settingsCheckMessagesRow` ("Check for new messages") after "Import a backup file". The empty Home's `checkMessagesBtn` now scans too.
+- Tests (all with `src/scan/__tests__/fakeMomoSms.ts`): new, replaced, missing, reused and revived ids; ignored and unparsed rows; OTP text absent from the database; another sender ignored; two concurrent calls; the rerun flag with a message arriving mid-scan; denied, blocked and undetermined; zero ids; a failed read storing nothing and a failure on page two keeping page one; ids 999 and 1000 compared as integers; paging 500, 500, 1; a message that fails to ingest becoming an `error` row; the triggers; the controller's store updates; `decideStartRoute` and `loadStartRoute`.
+
+Differences from `system-design.md` section 8 (the doc now says so): `getPermissionStatus()` returns `'granted' | 'denied' | 'blocked' | 'undetermined'` instead of `hasPermission()`; `listMomoMessageIds()` takes no argument and the sender is a constant in Kotlin; `readMessageById` (single) is not built, because the detail screen's "Original message" still says the text is not stored; the 1 s debounce is in Kotlin, not JS; the sender match is `LIKE`, so case-insensitive.
+
+**Needs the dev build.** Compile, then check: the Kotlin API calls (the README lists each), the `LIKE` selection on the SMS provider, `canAskAgain` mapping to `blocked`, the `ContentObserver`, `Long` ids across the bridge, and the 1 s debounce.
+
+**Manual test list for a real phone** (a dev build for 1 to 4, a release-style APK sideloaded from a browser or file manager for 5):
+
+1. Fresh install, tap Allow SMS access, allow. Importing counts up to the inbox's MobileMoney total, "Import complete" matches the count, Home shows the months. Time it: 2,000 messages should take under 10 s.
+2. Delete the newest MobileMoney SMS in the Messages app, open momo-spend (the scan runs on foreground). Its transaction stays, with `source_on_phone` = 0. Then receive or restore another MoMo SMS, which can reuse the deleted id. After a scan it appears as a new transaction and the old row stays gone (check `sms_messages`: two rows for that id, the old one with `gone_at`).
+3. With the app open, receive a MoMo payment SMS. Within about 2 s of the message Home updates with no tap (observer plus 1 s debounce). Send the app to the background, receive one, return: it appears (foreground trigger).
+4. Settings, "Check for new messages": "Nothing new" when current, "N new messages read" after a delete-and-restore of a backup (restored messages keep old dates and get new ids).
+5. Android 13+ restricted settings: sideload the APK with a file manager, tap Allow SMS access. Expect the blocked screen (no system dialog). Follow it: App info, three dots, Allow restricted settings, back, Try again, allow. Then the scan runs. An `adb install` hides this problem, so do not test it that way.
+6. Deny the dialog once: Permission denied with Try again. Deny with "don't ask again": the next Try again gives the blocked screen. Revoke SMS in system settings with data present: Home shows the "SMS access is off" banner over the stored data, and its button recovers.
+7. MIUI or Tecno/Infinix: with the hidden-sender toggle off, expect the "We can't see any MobileMoney messages" screen. Turn the toggle on, tap Check again.
+8. Kill the app during the first scan, reopen: it resumes behind Importing.
+9. Privacy: put an SMS from another sender and a `<#>` OTP in the inbox. Neither text appears anywhere (inspect the database through `run-as`; the OTP row is `ignored` / `otp`).
 
 ### Reading the data (piece 4a)
 
@@ -128,7 +158,7 @@ Manual expenses (written by `addManualExpense`) are `transactions` rows with `or
 
 Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
 
-Still not built: `modules/momo-sms` (Kotlin module), the rest of `src/ledger` (reparse), `src/scan`. Writes live in `src/ledger` (there is no `src/data/repos`); `deleteCategory` is built and `categoryImpact` supplies the budget count for its confirmation.
+Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger` (there is no `src/data/repos`); `deleteCategory` is built and `categoryImpact` supplies the budget count for its confirmation.
 
 ### The SMS parser
 
@@ -161,6 +191,7 @@ Still not built: `modules/momo-sms` (Kotlin module), the rest of `src/ledger` (r
   - New test ids: `addExpenseLinkedNote`, `addExpenseError`, `addNoteDoneBtn`, `addNoteError`, `cashOutError`, `cashOutLink-<id>`, `detailError`, `editCategoryError`, `newCategoryError`, `newCategoryWordInput`, `newCategoryWord-<word>`, `familyNameError`, `friendNameError`, `unreadError`.
 
   A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
+- **`INTERNET` is still in the manifest.** This piece did not touch it (a later release-build task strips it, and a dev build needs it for Metro). Until that lands, Privacy's "does not ask for internet access" is false for every build, and the privacy argument for `READ_SMS` rests on the code, not the manifest.
 - **Privacy screen copy** says the app does not ask for internet access. That is only true once `INTERNET` is stripped from release builds (design requires it; not done). Dev builds need it for Metro.
 - **Typed routes:** `.expo/types/router.d.ts` goes stale after adding routes and then `tsc` rejects new `router.push` paths locally. Delete the file; CI never has it.
 - **Metro in CI mode** (`CI=1`) does not hot reload. Relaunch the app to pick up changes.

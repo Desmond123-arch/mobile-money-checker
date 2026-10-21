@@ -405,6 +405,8 @@ export function addMomoMessageListener(cb: () => void): { remove(): void };     
 
 Kotlin side: `AsyncFunction`s run off the main thread. `listMomoMessageIds` queries `content://sms/inbox` for `_id, date` with a case-insensitive selection on `address`. The by-id reads use `_id IN (…)` in chunks, re-apply the sender selection (so a reused or foreign id never leaks another sender's text), blank the body of any message starting with `<#>` (OTP, security codes) and return `isOtp = true`, and close the cursor in `use {}`. Only the allowed sender is ever read, so NFR-02 holds at the source, not just in JS. `requestPermission` uses the Expo permissions manager and distinguishes a plain denial from a permanent one so the "Permission denied" screen can send the user to phone settings.
 
+**As built (`modules/momo-sms`).** The surface differs from the sketch above in these ways. `getPermissionStatus()` replaces `hasPermission()` and returns `'granted' | 'denied' | 'blocked' | 'undetermined'`. `listMomoMessageIds()` takes no options, because the allowed sender is a constant in Kotlin. `readMessageById` is not built yet. The debounce is about 1 s in Kotlin (`ContentObserver` plus `Handler.postDelayed`), and JS starts and stops the observer through the first and last listener. The sender is matched with `LIKE`, which is ASCII case-insensitive, and checked again in Kotlin. Details and the APIs used are in `modules/momo-sms/README.md`.
+
 No keyset paging is needed now: the id list is cheap and bodies are read by id in chunks of 500, so a changing inbox cannot skip or repeat a page.
 
 ## 9. Application layer
