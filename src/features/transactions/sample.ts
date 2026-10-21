@@ -59,6 +59,9 @@ export const SAMPLE_DETAIL: TransactionDetail = {
   occurredAtLabel: 'Tue 20 Oct · 12:41',
   kindLabel: 'Paid to a merchant.',
   balanceAfter: pesewas(41184),
+  timeApproximate: false,
+  reversed: false,
+  reversesId: null,
   noteSource: 'sms',
   originalMessage:
     'Payment for GHS32.00 to Auntie Ama Provisions has been completed. Reference: rice, eggs. Fee GHS0.16. Balance GHS411.84.',

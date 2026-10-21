@@ -70,7 +70,9 @@ export function TransactionDetailScreen() {
 
       <View className="px-5 pt-7">
         <BreakdownRow label="Amount" value={formatGhs(tx.amount)} />
-        <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
+        {tx.balanceAfter !== null ? (
+          <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
+        ) : null}
       </View>
 
       <View className="gap-[10px] px-5 pt-8">

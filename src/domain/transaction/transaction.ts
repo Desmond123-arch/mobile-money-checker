@@ -14,8 +14,17 @@ export interface TransactionRow {
 
 export interface TransactionDetail extends TransactionRow {
   occurredAtLabel: string;
+  /** True when the time is the SMS received time, not a time the message stated. */
+  timeApproximate: boolean;
   kindLabel: string;
-  balanceAfter: Pesewas;
-  noteSource: 'sms' | 'user';
-  originalMessage: string;
+  /** Null for hand-added expenses, which have no balance to report. */
+  balanceAfter: Pesewas | null;
+  /** Null when there is no note at all. */
+  noteSource: 'sms' | 'user' | null;
+  /** Message text is never stored; null until it is read back from the phone's inbox. */
+  originalMessage: string | null;
+  /** A credit has since given this payment back, in full or part. */
+  reversed: boolean;
+  /** Set on a refund or reversal that is linked to its original payment. */
+  reversesId: string | null;
 }
