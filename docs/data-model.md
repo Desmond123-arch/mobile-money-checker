@@ -1,6 +1,6 @@
 # Data model
 
-The SQLite schema in `src/data/migrations/0001_init.ts` is the source of truth. This file explains its shape and the reasons. It supersedes section 6 of `system-design.md`. When the two disagree, this file and the migration win.
+The SQLite schema in `src/data/migrations` (`0001_init.ts`, `0002_cash_allocations.ts`) is the source of truth. This file explains its shape and the reasons. It supersedes section 6 of `system-design.md`. When the two disagree, this file and the migration win.
 
 ## Conventions
 
@@ -18,7 +18,7 @@ Data is split by writer so one writer cannot clobber another.
 |---|---|---|
 | Observed | `sms_messages`, `sms_fragments` | The parser only. No message text is stored. |
 | Derived | `transactions` where `origin = 'sms'`, auto rows of `reversal_links`, the `auto_category_*` columns | The ledger. Each SMS transaction is `mergeAll(fragments)` plus the categoriser. |
-| User-owned | `transaction_annotations`, `message_dismissals`, `categories`, `keywords`, `name_lists`, `recipient_rules`, `transactions` where `origin = 'manual'`, user rows of `reversal_links`, `meta` | The user, through the app. |
+| User-owned | `transaction_annotations`, `cash_allocations`, `message_dismissals`, `categories`, `keywords`, `name_lists`, `recipient_rules`, `transactions` where `origin = 'manual'`, user rows of `reversal_links`, `meta` | The user, through the app. |
 
 Tables:
 
@@ -29,12 +29,13 @@ Tables:
 - `transactions`. Both SMS and manual money rows. `flow` (`spend`, `income`, `credit`) is the accounting meaning. `kind` is open text.
 - `transaction_annotations`. The user's category tag, note and "ask me later" snooze, one row per transaction.
 - `reversal_links`. One row per credit, pointing at its original (or at nothing, when the user says there is none).
+- `cash_allocations`. Where a cash-out's money went: one row per category it was spent on (migration 0002, below).
 - `message_dismissals`. "Ignore" on "Messages we couldn't read".
 
 Views:
 
 - `transaction_category`. The effective category of every transaction.
-- `ledger_lines`. The one accounting rule (below).
+- `ledger_lines`. The one accounting rule (below). Recreated by 0002 to split cash-outs; no other view reads it.
 - `transaction_list`. What list, detail and search read: hides retracted rows, resolves note and category.
 - `unread_messages`. Unparsed or errored messages still on the phone, not dismissed, not typed in by hand.
 
@@ -62,6 +63,7 @@ Rules built into the view:
 - Credits are never income. A credit linked to a live original offsets the original's month and category. Per original, the offset is `MIN(original amount, SUM(its credits))`, so an over-refund cannot make a category negative. Fees the reversal did not return stay counted. This line carries the original's `transaction_id`.
 - A credit with no live original (unlinked, linked to a retracted row, or marked "no original" by the user) offsets its own month and category by its full amount.
 - Retracted rows contribute nothing.
+- A cash-out with allocations contributes its remainder (amount minus allocated, clamped at 0) in its effective category, then one line per allocation in the allocation's category, all at the cash-out's `occurred_at` (next section). With no allocations nothing changes.
 
 Example: 1000 spent with a 60 fee, then refunds of 300 and 200. Spend in the original's month is 1000 + 60 - 500 = 560.
 
@@ -81,7 +83,10 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `paymentCount(db, range)` | Outgoing, non-retracted transactions in the range |
 | `transactionDetail(db, id, today)` | `TransactionDetail` (kind label, time label and approximate flag, balance after, note and its source, reversed or reverses) or null |
 | `needsNoteCount` / `needsNoteList(db, range, now)` | Outgoing SMS payments in Misc with no note and no live snooze, after `meta.first_import_at` (nothing when it is unset) |
-| `cashOutPrompts(db, range, now)` | Cash-outs with no user note and no manual category, at or after `meta.first_import_at`, not snoozed (`prompt_snoozed_until` null or `<= now`); nothing when it is unset |
+| `cashOutPrompts(db, range, now)` | Cash-outs with no user note, no manual category and no allocation, at or after `meta.first_import_at`, not snoozed (`prompt_snoozed_until` null or `<= now`); nothing when it is unset |
+| `cashOutBreakdown(db, id)` | A live cash-out's amount, date, name, allocations (newest spending day first), allocated and left; null for anything that is not a live cash-out |
+| `cashOutLefts(db, range)` | Allocated and left for every live cash-out in the range, for the Transactions rows |
+| `openCashOut(db, now)` | The newest cash-out of the last 30 days with something left, for the hint on Add expense |
 | `monthlyFlows(db, endMonthId, count)` | Money out and in for `count` months ending at a month, zero for empty ones |
 | `yearsWithData(db)` | Money out and in per year that has a ledger line, oldest first |
 | `yearSummary(db, year)` | A year's twelve months (`monthlyFlows` ending in December), payment count and the year before's spend, built into a `YearSummary` |
@@ -99,7 +104,40 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `nameLists(db)` | Family and friend names |
 | `unreadMessages(db)` | Rows of `unread_messages` (inbox only; no text) |
 
-Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCategory`, `addKeyword`, `removeKeyword`, `deleteCategory`, `addName`, `removeName`, `dismissMessage`. Each is one `ledgerQueue` task and one exclusive transaction, and each that changes the categoriser's inputs ends with `recategoriseIn`.
+Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCategory`, `addKeyword`, `removeKeyword`, `deleteCategory`, `addName`, `removeName`, `dismissMessage`, `addAllocation`, `updateAllocation`, `deleteAllocation`. Each is one `ledgerQueue` task and one exclusive transaction, and each that changes the categoriser's inputs ends with `recategoriseIn`.
+
+## Cash-out allocations (migration 0002)
+
+A cash-out is cash taken from a MoMo agent. MoMo says nothing about what happens next, so the user spends it on several things over several days and records them afterwards. Each entry is an allocation: an amount, a category, an optional note and the date it was spent.
+
+```sql
+CREATE TABLE cash_allocations (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  cash_out_txn_id INTEGER NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+  category_id     INTEGER NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+  amount_pesewas  INTEGER NOT NULL CHECK (amount_pesewas > 0),
+  note            TEXT CHECK (note IS NULL OR (note <> '' AND note = trim(note))),
+  spent_on        INTEGER NOT NULL,   -- epoch ms UTC, informational
+  created_at      INTEGER NOT NULL,
+  updated_at      INTEGER NOT NULL
+) STRICT;
+CREATE INDEX cash_allocations_cash_out ON cash_allocations(cash_out_txn_id);
+```
+
+Rules, all enforced by triggers because `foreign_keys` can be OFF:
+
+- The target must be an SMS transaction with `kind = 'cash_out'` and `flow = 'spend'` (insert, and update of `cash_out_txn_id`).
+- The sum of a cash-out's allocations must not exceed its `amount_pesewas` (insert, and update of amount or target). The ledger functions check first and return a message; the trigger is the backstop.
+- `ledger_lines` is the only place the money is counted. An allocation never adds spend. It moves part of the cash-out's own amount from the cash-out's effective category (the manual tag, else Cash) to the allocation's category. Both lines sit at the cash-out's `occurred_at`, so month, day and year totals do not change and `spent_on` is never read by a total. A category's spend for a month can change; the month's total cannot.
+- The remainder line is left out when it is 0 and something is allocated, so no zero line appears. It is clamped at 0, so a cash-out whose amount later shrank below its allocations cannot produce a negative line (the extra allocation money then counts on top).
+- The fee and tax charge line of a cash-out is unchanged and stays in the cash-out's category.
+- A manual answer ("What was this for?", a category or note) keeps working: with no allocations the whole amount goes to the answered category as before; with allocations the remainder does.
+- A cash-out stays in the needs-an-answer list until it has a note, a manual category or at least one allocation. A partly allocated one is not nagged. The snooze and the first-import cut-off still apply.
+- `spent_on` is a UTC midnight chosen by the user. The ledger accepts any day from the cash-out's day to today, never later.
+- `category_id` is RESTRICT. `deleteCategory` moves allocations to Misc, as it does annotations, and `categoryImpact().allocations` counts them for the confirmation.
+- Deleting an allocation, or editing one, takes effect on every total at once, since the view is recomputed on read.
+
+Dependents of `ledger_lines` (all read it and follow with no change): `monthsWithData`, `monthFacts` / `monthSummary`, `monthlyFlows`, `daySpend`, `weekdayAverage`, `categorySpend`, `yearSummary`, `allTimeSummary`, `yearsWithData`, the Wrapped queries (`topCounterparties`, `biggestPayment`, `weekdayTotals`, `activeDays`, which group by `transaction_id` and so see the cash-out as one payment) and the import summary. No other view depends on it.
 
 ## How the hard cases work
 
@@ -115,9 +153,9 @@ Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCatego
 
 The migration inserts the five protected categories (Cash is `#444444`). `seedDatabase` inserts the other UI categories from `src/domain/category/seed.ts`, with `system_key` equal to the UI id; UI `other` is the existing Misc row. Each seed step lists only the rows version N introduced, and runs once when `meta.seed_version` is below N. A row the user deleted therefore never comes back, with no tombstone table. Every row stores the `seed_version` that introduced it.
 
-## Budgeting as migration 0002
+## Budgeting as the next migration
 
-Additive. `src/data/__tests__/budgets.test.ts` applies this on top of 0001.
+Additive. `src/data/__tests__/budgets.test.ts` applies this after every shipped migration (it would be 0003 today).
 
 ```sql
 CREATE TABLE budgets (
@@ -145,7 +183,7 @@ Spend against a limit is `SELECT SUM(pesewas) FROM ledger_lines WHERE bucket = '
 2. **`(android_sms_id, received_at)` identifies an inbox message.** Backup-import messages (system-design 7.9) have no Android id, so they use `backup_key`. The txn id alone is shared by all messages of a payment and the time alone can collide, so the key joins both plus the matching template. `source_on_phone` counts inbox fragments only, and `unread_messages` lists inbox rows only. A backup restore that rewrites dates creates a duplicate message row. That is harmless, since it folds into the same transaction.
 3. **The bundled SQLite supports STRICT.** Verified in node:sqlite 3.51, not yet on a device.
 4. **Three flows cover the accounting, and a credit belongs to its original's month and category.** A reversal restates a past month. A flow outside the three needs a table rebuild, because `flow` has a CHECK.
-5. **Manual expenses do not overlap SMS spend.** Cash spent from a cash-out is counted twice, once as the cash-out and once as the manual expense. Only "Add by hand" is de-duplicated, through `source_message_id`. A "paid from this cash-out" feature would add a table and change `ledger_lines`.
+5. **A manual expense does not know about a cash-out.** Cash spent from a cash-out is recorded as allocations, which redistribute the cash-out and add no spend. If the user also adds the same cash spending through Add expense, it is counted twice. Add expense shows a hint when a cash-out from the last 30 days has something left. Only "Add by hand" is de-duplicated, through `source_message_id`.
 
 ## Arena record
 

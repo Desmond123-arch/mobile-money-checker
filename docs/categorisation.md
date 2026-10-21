@@ -23,7 +23,7 @@ The first rule that applies sets `category_id` and `category_source`.
 | 5 | Type default: cash-out → Cash, incoming → Income | `default` |
 | 6 | Nothing matched → Misc | `default` |
 
-Cash-out SMS carry no reference. A cash-out stays in **Cash** until the user answers "what was it for?", which sets a manual category on that transaction.
+Cash-out SMS carry no reference. A cash-out stays in **Cash** until the user answers "what was it for?", which sets a manual category on that transaction, or breaks the withdrawal down into allocations (each with its own category), which also ends the question.
 
 ## Reference extraction
 
@@ -98,7 +98,7 @@ Counterparty word hints (apply to names that look like businesses): `food`, `joi
 ## Prompting
 
 - **Needs a reference.** On app open, transactions with an empty reference (and not cash-outs) appear in a list at the top of the home screen: show the counterparty, amount and date, and let the user type a reference or pick a category. Entering a reference re-runs the rules; picking a category sets a manual tag.
-- **Cash-outs** show a "What was this for?" prompt that sets a manual category.
+- **Cash-outs** show a "What was this for?" prompt. Answering sets a manual category; they can also be broken down into allocations that move parts of the amount to other categories without changing any total.
 - The app reads the SMS inbox; it cannot write a reference back to MoMo. The reference lives in the app only (`reference` column, user-edited).
 - If the SMS already carries a reference, show it and categorise from it; no prompt.
 
