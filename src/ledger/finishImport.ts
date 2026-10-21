@@ -3,6 +3,8 @@ import type { Pesewas } from '@/domain/money';
 import { linkReversals, type Link, type ProjectedTxn } from '@/domain/parse/reversal';
 import { PARSER_VERSION, type MessageKind } from '@/domain/parse/types';
 
+import { recategoriseIn } from './recategorise';
+
 interface TxnRow {
   id: number;
   momo_txn_id: string;
@@ -82,6 +84,8 @@ export async function finishImport(db: Db, now: number = Date.now()): Promise<{ 
        ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
       [String(PARSER_VERSION)],
     );
+    // Keywords or names edited during a long import would otherwise leave earlier batches stale.
+    await recategoriseIn(tx);
     return { linked: fresh.length };
   });
 }
