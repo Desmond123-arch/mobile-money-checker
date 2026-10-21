@@ -1,7 +1,15 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { daySpend, monthlyFlows, weekdayAverage, type SpendBreakdown } from '@/data/queries';
+import {
+  allTimeSummary,
+  daySpend,
+  monthlyFlows,
+  weekdayAverage,
+  yearSummary,
+  type SpendBreakdown,
+} from '@/data/queries';
 import type { MonthFlow } from '@/domain/summary/trend';
+import type { AllTimeSummary, YearSummary } from '@/domain/summary/year';
 import { useDb } from '@/features/app/DbProvider';
 
 /** Money out and in for the six months ending at `endMonthId`; `undefined` until read. */
@@ -11,6 +19,25 @@ export function useMonthlyFlows(endMonthId: string): MonthFlow[] | undefined {
     queryKey: ['flows', endMonthId],
     queryFn: () => monthlyFlows(db, endMonthId, 6),
     placeholderData: keepPreviousData,
+  }).data;
+}
+
+/** The numbers behind the year view; `undefined` until read. */
+export function useYearSummary(year: number): YearSummary | undefined {
+  const db = useDb();
+  return useQuery({
+    queryKey: ['flows', 'year', year],
+    queryFn: () => yearSummary(db, year),
+    placeholderData: keepPreviousData,
+  }).data;
+}
+
+/** The numbers behind the all-time view; `undefined` until read. */
+export function useAllTimeSummary(): AllTimeSummary | undefined {
+  const db = useDb();
+  return useQuery({
+    queryKey: ['flows', 'allTime'],
+    queryFn: () => allTimeSummary(db),
   }).data;
 }
 
