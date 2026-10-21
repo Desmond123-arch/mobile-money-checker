@@ -1,0 +1,15 @@
+appId: com.momospend.app
+---
+# Fresh installs land on Permission after the first-run gate reads the database, so wait briefly for it.
+- extendedWaitUntil:
+    visible:
+      id: 'permissionNotNowBtn'
+    timeout: 15000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        id: 'permissionNotNowBtn'
+    commands:
+      - tapOn:
+          id: 'permissionNotNowBtn'

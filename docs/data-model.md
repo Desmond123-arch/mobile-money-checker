@@ -22,7 +22,7 @@ Data is split by writer so one writer cannot clobber another.
 
 Tables:
 
-- `meta`. Key-value app state (`parser_version`, `seed_version`, onboarding choice, owner number, lock flag).
+- `meta`. Key-value app state (`parser_version`, `seed_version`, `first_import_done`, `first_import_at`, `last_import_at`, `onboarding_choice` = `'not_now'`, owner number, lock flag). Typed keys are in `src/data/meta.ts`.
 - `categories`, `keywords`, `name_lists`, `recipient_rules`. Categoriser config. Five categories (`family`, `friends`, `income`, `cash`, `misc`) are inserted by the migration and protected by triggers.
 - `sms_messages`. One row per message identity, never deleted. `source = 'inbox'` rows are identified by `(android_sms_id, received_at)`, and a message that leaves the inbox gets `gone_at`. `source = 'backup'` rows (backup import) have a NULL `android_sms_id` and a `backup_key` of `<received_at>:<momo_txn_id>:<template_name>`, unique among backup rows. CHECKs tie each column to its source, and backup rows are always `parsed` and never `gone`.
 - `sms_fragments`. What one message said about its transaction.
