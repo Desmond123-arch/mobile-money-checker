@@ -31,7 +31,7 @@ Last updated 21 Oct 2026. The pull requests are stacked: #7, then #8, then #9, t
 - **Reparse.** A parser version bump should re-read messages and move user annotations when a transaction id changes. Not built.
 - **Validation.** The 70% categorisation target needs a second phone. Fixtures and the denylist hygiene check need a skim before the first public push.
 - **Insights: a year breakdown and an all-time ("whole life") breakdown.** Asked for 21 Oct 2026, not started. The data is already there: `monthlyFlows`, `categorySpend` and `daySpend` in `src/data/queries` take a time range, so a year or all-time view is a wider range plus new charts. The period sheet already has a Day and a Month switch; a Year and an "All time" switch would sit beside them. Open design questions: what a year view shows (12 month bars, category share for the year, biggest month and day, comparison with last year), and what "all time" shows (a bar per year, total in and out, category share since the first payment, the busiest month). The backup export spans 27 months, so both can be tried on real data.
-- **Bottom navigation bar overlap.** Reported 21 Oct 2026, not diagnosed. On phones with the Android navigation bar at the bottom (the three-button bar, as opposed to gesture navigation) the floating tab bar looks wrong. `TabBar`, `Screen` and `Sheet` already add `useSafeAreaInsets().bottom`, so the cause needs a screenshot from an affected phone, or an emulator set to three-button navigation. Check whether the screen is drawn edge to edge, and whether the insets are zero or too large on that phone.
+- **Bottom navigation bar, fixed but unverified.** Reported 21 Oct 2026. The inset math is now one tested helper (`src/ui/insets.ts`) with a 16 dp floor, and the tab bar sits 8 dp above the system inset. Not yet checked on a three-button phone or emulator (`adb shell cmd overlay enable com.android.internal.systemui.navbar.threebutton`). Open: the navigation bar's own button colour, which needs a native navigation-bar API this app does not have.
 - **After the proof of concept.** Budgeting (per-category monthly limits, alerts). `docs/data-model.md` has the migration sketch and the schema already leaves room for it.
 
 ## Unreleased
@@ -72,6 +72,9 @@ Entries are grouped by area, not by PR; the table above maps work to pull reques
 - `app.config.js` strips `INTERNET` from `production` and `preview` builds (or when `APP_STRIP_INTERNET=1`). `npm run check:apk` lists an APK's permissions. The Privacy screen again says the app does not ask for internet access.
 
 ### Changed
+
+- **UI.** Rows and groups no longer carry hairline rules or outlines. Removed: Settings rows, Privacy points, Unread messages, Transaction detail breakdown rows, Original message toggle (now a tinted pill), the onboarding step list, the Home legend under Where it went, and the Delete category rule. Spacing and 44 px tap heights are unchanged. The 2px accents of design 4.1 stay. See design.md section 8, item 10.
+- **UI.** One bottom-inset helper drives the tab bar, `Screen`, `FixedScreen` and `Sheet`, so content clears a three-button navigation bar.
 
 - "Ask me later" on the cash-out sheet now works. `cashOutPrompts` reads cash-outs with no user note and no manual category, at or after `meta.first_import_at`, not snoozed. The Transactions `cashOutLink-<id>` shows only while the prompt is live, and Home's needs-a-note card counts cash-outs with the other payments and opens the newest cash-out first. Old cash-outs from an import are not asked about.
 - Privacy screen copy matches what the app does: SMS access is optional because a backup file can be imported, fee and tax are listed as kept, and the backup import's temporary copy is described.
