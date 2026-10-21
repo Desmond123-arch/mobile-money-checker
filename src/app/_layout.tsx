@@ -53,6 +53,7 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: '#FFFFFF' },
                   }}
                 >
+                  <Stack.Screen name="wrapped" options={{ animation: 'fade' }} />
                   <Stack.Screen
                     name="sheets"
                     options={{
