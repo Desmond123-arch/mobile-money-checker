@@ -11,7 +11,7 @@ import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from
 import { importRowSubtitle } from './importRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
-import { FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
+import { useNameLists, useUnreadMessages } from './useSettingsData';
 
 const NAME_LISTED = ['family', 'friends'];
 const wordsLabel = (n: number) => `${n} ${n === 1 ? 'word' : 'words'}`;
@@ -30,6 +30,8 @@ export function SettingsScreen() {
   const [showAll, setShowAll] = useState(false);
   const db = useDb();
   const categories = useCategories();
+  const names = useNameLists();
+  const unread = useUnreadMessages();
   const counts = useKeywordCounts() ?? {};
   // Categories with words, the two that use names, and every one the user made come first.
   const isListed = (id: string) =>
@@ -116,9 +118,9 @@ export function SettingsScreen() {
           When a note has one of these names, the payment is filed under it.
         </Text>
         <Text className="pt-1 font-inter-bold text-[14px] leading-[19px] text-ink">Family</Text>
-        <NameList idPrefix="family" initial={FAMILY_NAMES} tint="#FBEBC4" />
+        <NameList kind="family" idPrefix="family" names={names?.family ?? []} tint="#FBEBC4" />
         <Text className="pt-2 font-inter-bold text-[14px] leading-[19px] text-ink">Friends</Text>
-        <NameList idPrefix="friend" initial={FRIEND_NAMES} tint="#D9E8FA" />
+        <NameList kind="friend" idPrefix="friend" names={names?.friend ?? []} tint="#D9E8FA" />
       </View>
 
       <View className="px-5 pt-10">
@@ -134,13 +136,17 @@ export function SettingsScreen() {
         <Row
           testID="settingsUnreadRow"
           title="Messages we couldn't read"
-          subtitle={`${UNREAD_MESSAGES.length} messages`}
+          subtitle={
+            unread === undefined || unread.length === 0
+              ? 'None to review'
+              : `${unread.length} ${unread.length === 1 ? 'message' : 'messages'}`
+          }
           onPress={() => router.push('/unread-messages')}
         />
         <Row
           testID="settingsLockRow"
           title="Lock the app"
-          subtitle="Fingerprint or PIN to open"
+          subtitle="Not built yet. Fingerprint or PIN to open"
           trailing={
             <Toggle
               testID="settingsLockToggle"

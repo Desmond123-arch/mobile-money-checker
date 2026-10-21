@@ -1,10 +1,13 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { occurredAtLabel } from '@/domain/transaction/label';
+import { useWrite } from '@/features/app';
+import { useToday } from '@/features/period';
+import { dismissMessage } from '@/ledger/unread';
 import { BackButton, Hint, Screen } from '@/ui';
 
-import { UNREAD_MESSAGES } from './sample';
+import { useUnreadMessages } from './useSettingsData';
 
 function Action({
   label,
@@ -30,20 +33,11 @@ function Action({
 
 export function UnreadMessagesScreen() {
   const router = useRouter();
-  const [ignored, setIgnored] = useState<readonly string[]>([]);
-  const [copied, setCopied] = useState<string | null>(null);
+  const today = useToday();
+  const messages = useUnreadMessages();
+  const { run, error } = useWrite();
 
-  const messages = UNREAD_MESSAGES.filter((m) => !ignored.includes(m.id));
-
-  const copy = async (id: string, body: string) => {
-    try {
-      const Clipboard = await import('expo-clipboard');
-      await Clipboard.setStringAsync(body);
-      setCopied(id);
-    } catch {
-      setCopied(`failed-${id}`);
-    }
-  };
+  const list = messages ?? [];
 
   return (
     <Screen testID="unreadMessagesScreen">
@@ -60,56 +54,59 @@ export function UnreadMessagesScreen() {
         </Text>
       </View>
       <View className="px-5 pt-7">
-        {messages.map((m, i) => (
+        {list.map((m, i) => (
           <View
             key={m.id}
             testID={`unreadMessage-${m.id}`}
-            className={`gap-[10px] border-t border-hairline py-[18px] ${i === messages.length - 1 ? 'border-b' : ''}`}
+            className={`gap-[10px] border-t border-hairline py-[18px] ${i === list.length - 1 ? 'border-b' : ''}`}
           >
             <View className="flex-row justify-between">
-              <Text className="font-inter-bold text-caption text-ink">{m.when}</Text>
-              <Text className="font-inter text-caption text-muted">{m.hint}</Text>
+              <Text className="font-inter-bold text-caption text-ink">
+                {occurredAtLabel(m.receivedAt, false, today)}
+              </Text>
+              <Text className="font-inter text-caption text-muted">
+                {m.status === 'error' ? 'We hit a problem' : 'Format not known yet'}
+              </Text>
             </View>
-            <Text className="font-inter text-[15px] leading-[22px] text-ink">{m.body}</Text>
+            <Text className="font-inter text-[15px] leading-[22px] text-muted">
+              The text is not kept in this app. Find it in your messages app at this time.
+            </Text>
             <View className="flex-row gap-5">
               <Action
-                testID={`unreadCopy-${m.id}`}
-                label={
-                  copied === m.id
-                    ? 'Copied'
-                    : copied === `failed-${m.id}`
-                      ? 'Could not copy'
-                      : 'Copy text'
-                }
-                onPress={() => void copy(m.id, m.body)}
+                testID={`unreadAdd-${m.id}`}
+                label="Add by hand"
+                onPress={() => router.push(`/sheets/add-expense?sourceMessageId=${m.id}`)}
               />
-              {m.looksLikePayment ? (
-                <Action testID={`unreadAdd-${m.id}`} label="Add by hand" />
-              ) : null}
               <Action
                 testID={`unreadIgnore-${m.id}`}
                 label="Ignore"
                 danger
-                onPress={() => setIgnored([...ignored, m.id])}
+                onPress={() => void run((db) => dismissMessage(db, m.id), ['settings'])}
               />
             </View>
           </View>
         ))}
-        {messages.length === 0 ? (
+        {error ? (
+          <Text testID="unreadError" className="pt-3 font-inter text-caption text-warn">
+            {error}
+          </Text>
+        ) : null}
+        {messages !== undefined && list.length === 0 ? (
           <View testID="unreadEmpty" className="items-start gap-2 pt-2">
             <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">
               All clear.
             </Text>
             <Text className="font-inter text-body leading-6 text-muted">
-              Nothing left to review. Messages in a format we don’t know will show up here.
+              Nothing to review. Messages in a format we don’t know show up here once the app reads
+              your inbox. Importing a backup file never lists them.
             </Text>
           </View>
         ) : null}
       </View>
       <View className="mx-5 mt-7">
         <Hint title="Why this happens">
-          MTN sometimes changes how a message is worded. Copy the text and share it with whoever
-          builds this app, and the next update will read it.
+          MTN sometimes changes how a message is worded. Add the payment by hand and it counts in
+          your totals, or ignore the message.
         </Hint>
       </View>
     </Screen>
