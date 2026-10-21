@@ -21,20 +21,23 @@ export function Toggle({
   onChange,
   label,
   testID,
+  disabled = false,
 }: {
   value: boolean;
   onChange?: (next: boolean) => void;
   label: string;
   testID?: string;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       testID={testID}
       accessibilityRole="switch"
       accessibilityLabel={label}
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
+      disabled={disabled}
       onPress={() => onChange?.(!value)}
-      className={`h-7 w-12 shrink-0 justify-center rounded-[14px] px-[3px] ${value ? 'bg-ink' : 'bg-[#DADADA]'}`}
+      className={`h-7 w-12 shrink-0 justify-center rounded-[14px] px-[3px] ${value ? 'bg-ink' : 'bg-[#DADADA]'} ${disabled ? 'opacity-40' : ''}`}
     >
       <Animated.View
         layout={LinearTransition.duration(180)}
