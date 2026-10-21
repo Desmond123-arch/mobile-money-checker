@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is compiled and has run on the emulator, but not on a real phone (section 5, "Live SMS reading"). What is still a stand-in is small: "Lock the app" (section 3). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is compiled and has run on the emulator, but not on a real phone (section 5, "Live SMS reading"). Nothing user-facing is a stand-in any more. "Lock the app" is real (section 5, "App lock"). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
 
 ## 2. Real versus stand-in
 
@@ -37,7 +37,6 @@ Nothing a user types is lost on reload any more, except these.
 |---|---|---|
 | `PeriodProvider` (`src/features/period`) | Selected month or day (months come from the database) | UI state only. Keep as context or router params |
 | `TransactionFilterProvider` (`src/features/transactions/filterContext.tsx`) | Selected category filter | UI state only |
-| `SettingsScreen` | "Lock the app" toggle. A stand-in: the switch moves and the subtitle says "Not built yet" | Real app lock (`meta` lock flag, biometric or PIN) |
 
 ## 4. Buttons that save, and what is left
 
@@ -68,7 +67,7 @@ Behaviour worth knowing:
 - The "Words you removed" section of the edit screen offers seed words the user deleted. It replaced the hardcoded "People often add" list.
 - **Messages we couldn't read** lists inbox rows only, and message text is never stored. So the list is empty after a backup import (by design) and until the inbox scan exists. Rows show a time and "Format not known yet", not the text. "Copy text" is gone because there is nothing to copy; `expo-clipboard` is no longer used by any screen.
 
-Still not built: "Lock the app", reparse. `modules/momo-sms` and `src/scan` exist but are unverified on a device (section 5).
+Still not built: reparse. `modules/momo-sms` and `src/scan` exist but are unverified on a device (section 5).
 
 ## 5. Data layer, and what is not built yet
 
@@ -137,6 +136,33 @@ Differences from `system-design.md` section 8 (the doc now says so): `getPermiss
 8. Kill the app during the first scan, reopen: it resumes behind Importing.
 9. Privacy: put an SMS from another sender and a `<#>` OTP in the inbox. Neither text appears anywhere (inspect the database through `run-as`; the OTP row is `ignored` / `otp`).
 
+### App lock
+
+Built, off by default, and not run on a device. It needs a **new dev build**, because `expo-local-authentication` is a native module and its config plugin adds `USE_BIOMETRIC` and `USE_FINGERPRINT` to the manifest. An old dev client throws "native module not found" the first time the lock is used; `lockAuth.ts` catches that and answers "failed", so the app stays locked rather than crashing. Build with `npm run build:dev` (or `build:dev:local`), then reinstall.
+
+- **State machine.** `src/features/app/appLock.ts` is pure and unit tested. Phases are `unlocked`, `locked`, `authenticating` and `unavailable`. Cold start with the lock on starts `locked` and prompts at once. Leaving the app records the time; coming back after more than `LOCK_GRACE_MS` (30 000 ms) locks and prompts. Exactly 30 s does not lock. A clock that moved back locks. Cancel or failure stays `locked` with no automatic re-prompt; the Unlock button (`unlockBtn`) prompts again. No screen lock on the phone gives `unavailable`, which shows `lockUnavailableNote`.
+- **Why a grace period.** The file picker and the permission dialogs send the app to the background for a moment. Without a grace period, importing a backup would relock the app halfway through.
+- **Persistence.** `meta.app_lock_enabled` is `'1'` or `'0'`, absent means off (`getMeta` and `setMeta` in `src/data/meta.ts`).
+- **Gate.** `LockGate` (`src/features/app/LockGate.tsx`) sits inside `DbProvider`, above `ScanProvider` and the stack. While locked it renders the lock screen (`lockScreen`) instead of its children, so no transaction screen is mounted behind it, and no scan runs. Every relock therefore drops navigation state: after unlocking the app returns to its start route. It hides the splash itself when it shows the lock screen, because `FirstRunGate` is not mounted then. With the lock off it renders its children unchanged, so the first-run flow is as before.
+- **Adapter.** Only `src/features/app/lockAuth.ts` imports `expo-local-authentication`. The prompt says "Unlock MoMo Spend" and allows the device PIN, pattern or password when no biometric is enrolled. Tests use `src/features/app/__tests__/fakeLockAuth.ts`.
+- **Settings.** The "Lock the app" switch (`settingsLockToggle`) asks for authentication before turning on and before turning off (`changeLock` in `appLockActions.ts`). With no screen lock on the phone, the row says "Set a screen lock in your phone's settings first" and the switch cannot be turned on. A lock that is already on can always be turned off, even when the phone lost its screen lock.
+- **Privacy.** The lock gates the screen only. The database is not encrypted at rest, and the Settings text makes no claim that it is. Anyone who can read the app's files (a rooted phone, a backup of the device) can read the data.
+- **Known edge.** If the lock is on and the phone loses its screen lock, the app stays on the lock screen with `lockUnavailableNote` until the user sets a screen lock again. It does not open without one.
+- **Maestro.** `maestro/flows/app-lock.yml` covers only the no-screen-lock case, on an emulator with no screen lock. Maestro cannot satisfy a system biometric or PIN prompt, so the enabled path is manual.
+
+Manual checklist on a real phone (new dev build, screen lock and fingerprint set):
+
+1. Settings, More, switch "Lock the app" on. The system prompt appears; pass it. The switch turns on.
+2. Switch it on, then cancel the prompt. The switch stays off.
+3. Kill the app and reopen it. The lock screen shows and the prompt opens by itself. Pass it: the app opens on Home.
+4. Open the app, press Home for 5 seconds, return. No lock screen.
+5. Open the app, press Home for 60 seconds, return. The lock screen shows and prompts.
+6. On the lock screen, cancel the prompt. The lock screen stays; tap Unlock and the prompt returns.
+7. During step 4, also open "Import a backup file" and pick a file. The picker must not relock the app.
+8. Switch the lock off. The prompt appears; pass it. Kill and reopen: no lock screen.
+9. On a phone (or emulator) with no screen lock: the Lock the app row shows the note and the switch does nothing.
+10. With the lock on, remove the phone's screen lock in system settings and reopen the app: the lock screen shows `lockUnavailableNote`. Set a screen lock, tap Unlock.
+
 ### Reading the data (piece 4a)
 
 Every read is a function in `src/data/queries` over the `Db` interface (listed in `data-model.md`), wrapped by a TanStack Query hook in the feature that uses it. Keys include the month, day and filters. After a write, call `useQueryClient().invalidateQueries()` (all of it derives from SQLite) or the narrower `CATEGORIES_KEY` from `src/features/categories`.
@@ -187,7 +213,7 @@ Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger`
 - **Maestro flows depend on sample data and now break.** They have never been run (Maestro is not installed in the WSL environment). They need a seeded database or a test mode that loads a fixture ledger. Without data Home renders `homeEmptyState`, not `homeScreen`, so:
   - every flow that runs `setupApp.yml` fails at its wait for `homeScreen` (all except `first-run-gate.yml`), and `first-run-gate.yml` and `permission-flow.yml` fail at their `homeScreen` assertions;
   - on top of that these assert sample content: `home-screen` (`homeSpentAmount`, `dailyChart`, `needsNoteCard`), `add-note-category` (`needsNoteCard`; the sheet also needs a pending payment, and Save stays disabled until the note or category changes), `home-filter` (`transactionRow-t1`, `-t2`), `transactions-filters` (`-t1`, `-t4`, `addNoteLink-t5`), `transactions-search` (`-t1` to `-t3`), `transaction-detail` (`transactionRow-t3`, the original message text), `month-picker` (`monthOption-2026-08`) and `insights-calendar` (`calendarDay-2026-10-19`, `-28`, `calendarMonth-2026-08`, "Monday 19 Oct").
-  - Changed by the write side (piece 4b): `unread-messages` asserts `unreadMessage-u1`, `unreadAdd-u2` and `unreadIgnore-*` from the old sample messages. The list is now empty without inbox rows, so it fails at `unreadMessage-u1` (the empty state is `unreadEmpty`). `edit-category` taps `suggestion-shawarma`, which now exists only after that seed word is removed. `transactions-filters` and `home-screen` open `addNoteSheet`, which now shows the real payment, or `addNoteDoneBtn` when none is pending. `transaction-detail` needs a stored row, and `detailSaveBtn` now writes. `new-category-sheet` still follows its steps, but `createCategoryBtn` is disabled until a name is typed and a duplicate name shows `newCategoryError`. `settings-lock-toggle` is unaffected.
+  - Changed by the write side (piece 4b): `unread-messages` asserts `unreadMessage-u1`, `unreadAdd-u2` and `unreadIgnore-*` from the old sample messages. The list is now empty without inbox rows, so it fails at `unreadMessage-u1` (the empty state is `unreadEmpty`). `edit-category` taps `suggestion-shawarma`, which now exists only after that seed word is removed. `transactions-filters` and `home-screen` open `addNoteSheet`, which now shows the real payment, or `addNoteDoneBtn` when none is pending. `transaction-detail` needs a stored row, and `detailSaveBtn` now writes. `new-category-sheet` still follows its steps, but `createCategoryBtn` is disabled until a name is typed and a duplicate name shows `newCategoryError`. `settings-lock-toggle` is replaced by `app-lock` (below).
   - New test ids: `addExpenseLinkedNote`, `addExpenseError`, `addNoteDoneBtn`, `addNoteError`, `cashOutError`, `cashOutLink-<id>`, `detailError`, `editCategoryError`, `newCategoryError`, `newCategoryWordInput`, `newCategoryWord-<word>`, `familyNameError`, `friendNameError`, `unreadError`.
 
   A fixture should also set `meta.first_import_at` before the sample payments so the needs-a-note card appears. New test ids: `homeLoading`, `detailLoading`, `detailNotFound`, `insightsMonthEmpty`.
