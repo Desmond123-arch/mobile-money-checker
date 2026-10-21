@@ -12,9 +12,17 @@ interface Props {
   padding?: 'py-3' | 'py-[14px]';
   onPress?: () => void;
   onAddNote?: () => void;
+  onCashOut?: () => void;
 }
 
-export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote }: Props) {
+export function TransactionRow({
+  row,
+  when,
+  padding = 'py-3',
+  onPress,
+  onAddNote,
+  onCashOut,
+}: Props) {
   useCategories();
   const category = categoryById(row.categoryId);
   const incoming = row.direction === 'in';
@@ -24,6 +32,10 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
     !incoming &&
     !row.manual &&
     (row.categoryId === null || row.categoryId === 'other');
+
+  // A cash-out stays in Cash until the user says what the money was for.
+  const asksCashUse =
+    onCashOut !== undefined && row.note === null && !incoming && row.categoryId === 'cash';
 
   const disc = needsNote
     ? { bg: '#F5B800', icon: 'exclaim' as const, stroke: '#14110F', width: 2 }
@@ -57,7 +69,15 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
         <Text numberOfLines={1} className="font-inter-semibold text-body leading-[22px] text-ink">
           {row.counterparty}
         </Text>
-        {needsNote ? (
+        {asksCashUse ? (
+          <Text
+            testID={`cashOutLink-${row.id}`}
+            onPress={onCashOut}
+            className="font-inter-semibold text-[13px] leading-[18px] text-ink underline"
+          >
+            What was this for?
+          </Text>
+        ) : needsNote ? (
           <Text
             testID={`addNoteLink-${row.id}`}
             onPress={onAddNote}

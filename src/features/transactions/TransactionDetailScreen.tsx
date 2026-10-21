@@ -17,7 +17,9 @@ import {
   Toggle,
 } from '@/ui';
 
+import { useWrite } from '@/features/app';
 import { categoryIcon, categoryById, useCategories } from '@/features/categories';
+import { editTransaction } from '@/ledger/transactionEdit';
 
 import { useTransactionDetail } from './useTransactions';
 
@@ -63,11 +65,37 @@ function DetailNotFound() {
 function DetailBody({ tx }: { tx: TransactionDetail }) {
   const router = useRouter();
   const categories = useCategories();
+  const { run, busy, error } = useWrite();
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [categoryId, setCategoryId] = useState(tx.categoryId);
   const [note, setNote] = useState(tx.note ?? '');
   const [alwaysTag, setAlwaysTag] = useState(true);
   const [showOriginal, setShowOriginal] = useState(false);
   const category = categoryById(categoryId);
+
+  const initialNote = tx.note ?? '';
+  const noteChanged = note.trim() !== initialNote;
+  const categoryChanged = categoryId !== tx.categoryId;
+  const chips = showAllCategories
+    ? categories
+    : categories.filter((c, i) => i < 5 || c.id === categoryId);
+
+  // Only what changed is written, so an untouched category keeps following the categoriser.
+  const save = async () => {
+    if (!noteChanged && !categoryChanged) {
+      router.back();
+      return;
+    }
+    const saved = await run(
+      (db) =>
+        editTransaction(db, Number(tx.id), {
+          ...(noteChanged ? { note } : {}),
+          ...(categoryChanged && categoryId !== null ? { categoryId, alwaysTag } : {}),
+        }),
+      ['money'],
+    );
+    if (saved) router.back();
+  };
 
   return (
     <Screen testID="transactionDetailScreen">
@@ -123,7 +151,7 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
       <View className="gap-3 px-5 pt-8">
         <SubHeading title="Category" aside="Picked from your note" />
         <View className="flex-row flex-wrap gap-2">
-          {categories.slice(0, 5).map((c) => (
+          {chips.map((c) => (
             <CategoryChip
               key={c.id}
               testID={`detailCategory-${c.id}`}
@@ -133,19 +161,25 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
               onPress={() => setCategoryId(c.id)}
             />
           ))}
-          <DashedChip testID="detailAllCategoriesBtn" label={`All ${categories.length}`} />
-        </View>
-        <View className="flex-row items-center gap-3 pt-4">
-          <Toggle
-            testID="detailAlwaysTagToggle"
-            label="Always tag this recipient"
-            value={alwaysTag}
-            onChange={setAlwaysTag}
+          <DashedChip
+            testID="detailAllCategoriesBtn"
+            label={showAllCategories ? 'Fewer' : `All ${categories.length}`}
+            onPress={() => setShowAllCategories(!showAllCategories)}
           />
-          <Text className="flex-1 font-inter text-[15px] leading-[22px] text-ink">
-            Always tag {tx.counterparty} as {category?.name ?? 'this category'}
-          </Text>
         </View>
+        {tx.manual ? null : (
+          <View className="flex-row items-center gap-3 pt-4">
+            <Toggle
+              testID="detailAlwaysTagToggle"
+              label="Always tag this recipient"
+              value={alwaysTag}
+              onChange={setAlwaysTag}
+            />
+            <Text className="flex-1 font-inter text-[15px] leading-[22px] text-ink">
+              Always tag {tx.counterparty} as {category?.name ?? 'this category'}
+            </Text>
+          </View>
+        )}
       </View>
 
       <Pressable
@@ -169,7 +203,17 @@ function DetailBody({ tx }: { tx: TransactionDetail }) {
       ) : null}
 
       <View className="px-5 pb-2 pt-7">
-        <Button testID="detailSaveBtn" label="Save changes" onPress={() => router.back()} />
+        {error ? (
+          <Text testID="detailError" className="pb-3 font-inter text-caption text-warn">
+            {error}
+          </Text>
+        ) : null}
+        <Button
+          testID="detailSaveBtn"
+          label="Save changes"
+          disabled={busy}
+          onPress={() => void save()}
+        />
       </View>
     </Screen>
   );

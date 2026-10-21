@@ -146,7 +146,8 @@ export function TransactionsScreen() {
                   key={row.id}
                   row={row}
                   onPress={() => router.push(`/transaction/${row.id}`)}
-                  onAddNote={() => router.push('/sheets/add-note')}
+                  onAddNote={() => router.push(`/sheets/add-note?id=${row.id}`)}
+                  onCashOut={() => router.push(`/sheets/cash-out?id=${row.id}`)}
                 />
               ))}
             </View>
