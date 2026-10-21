@@ -11,6 +11,7 @@
     "android": {
       "package": "com.momospend.app",
       "allowBackup": false,
+      "permissions": ["android.permission.READ_SMS"],
       "adaptiveIcon": {
         "backgroundColor": "#14110F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

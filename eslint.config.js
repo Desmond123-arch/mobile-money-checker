@@ -1,5 +1,12 @@
 const expo = require('eslint-config-expo/flat');
 
+// Only the scan reaches the inbox. Every no-restricted-imports block below repeats this pattern,
+// because a later block replaces an earlier one for the files both match.
+const NATIVE_SMS = {
+  group: ['**/modules/momo-sms', '**/modules/momo-sms/*'],
+  message: 'Only src/scan may import the native SMS module.',
+};
+
 module.exports = [
   ...expo,
   { ignores: ['node_modules/', 'dist/', '.expo/', 'android/', 'ios/', 'coverage/'] },
@@ -26,6 +33,7 @@ module.exports = [
               ],
               message: 'src/domain must stay pure (no RN, Expo, SQLite or app layers).',
             },
+            NATIVE_SMS,
           ],
         },
       ],
@@ -46,10 +54,16 @@ module.exports = [
               group: ['react', 'react-native', 'expo', 'expo-*'],
               message: 'Only expoFileSource.ts and pickBackupFile.ts may import Expo.',
             },
+            NATIVE_SMS,
           ],
         },
       ],
     },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}', 'scripts/**/*.ts'],
+    ignores: ['src/scan/**', 'src/domain/**', 'src/backup/**'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [NATIVE_SMS] }] },
   },
   {
     files: ['src/ledger/**/*.ts', 'src/scan/**/*.ts'],
