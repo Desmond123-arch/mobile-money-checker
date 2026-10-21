@@ -64,6 +64,8 @@ Entries are grouped by area, not by PR; the table above maps work to pull reques
 
 ### Changed
 
+- Privacy screen copy matches what the app does: no claim about internet access (the permission is not stripped from release builds yet), SMS access is optional because a backup file can be imported, fee and tax are listed as kept, and the backup import's temporary copy is described.
+
 - "Messages we couldn't read" shows a time and a reason instead of message text, because text is never stored, and is empty after a backup import. "Copy text" is removed with it. "Lock the app" says it is not built yet. The edit-category suggestions are now seed words the user removed. A cash-out in Cash shows a "What was this for?" link on Transactions.
 - The yellow "Add a note" state on a row now means a payment out in Misc with no note (it used to be any row with no note). The detail screen shows "about" before a time taken from the SMS received time, hides "Balance after" when there is none, and no longer pretends it can show the original message.
 - Text line heights raised to at least 1.3x the font size, fixing clipped y, g and p on Android.
