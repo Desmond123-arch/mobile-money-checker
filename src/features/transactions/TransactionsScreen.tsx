@@ -18,6 +18,7 @@ import {
 
 import { TransactionRow } from './components/TransactionRow';
 import { useTransactionFilter } from './filterContext';
+import { useCashOutPrompts } from './useCashOutPrompts';
 import { useTransactions } from './useTransactions';
 
 type Direction = 'all' | 'out' | 'in';
@@ -47,6 +48,7 @@ export function TransactionsScreen() {
     categoryId,
     search: query,
   });
+  const asking = new Set((useCashOutPrompts(month.id) ?? []).map((p) => p.row.id));
   const days = groupByDay(rows ?? [], today);
 
   const toggleSearch = () => {
@@ -151,7 +153,11 @@ export function TransactionsScreen() {
                   row={row}
                   onPress={() => router.push(`/transaction/${row.id}`)}
                   onAddNote={() => router.push(`/sheets/add-note?id=${row.id}`)}
-                  onCashOut={() => router.push(`/sheets/cash-out?id=${row.id}`)}
+                  onCashOut={
+                    asking.has(row.id)
+                      ? () => router.push(`/sheets/cash-out?id=${row.id}`)
+                      : undefined
+                  }
                 />
               ))}
             </View>

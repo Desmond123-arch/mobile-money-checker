@@ -81,6 +81,7 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `paymentCount(db, range)` | Outgoing, non-retracted transactions in the range |
 | `transactionDetail(db, id, today)` | `TransactionDetail` (kind label, time label and approximate flag, balance after, note and its source, reversed or reverses) or null |
 | `needsNoteCount` / `needsNoteList(db, range, now)` | Outgoing SMS payments in Misc with no note and no live snooze, after `meta.first_import_at` (nothing when it is unset) |
+| `cashOutPrompts(db, range, now)` | Cash-outs with no user note and no manual category, at or after `meta.first_import_at`, not snoozed (`prompt_snoozed_until` null or `<= now`); nothing when it is unset |
 | `monthlyFlows(db, endMonthId, count)` | Money out and in for `count` months ending at a month, zero for empty ones |
 | `daySpend(db, iso)` | A day's total and category split |
 | `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |

@@ -5,6 +5,7 @@ import { dailyAverage } from '@/domain/summary/month';
 import { relativeDay } from '@/domain/transaction/label';
 import { ShareBar, ShareLegend, useCategories } from '@/features/categories';
 import { usePeriod, useToday } from '@/features/period';
+import { useCashOutPrompts } from '@/features/transactions/useCashOutPrompts';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
 
@@ -20,6 +21,7 @@ export function HomeScreen() {
   const today = useToday();
   const { month: selected, hasData, ready } = usePeriod();
   const data = useHomeData(selected.id);
+  const cashOuts = useCashOutPrompts(selected.id);
   useCategories();
 
   if (!ready || data === undefined)
@@ -51,7 +53,14 @@ export function HomeScreen() {
       <SmsOffBanner />
 
       {month.needNote > 0 ? (
-        <NeedsNoteCard count={month.needNote} onPress={() => router.push('/sheets/add-note')} />
+        <NeedsNoteCard
+          count={month.needNote}
+          onPress={() => {
+            // Cash-outs come first; their sheet is the cash-out one.
+            const first = cashOuts?.[0];
+            router.push(first ? `/sheets/cash-out?id=${first.row.id}` : '/sheets/add-note');
+          }}
+        />
       ) : null}
 
       <View className="px-5 pt-9">

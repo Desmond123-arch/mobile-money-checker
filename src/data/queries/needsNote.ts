@@ -54,3 +54,30 @@ export async function needsNoteList(
   );
   return rows.map(mapRow);
 }
+
+// Cash-outs stay in Cash until the user says what the money was for (categorisation.md, design 3.4).
+// Same history cut-off as above, inclusive, and the same snooze rule: "Ask me later" hides the row
+// until `prompt_snoozed_until` passes.
+export async function cashOutPrompts(
+  db: Db,
+  range: TimeRange | null,
+  now: number,
+): Promise<DatedRow[]> {
+  const first = await getMeta(db, 'first_import_at');
+  if (first === null) return [];
+  const time = range ? inRange('l.occurred_at', range) : { sql: '1', params: [] as const };
+  const rows = await db.all<ListRow>(
+    `SELECT ${ROW_COLUMNS}
+     FROM transaction_list l JOIN categories c ON c.id = l.category_id
+     WHERE l.kind = 'cash_out' AND l.direction = 'out'
+       AND l.category_source IS NOT 'manual'
+       AND NOT EXISTS (SELECT 1 FROM transaction_annotations a
+                       WHERE a.transaction_id = l.id AND a.note IS NOT NULL)
+       AND l.occurred_at >= ?
+       AND (l.prompt_snoozed_until IS NULL OR l.prompt_snoozed_until <= ?)
+       AND ${time.sql}
+     ORDER BY l.occurred_at DESC, l.id DESC`,
+    [Number(first), now, ...time.params],
+  );
+  return rows.map(mapRow);
+}

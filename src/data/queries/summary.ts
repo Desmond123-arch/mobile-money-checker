@@ -3,7 +3,7 @@ import { addMonths, daysInMonth, monthRange } from '@/domain/calendar/month';
 import { pesewas, type Pesewas } from '@/domain/money';
 import { buildMonthSummary, type MonthFacts, type MonthSummary } from '@/domain/summary/month';
 
-import { needsNoteCount } from './needsNote';
+import { cashOutPrompts, needsNoteCount } from './needsNote';
 import { paymentCount } from './transactions';
 import { inRange } from './sql';
 
@@ -64,7 +64,8 @@ export async function monthFacts(
     spent: pesewas(totals?.spent ?? 0),
     moneyIn: pesewas(totals?.money_in ?? 0),
     payments: await paymentCount(db, range),
-    needNote: await needsNoteCount(db, range, now),
+    needNote:
+      (await needsNoteCount(db, range, now)) + (await cashOutPrompts(db, range, now)).length,
     spendByDay: new Map(days.map((d) => [d.day, pesewas(d.spent)])),
     previous:
       (previousLines?.n ?? 0) > 0
