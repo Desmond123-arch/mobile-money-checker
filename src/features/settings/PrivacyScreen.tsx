@@ -27,6 +27,7 @@ const SECTIONS = [
     title: 'What never happens',
     points: [
       'Nothing is uploaded. There is no account, no server and no analytics.',
+      'The app does not ask for internet access, so it cannot send anything out.',
       'Nothing in the app connects to a server or sends your data anywhere.',
       'Deleting the app deletes everything it stored.',
     ],
