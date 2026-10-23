@@ -10,7 +10,7 @@ import {
 import { monthRange } from '@/domain/calendar/month';
 import { useDb } from '@/features/app/DbProvider';
 
-// All three share the `cashOut` prefix, which every ledger write refreshes (useWrite MONEY_KEYS).
+// All three share the `cashOut` prefix, which every ledger write refreshes (`MONEY_KEYS` in `writeGroups.ts`).
 
 /** `null` when the id is not a live cash-out; `undefined` while loading. */
 export function useCashOutBreakdown(id: string): CashOutBreakdown | null | undefined {

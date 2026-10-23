@@ -128,7 +128,7 @@ describe('keywords', () => {
   it('adds a normalised word and recategorises matching payments', async () => {
     expect(await catOf(db, '90000000031')).toBe('other');
     const res = await addKeyword(db, 'food', '  NDWOM  ', NOW);
-    expect(res).toEqual({ ok: true, value: 'ndwom', added: true });
+    expect(res).toEqual({ ok: true, value: 'ndwom', added: true, changed: 2 });
     expect(await catOf(db, '90000000031')).toBe('food');
     expect(await catOf(db, '90000000032')).toBe('food');
     expect((await categoryKeywords(db, 'food'))[0]).toEqual({
@@ -140,6 +140,7 @@ describe('keywords', () => {
       ok: true,
       value: 'ndwom',
       added: false,
+      changed: 0,
     });
   });
 

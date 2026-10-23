@@ -30,7 +30,7 @@ export function EditCategoryScreen() {
   const category = categoryById(id ?? null);
   const words = useCategoryKeywords(id ?? '');
   const impact = useCategoryImpact(id ?? '');
-  const { run, busy, error } = useWrite();
+  const { run, busy, error } = useWrite({ overlap: true });
   const [word, setWord] = useState('');
   const [showAll, setShowAll] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -39,7 +39,10 @@ export function EditCategoryScreen() {
 
   const add = async (text: string) => {
     setProblem(null);
-    const saved = await run((db) => addKeyword(db, category.id, text), ['money', 'settings']);
+    const saved = await run(
+      (db) => addKeyword(db, category.id, text),
+      (res) => (res.ok && res.changed > 0 ? ['money', 'settings'] : ['settings']),
+    );
     if (!saved) return;
     if (saved.value.ok) setWord('');
     else setProblem(problemMessage(saved.value, { word: text.trim() }));
@@ -47,7 +50,10 @@ export function EditCategoryScreen() {
 
   const remove = (value: string) => {
     setProblem(null);
-    void run((db) => removeKeyword(db, category.id, value), ['money', 'settings']);
+    void run(
+      (db) => removeKeyword(db, category.id, value),
+      (changed) => (changed > 0 ? ['money', 'settings'] : ['settings']),
+    );
   };
 
   const confirmDelete = () => {

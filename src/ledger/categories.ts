@@ -71,7 +71,7 @@ const wordOwner = (tx: Db, value: string) =>
   );
 
 export type AddKeywordResult =
-  | { ok: true; value: string; added: boolean }
+  | { ok: true; value: string; added: boolean; changed: number }
   | { ok: false; reason: 'empty' | 'tooCommon' | 'noWords' }
   | { ok: false; reason: 'elsewhere'; category: string };
 
@@ -99,7 +99,7 @@ export function addKeyword(
       const owner = await wordOwner(tx, value);
       if (owner !== null) {
         return owner.category_id === id
-          ? { ok: true, value, added: false }
+          ? { ok: true, value, added: false, changed: 0 }
           : { ok: false, reason: 'elsewhere', category: owner.name };
       }
       await tx.run(
@@ -107,13 +107,14 @@ export function addKeyword(
          VALUES (?, ?, 0, 'user', ?)`,
         [id, value, now],
       );
-      await recategoriseIn(tx);
-      return { ok: true, value, added: true };
+      const { changed } = await recategoriseIn(tx);
+      return { ok: true, value, added: true, changed };
     }),
   );
 }
 
-export function removeKeyword(db: Db, categoryId: string, word: string): Promise<void> {
+/** Resolves to how many payments changed category. */
+export function removeKeyword(db: Db, categoryId: string, word: string): Promise<number> {
   const value = normaliseWord(word);
   return ledgerQueue.run(() =>
     db.transaction(async (tx) => {
@@ -122,7 +123,7 @@ export function removeKeyword(db: Db, categoryId: string, word: string): Promise
         id,
         value,
       ]);
-      if (changes > 0) await recategoriseIn(tx);
+      return changes > 0 ? (await recategoriseIn(tx)).changed : 0;
     }),
   );
 }

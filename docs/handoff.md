@@ -61,6 +61,8 @@ These now persist. Each runs one queued exclusive transaction (`ledgerQueue.run`
 | Ignore (`unreadIgnore-*`) | `message_dismissals` | `namesUnread.test.ts` |
 | Add by hand (`unreadAdd-*`) | `transactions` with `source_message_id`, dated at the message's `received_at` | `namesUnread.test.ts` |
 
+Save speed and dropped taps (fixed 23 Oct 2026). Adding a name, a word or a rule used to rewrite the category of every SMS transaction, one bridge call each (about 1,640 on the author's history, and again on every no-op), and every save then waited for all screens to reload. `recategoriseIn` now compares in memory and writes only the rows whose category, source, clean reference or self-transfer flag changed, and returns how many (`addName`, `removeName`, `addKeyword` and `removeKeyword` pass that count back). `useWrite` awaits only the settings lists a screen shows next and refreshes the money screens in the background; `groups` may be a function of the write's result, so an edit that moved no payment leaves the money screens alone. `useWrite({ overlap: true })` lets a second write start while one runs (the ledger queue still runs them one at a time); before, a second tap during a slow save was silently dropped. Family and Friends names and word chips use it, and a new name appears at once while it saves. The pure parts are in `src/features/app/writeGroups.ts`. `recategorisePerf.test.ts` counts statements. Not timed on a device.
+
 Behaviour worth knowing:
 
 - Notes and the manual category are written only to `transaction_annotations`. `note = ''` means the user cleared the SMS reference. The detail screen sends a field only when it changed, so an untouched category keeps following the categoriser.

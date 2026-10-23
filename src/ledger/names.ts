@@ -7,7 +7,7 @@ import { ledgerQueue } from './writeQueue';
 export type NameKind = 'family' | 'friend';
 
 export type AddNameResult =
-  | { ok: true; value: string; added: boolean }
+  | { ok: true; value: string; added: boolean; changed: number }
   | { ok: false; reason: 'empty' }
   | { ok: false; reason: 'otherList'; list: NameKind };
 
@@ -28,7 +28,7 @@ export function addName(
       );
       if (existing) {
         return existing.kind === kind
-          ? { ok: true, value, added: false }
+          ? { ok: true, value, added: false, changed: 0 }
           : { ok: false, reason: 'otherList', list: existing.kind };
       }
       await tx.run('INSERT INTO name_lists (kind, value, created_at) VALUES (?, ?, ?)', [
@@ -36,13 +36,14 @@ export function addName(
         value,
         now,
       ]);
-      await recategoriseIn(tx);
-      return { ok: true, value, added: true };
+      const { changed } = await recategoriseIn(tx);
+      return { ok: true, value, added: true, changed };
     }),
   );
 }
 
-export function removeName(db: Db, kind: NameKind, name: string): Promise<void> {
+/** Resolves to how many payments changed category. */
+export function removeName(db: Db, kind: NameKind, name: string): Promise<number> {
   const value = normaliseWord(name);
   return ledgerQueue.run(() =>
     db.transaction(async (tx) => {
@@ -50,7 +51,7 @@ export function removeName(db: Db, kind: NameKind, name: string): Promise<void> 
         kind,
         value,
       ]);
-      if (changes > 0) await recategoriseIn(tx);
+      return changes > 0 ? (await recategoriseIn(tx)).changed : 0;
     }),
   );
 }

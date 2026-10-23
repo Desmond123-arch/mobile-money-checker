@@ -44,11 +44,17 @@ describe('name lists', () => {
       ok: true,
       value: 'maa',
       added: true,
+      changed: 1,
     });
     expect(await catOf(db, '90000000051')).toBe('family');
     expect(await catOf(db, '90000000052')).toBe('other');
     expect(await nameLists(db)).toEqual({ family: ['maa'], friend: [] });
-    expect(await addName(db, 'family', 'maa')).toEqual({ ok: true, value: 'maa', added: false });
+    expect(await addName(db, 'family', 'maa')).toEqual({
+      ok: true,
+      value: 'maa',
+      added: false,
+      changed: 0,
+    });
   });
 
   it('keeps a name in one list only and says which', async () => {

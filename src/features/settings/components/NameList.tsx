@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { useWrite } from '@/features/app';
+import { normaliseWord } from '@/domain/category/word';
 import { addName, removeName, type NameKind } from '@/ledger/names';
 import { DashedChip, WordChip } from '@/ui';
 
@@ -15,35 +16,57 @@ interface NameListProps {
 const LIST_LABEL: Record<NameKind, string> = { family: 'Family', friend: 'Friends' };
 
 export function NameList({ kind, idPrefix, names, tint }: NameListProps) {
-  const { run, error } = useWrite();
+  const { run, error } = useWrite({ overlap: true });
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
+  // Names being saved, shown at once so a slow save never looks like nothing happened.
+  const [saving, setSaving] = useState<readonly string[]>([]);
+  // Done and the blur that follows it both commit; whichever comes second finds this empty.
+  const text = useRef('');
+
+  const changeDraft = (next: string) => {
+    text.current = next;
+    setDraft(next);
+  };
 
   const commit = async () => {
-    const text = draft;
-    setDraft('');
+    const entered = text.current.trim();
+    changeDraft('');
     setAdding(false);
     setProblem(null);
-    if (text.trim() === '') return;
-    const saved = await run((db) => addName(db, kind, text), ['money', 'settings']);
+    if (entered === '') return;
+    const shown = normaliseWord(entered);
+    if (shown !== '' && !names.includes(shown)) setSaving((now) => [...now, shown]);
+    const saved = await run(
+      (db) => addName(db, kind, entered),
+      (res) => (res.ok && res.changed > 0 ? ['money', 'settings'] : ['settings']),
+    );
+    setSaving((now) => now.filter((n) => n !== shown));
     if (saved?.value.ok === false && saved.value.reason === 'otherList') {
       setProblem(
-        `${text.trim()} is already in ${LIST_LABEL[saved.value.list]}. Remove it there first.`,
+        `${entered} is already in ${LIST_LABEL[saved.value.list]}. Remove it there first.`,
       );
     }
   };
 
+  const shownNames = [...names, ...saving.filter((n) => !names.includes(n))];
+
   return (
     <View className="gap-2">
       <View className="flex-row flex-wrap items-center gap-2">
-        {names.map((n) => (
+        {shownNames.map((n) => (
           <WordChip
             key={n}
             testID={`${idPrefix}Name-${n}`}
             label={n}
             tint={tint}
-            onRemove={() => void run((db) => removeName(db, kind, n), ['money', 'settings'])}
+            onRemove={() =>
+              void run(
+                (db) => removeName(db, kind, n),
+                (changed) => (changed > 0 ? ['money', 'settings'] : ['settings']),
+              )
+            }
           />
         ))}
         {adding ? (
@@ -51,7 +74,7 @@ export function NameList({ kind, idPrefix, names, tint }: NameListProps) {
             testID={`${idPrefix}NameInput`}
             autoFocus
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={changeDraft}
             onSubmitEditing={() => void commit()}
             onBlur={() => void commit()}
             placeholder="Name"

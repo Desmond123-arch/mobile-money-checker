@@ -14,7 +14,7 @@ import { isoDate } from '@/domain/calendar/week';
 import { useDb } from '@/features/app/DbProvider';
 import { useToday } from '@/features/period';
 
-// Every key starts with `budget`, which every ledger write refreshes (useWrite MONEY_KEYS).
+// Every key starts with `budget`, which every ledger write refreshes (`MONEY_KEYS` in `writeGroups.ts`).
 
 /** Every plan, latest first. `undefined` while loading. */
 export function usePlans(): PlanRow[] | undefined {
