@@ -34,6 +34,13 @@ export const planRange = (startDay: string, endDay: string): TimeRange => ({
   end: dayMs(endDay) + DAY_MS,
 });
 
+/** What an amount per day comes to over a plan's days. */
+export const totalFromDaily = (daily: number, startDay: string, endDay: string): number =>
+  daily * planDays(startDay, endDay);
+
+/** The plan's even daily pace, rounded down to the pesewa. */
+export const perDayOf = (total: number, days: number): number => Math.floor(total / days);
+
 export const monthEndDay = (iso: string): string => {
   const [year = 1970, month = 1] = iso.split('-').map(Number);
   return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
@@ -88,6 +95,8 @@ export function featuredPlan<T extends PlanSpan>(plans: readonly T[], todayIso: 
 export interface PlanDraft extends PlanSpan {
   /** Pesewas; null until the user types one. */
   total: number | null;
+  /** Pesewas a day, when the plan was stated that way. Then `total` is `daily` times the days. */
+  daily?: number | null;
   name?: string | null;
 }
 
@@ -114,6 +123,11 @@ export function planProblem(draft: PlanDraft, ctx: PlanContext): string | null {
   if (draft.endDay < draft.startDay) return 'A plan cannot end before it starts.';
   if (planDays(draft.startDay, draft.endDay) > MAX_PLAN_DAYS) {
     return 'A plan can run for up to a year.';
+  }
+  if (draft.daily !== undefined && draft.daily !== null) {
+    if (!Number.isSafeInteger(draft.daily) || draft.daily <= 0) {
+      return 'Enter how much you plan to spend each day.';
+    }
   }
   if (draft.total === null || !Number.isSafeInteger(draft.total) || draft.total <= 0) {
     return 'Enter how much you plan to spend.';
