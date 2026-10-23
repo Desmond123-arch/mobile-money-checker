@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import type { PlanRow } from '@/data/queries';
 import {
@@ -20,12 +20,29 @@ import { suggestPlan } from '@/domain/budget/suggest';
 import { isoDate, shortDate } from '@/domain/calendar/week';
 import { formatPlain, parseAmount, pesewas } from '@/domain/money';
 import { useWrite } from '@/features/app';
+import { categoryById, useCategories } from '@/features/categories';
 import { useToday } from '@/features/period';
 import { DayPicker } from '@/features/transactions/components/DayPicker';
 import { createPlan, updatePlan } from '@/ledger/budgets';
-import { Button, DashedChip, FilterPill, Sheet, SheetTitle, TextField } from '@/ui';
+import {
+  Button,
+  CategoryChip,
+  DashedChip,
+  FilterPill,
+  Icon,
+  Sheet,
+  SheetTitle,
+  TextField,
+} from '@/ui';
 
 import { dailyTimesDays, dayMonth, ghs, periodSummary } from './labels';
+import {
+  buildLimits,
+  limitsLeftCaption,
+  resolveTotal,
+  rowsFromSuggestion,
+  type LimitRow,
+} from './planLimits';
 import { useBudgetHistory, useBudgetView, usePlans } from './useBudget';
 
 const LABEL = 'font-inter-bold text-[14px] leading-[19px] text-ink';
@@ -124,9 +141,13 @@ function Form({
   const [dailyText, setDailyText] = useState(initial.daily);
   const [mode, setMode] = useState(initial.mode);
   const [name, setName] = useState(initial.name);
+  const [rows, setRows] = useState<LimitRow[]>([]);
+  const [choosing, setChoosing] = useState(false);
+  const categories = useCategories();
 
   const length = Math.min(Math.max(planDays(startDay, endDay), 1), MAX_PLAN_DAYS);
   const history = useBudgetHistory(startDay, length);
+  const resolvedTotal = resolveTotal({ mode, totalText, dailyText, startDay, endDay });
   const suggestion = history ? suggestPlan(history.spend, history.days, length) : null;
 
   const changeStart = (iso: string) => {
@@ -169,10 +190,20 @@ function Form({
       );
       return;
     }
+    let limits: { categoryId: string; amount: number }[] = [];
+    if (editing === null && rows.length > 0) {
+      const built = buildLimits(rows, total, (id) => categoryById(id)?.name ?? 'that category');
+      if (!built.ok) {
+        setError(built.message);
+        return;
+      }
+      limits = built.limits;
+    }
     const base = { startDay, endDay, name: cleanName(name) };
     const input = daily === null ? { ...base, total } : { ...base, daily };
     const saved = await run(
-      (db) => (editing === null ? createPlan(db, input) : updatePlan(db, editing.id, input)),
+      (db) =>
+        editing === null ? createPlan(db, input, limits) : updatePlan(db, editing.id, input),
       ['money'],
     );
     if (!saved) return;
@@ -180,6 +211,7 @@ function Form({
     else setError(saved.value.message);
   };
 
+  const limitsCaption = limitsLeftCaption(resolvedTotal, rows);
   const startsOtherDay = startDay !== todayIso && startDay !== tomorrowIso;
 
   return (
@@ -337,6 +369,105 @@ function Form({
           </View>
         ) : null}
       </View>
+
+      {editing === null ? (
+        <View className="gap-2">
+          <Text className={LABEL}>Limits, if you like</Text>
+          {rows.map((row) => {
+            const category = categoryById(row.categoryId);
+            return (
+              <View key={row.categoryId} className="flex-row items-center gap-3">
+                <View
+                  className="size-11 shrink-0 items-center justify-center rounded-[22px]"
+                  style={{ backgroundColor: category?.tint ?? '#EDEDED' }}
+                >
+                  <View
+                    className="size-[14px] rounded-[4px]"
+                    style={{ backgroundColor: category?.color ?? '#9A9A9A' }}
+                  />
+                </View>
+                <Text
+                  numberOfLines={1}
+                  className="min-w-0 flex-1 font-inter-semibold text-body leading-[22px] text-ink"
+                >
+                  {category?.name ?? 'Other'}
+                </Text>
+                <View className="w-[112px] shrink-0">
+                  <TextField
+                    testID={`budgetPlanLimitAmount-${row.categoryId}`}
+                    value={row.amountText}
+                    onChangeText={(t) => {
+                      setRows(
+                        rows.map((r) =>
+                          r.categoryId === row.categoryId ? { ...r, amountText: t } : r,
+                        ),
+                      );
+                      setError(null);
+                    }}
+                    placeholder="200"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <Pressable
+                  testID={`budgetPlanLimitRemove-${row.categoryId}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove the ${category?.name ?? 'category'} limit`}
+                  onPress={() => {
+                    setRows(rows.filter((r) => r.categoryId !== row.categoryId));
+                    setError(null);
+                  }}
+                  className="size-11 shrink-0 items-center justify-center"
+                >
+                  <Icon name="close" size={16} strokeWidth={2} />
+                </Pressable>
+              </View>
+            );
+          })}
+          {limitsCaption ? (
+            <Text testID="budgetPlanLimitsLeft" className="font-inter text-caption text-muted">
+              {limitsCaption}
+            </Text>
+          ) : null}
+          <View className="flex-row flex-wrap gap-2">
+            <DashedChip
+              testID="budgetPlanAddLimit"
+              label="Add a limit"
+              icon
+              onPress={() => setChoosing(!choosing)}
+            />
+            {suggestion && rows.length === 0 ? (
+              <DashedChip
+                testID="budgetPlanLimitsSuggestion"
+                label="Fill from the days before"
+                onPress={() => {
+                  setRows(rowsFromSuggestion(suggestion.limits, resolvedTotal));
+                  setChoosing(false);
+                  setError(null);
+                }}
+              />
+            ) : null}
+          </View>
+          {choosing ? (
+            <View className="flex-row flex-wrap gap-2">
+              {categories
+                .filter((c) => c.id !== 'income' && !rows.some((r) => r.categoryId === c.id))
+                .map((c) => (
+                  <CategoryChip
+                    key={c.id}
+                    testID={`budgetPlanLimitCategory-${c.id}`}
+                    label={c.name}
+                    color={c.color}
+                    onPress={() => {
+                      setRows([...rows, { categoryId: c.id, amountText: '' }]);
+                      setChoosing(false);
+                      setError(null);
+                    }}
+                  />
+                ))}
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <View className="gap-2">
         <Text className={LABEL}>Name it, if you like</Text>
