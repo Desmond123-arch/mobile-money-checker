@@ -169,8 +169,10 @@ CREATE TABLE budget_plans (
   start_day TEXT NOT NULL CHECK (start_day GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   end_day   TEXT NOT NULL CHECK (end_day   GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   total_pesewas INTEGER NOT NULL CHECK (total_pesewas > 0),
+  daily_pesewas INTEGER CHECK (daily_pesewas IS NULL OR daily_pesewas > 0),
   created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
-  CHECK (end_day >= start_day)
+  CHECK (end_day >= start_day),
+  CHECK (daily_pesewas IS NULL OR total_pesewas = daily_pesewas * (CAST(julianday(end_day) - julianday(start_day) AS INTEGER) + 1))
 ) STRICT;
 CREATE TABLE budget_limits (
   plan_id     INTEGER NOT NULL REFERENCES budget_plans(id) ON DELETE CASCADE,
@@ -181,11 +183,13 @@ CREATE TABLE budget_limits (
 ```
 
 - `start_day` and `end_day` are UTC dates, both inclusive, so a one-day plan has the same day twice. A plan's range is `[start_day 00:00, end_day + 1 day 00:00)` in epoch ms, which is the `[start, end)` every query takes. `planRange` (domain) and `PLAN_SQL` (`strftime('%s', ...)`) are the two statements of the rule; `budgets.test.ts` checks they agree to the millisecond at both edges.
+- **Stated per day.** `daily_pesewas` is set when the user said "X a day". The total is then `daily * days`, held by a CHECK, so the ledger recomputes the total whenever the days change and the two cannot disagree. A plan without it is stated as a total, and its pace is the total over the days (rounded down). Either way `paceOf` returns `perDay` and `cushion`.
 - Nothing about spending is stored. Spend against a plan or a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND at >= :start AND at < :end` (plus `AND category_id = ?` for a limit). A refund, a re-tag, a cash-out allocation or a new import therefore moves a plan with no budget write. A plan may start in the past and counts what was already spent in its days.
 - Triggers, because `foreign_keys` can be OFF and a CHECK cannot read another table: two plans cannot share a day (insert, and update of either day); limits cannot add up to more than the total (insert, update of amount or plan, and update of the plan's total); income takes no limit.
 - The ledger functions check first with the same pure rules (`planProblem`, `limitProblem`, `limitsProblem`) and return a message; the triggers are the backstop. `setLimit` updates then inserts instead of upserting, because SQLite runs the insert trigger before it resolves a conflict, which would count the old limit twice.
 - Limits need not add up to the total. What they leave is "Everything else": its allowance is `total - sum(limits)` and its spend is the plan's spend outside the limited categories. A limit never changes how a transaction is categorised.
 - Deleting a category deletes its limits in `deleteCategory` (explicitly, because the cascade does not run with foreign keys OFF) and `categoryImpact().budgets` counts them for the confirmation. Deleting a plan deletes its limits and leaves every transaction alone.
+- **Safe or behind.** By the end of day N the plan allows `round(total * N / days)`; `cushion` is that minus net spend so far, and a negative cushion is "behind" (`standingOf`, `src/domain/budget/standing.ts`). `todayOf` compares today's net spend with `perDay`. `budgetView` reads today's spend with one more SUM over `ledger_lines` for today's UTC day. Neither exists before the plan starts or after it ends.
 - Tone: a line is `watch` from 80% of its limit and `over` past 100%. A net refund reads as nothing spent. Pace, the safe amount per remaining day (today included) and the headline sentence are pure functions in `src/domain/budget`.
 - Not built: rollover, recurring plans, alerts. Alerts would need a notification permission and module; the status is shown in the app instead.
 
