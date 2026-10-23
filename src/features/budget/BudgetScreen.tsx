@@ -14,6 +14,7 @@ import { Amount, BackButton, Button, DashedChip, Hint, Screen, SubHeading, TextL
 
 import { BudgetBar } from './components/BudgetBar';
 import { LineRow } from './components/LineRow';
+import { StandingChip } from './components/StandingChip';
 import { barLabel, dayMonth, ghs, heroOf, planLabel, statusChip } from './labels';
 import { useBudgetHistory, useBudgetView, usePlans } from './useBudget';
 
@@ -115,10 +116,18 @@ export function BudgetScreen() {
             >
               {planLabel(shown)}
             </Text>
-            <View className="shrink-0 rounded-full bg-hairline px-3 py-1">
-              <Text testID="budgetStatusChip" className="font-inter-semibold text-caption text-ink">
-                {statusChip(view.pace)}
-              </Text>
+            <View className="shrink-0 flex-row items-center gap-2">
+              {view.standing ? (
+                <StandingChip testID="budgetStanding" standing={view.standing} />
+              ) : null}
+              <View className="rounded-full bg-hairline px-3 py-1">
+                <Text
+                  testID="budgetStatusChip"
+                  className="font-inter-semibold text-caption text-ink"
+                >
+                  {statusChip(view.pace)}
+                </Text>
+              </View>
             </View>
           </View>
           <View className="gap-1">
@@ -143,6 +152,35 @@ export function BudgetScreen() {
           >
             {view.headline}
           </Text>
+          {view.standing ? (
+            <Text
+              testID="budgetStandingLine"
+              className={`font-inter-semibold text-caption ${view.standing.status === 'behind' ? 'text-warn' : 'text-ink'}`}
+            >
+              {view.standing.line}
+            </Text>
+          ) : null}
+          {view.today ? (
+            <View className="gap-2 pt-1">
+              <Text
+                testID="budgetToday"
+                className={`font-inter text-caption ${view.today.over > 0 ? 'text-warn' : 'text-muted'}`}
+              >
+                {view.today.line}
+              </Text>
+              <BudgetBar
+                testID="budgetTodayBar"
+                size="sm"
+                fraction={
+                  view.today.allowance > 0
+                    ? Math.min(view.today.spent / view.today.allowance, 1)
+                    : 0
+                }
+                tone={view.today.over > 0 ? 'over' : 'fine'}
+                accessibilityLabel={view.today.line}
+              />
+            </View>
+          ) : null}
         </View>
 
         <View className="gap-1">

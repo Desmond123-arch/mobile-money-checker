@@ -2,11 +2,13 @@ import { paceOf, progressOf } from '@/domain/budget/progress';
 
 import {
   barLabel,
+  dailyTimesDays,
   heroOf,
   periodSummary,
   planLabel,
   rowRight,
   settingsSubtitle,
+  standingChip,
   statusChip,
 } from '../labels';
 
@@ -93,5 +95,22 @@ describe('heroOf and barLabel', () => {
     expect(barLabel(progressOf(100_000, 43_000), paceOf(nov, 43_000, '2026-11-05'))).toBe(
       'GHS 430.00 of GHS 1,000.00 spent, day 5 of 30',
     );
+  });
+});
+
+describe('dailyTimesDays', () => {
+  it('shows the product', () => {
+    expect(dailyTimesDays(5_000, '2026-11-01', '2026-11-30')).toBe(
+      'GHS 50.00 × 30 days = GHS 1,500.00',
+    );
+    expect(dailyTimesDays(5_000, '2026-11-01', '2026-11-01')).toBe('GHS 50.00 × 1 day = GHS 50.00');
+  });
+});
+
+describe('standingChip', () => {
+  it('names the side', () => {
+    const base = { amount: 0, line: '' };
+    expect(standingChip({ ...base, status: 'safe' })).toBe('Safe');
+    expect(standingChip({ ...base, status: 'behind' })).toBe('Behind');
   });
 });

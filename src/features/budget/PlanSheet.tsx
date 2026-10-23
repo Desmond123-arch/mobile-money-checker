@@ -10,8 +10,10 @@ import {
   MAX_PLAN_DAYS,
   PERIOD_PRESETS,
   planDays,
+  perDayOf,
   planProblem,
   presetEnd,
+  totalFromDaily,
   type PeriodPreset,
 } from '@/domain/budget/plan';
 import { suggestPlan } from '@/domain/budget/suggest';
@@ -23,7 +25,7 @@ import { DayPicker } from '@/features/transactions/components/DayPicker';
 import { createPlan, updatePlan } from '@/ledger/budgets';
 import { Button, DashedChip, FilterPill, Sheet, SheetTitle, TextField } from '@/ui';
 
-import { dayMonth, ghs, periodSummary } from './labels';
+import { dailyTimesDays, dayMonth, ghs, periodSummary } from './labels';
 import { useBudgetHistory, useBudgetView, usePlans } from './useBudget';
 
 const LABEL = 'font-inter-bold text-[14px] leading-[19px] text-ink';
@@ -53,6 +55,8 @@ interface Start {
   endDay: string;
   preset: PeriodPreset;
   total: string;
+  daily: string;
+  mode: 'total' | 'daily';
   name: string;
 }
 
@@ -63,6 +67,8 @@ function initialFor(editing: PlanRow | null, previous: PlanRow | null, todayIso:
       endDay: editing.endDay,
       preset: 'custom',
       total: formatPlain(pesewas(editing.total)),
+      daily: editing.daily === null ? '' : formatPlain(pesewas(editing.daily)),
+      mode: editing.daily === null ? 'total' : 'daily',
       name: editing.name ?? '',
     };
   }
@@ -74,6 +80,8 @@ function initialFor(editing: PlanRow | null, previous: PlanRow | null, todayIso:
       endDay: addDays(startDay, length - 1),
       preset: 'custom',
       total: formatPlain(pesewas(previous.total)),
+      daily: previous.daily === null ? '' : formatPlain(pesewas(previous.daily)),
+      mode: previous.daily === null ? 'total' : 'daily',
       name: '',
     };
   }
@@ -83,6 +91,8 @@ function initialFor(editing: PlanRow | null, previous: PlanRow | null, todayIso:
     endDay: presetEnd(todayIso, preset),
     preset,
     total: '',
+    daily: '',
+    mode: 'total',
     name: '',
   };
 }
@@ -111,6 +121,8 @@ function Form({
   const [pickingEnd, setPickingEnd] = useState(false);
   const [pickingStart, setPickingStart] = useState(false);
   const [totalText, setTotalText] = useState(initial.total);
+  const [dailyText, setDailyText] = useState(initial.daily);
+  const [mode, setMode] = useState(initial.mode);
   const [name, setName] = useState(initial.name);
 
   const length = Math.min(Math.max(planDays(startDay, endDay), 1), MAX_PLAN_DAYS);
@@ -136,17 +148,29 @@ function Form({
   };
 
   const save = async () => {
-    const total = parseAmount(totalText);
-    const draft = { startDay, endDay, total, name };
+    const daily = mode === 'daily' ? parseAmount(dailyText) : null;
+    const total =
+      mode === 'daily'
+        ? daily === null
+          ? null
+          : totalFromDaily(daily, startDay, endDay)
+        : parseAmount(totalText);
+    const draft = { startDay, endDay, total, daily, name };
     const problem = planProblem(draft, {
       others: plans.filter((p) => p.id !== editing?.id),
       limitsTotal,
     });
     if (problem !== null || total === null) {
-      setError(problem ?? 'Enter how much you plan to spend.');
+      setError(
+        problem ??
+          (mode === 'daily'
+            ? 'Enter how much you plan to spend each day.'
+            : 'Enter how much you plan to spend.'),
+      );
       return;
     }
-    const input = { startDay, endDay, total, name: cleanName(name) };
+    const base = { startDay, endDay, name: cleanName(name) };
+    const input = daily === null ? { ...base, total } : { ...base, daily };
     const saved = await run(
       (db) => (editing === null ? createPlan(db, input) : updatePlan(db, editing.id, input)),
       ['money'],
@@ -239,24 +263,74 @@ function Form({
       </View>
 
       <View className="gap-2">
-        <Text className={LABEL}>How much will you spend?</Text>
-        <TextField
-          testID="budgetTotalInput"
-          value={totalText}
-          onChangeText={(t) => {
-            setTotalText(t);
-            setError(null);
-          }}
-          placeholder="1000"
-          keyboardType="decimal-pad"
-        />
+        <Text className={LABEL}>
+          {mode === 'daily' ? 'How much a day?' : 'How much will you spend?'}
+        </Text>
+        <View className="flex-row flex-wrap gap-2">
+          <FilterPill
+            testID="budgetModeTotal"
+            label="A total"
+            active={mode === 'total'}
+            onPress={() => {
+              setMode('total');
+              setError(null);
+            }}
+          />
+          <FilterPill
+            testID="budgetModeDaily"
+            label="A daily amount"
+            active={mode === 'daily'}
+            onPress={() => {
+              setMode('daily');
+              setError(null);
+            }}
+          />
+        </View>
+        {mode === 'daily' ? (
+          <>
+            <TextField
+              testID="budgetDailyInput"
+              value={dailyText}
+              onChangeText={(t) => {
+                setDailyText(t);
+                setError(null);
+              }}
+              placeholder="50"
+              keyboardType="decimal-pad"
+            />
+            {parseAmount(dailyText) !== null ? (
+              <Text testID="budgetDailyTotal" className="font-inter text-caption text-muted">
+                {dailyTimesDays(parseAmount(dailyText) ?? 0, startDay, endDay)}
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <TextField
+            testID="budgetTotalInput"
+            value={totalText}
+            onChangeText={(t) => {
+              setTotalText(t);
+              setError(null);
+            }}
+            placeholder="1000"
+            keyboardType="decimal-pad"
+          />
+        )}
         {suggestion && history ? (
           <View className="flex-row">
             <DashedChip
               testID="budgetTotalSuggestion"
-              label={`Like the ${history.days} days before: ${ghs(suggestion.total)}`}
+              label={`Like the ${history.days} days before: ${
+                mode === 'daily'
+                  ? `${ghs(perDayOf(suggestion.total, length))} a day`
+                  : ghs(suggestion.total)
+              }`}
               onPress={() => {
-                setTotalText(formatPlain(pesewas(suggestion.total)));
+                if (mode === 'daily') {
+                  setDailyText(formatPlain(pesewas(perDayOf(suggestion.total, length))));
+                } else {
+                  setTotalText(formatPlain(pesewas(suggestion.total)));
+                }
                 setError(null);
               }}
             />

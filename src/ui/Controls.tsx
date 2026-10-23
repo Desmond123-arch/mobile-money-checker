@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
@@ -76,15 +77,20 @@ export function SectionHeader({
   link,
   onLinkPress,
   linkTestID,
+  accessory,
 }: {
   title: string;
   link?: string;
   onLinkPress?: () => void;
   linkTestID?: string;
+  accessory?: ReactNode;
 }) {
   return (
-    <View className="flex-row items-baseline justify-between">
-      <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
+    <View className={`flex-row justify-between ${accessory ? 'items-center' : 'items-baseline'}`}>
+      <View className="flex-row items-center gap-2">
+        <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
+        {accessory}
+      </View>
       {link ? (
         <Pressable testID={linkTestID} accessibilityRole="link" onPress={onLinkPress}>
           <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink underline">

@@ -10,6 +10,7 @@ import { Amount, Icon, SectionHeader } from '@/ui';
 import { barLabel, heroOf } from '../labels';
 import { useBudgetView, useFeaturedPlan } from '../useBudget';
 import { BudgetBar } from './BudgetBar';
+import { StandingChip } from './StandingChip';
 
 /** The Home section: today's plan at a glance, or a quiet invitation to make one. */
 export function BudgetCard() {
@@ -53,6 +54,11 @@ export function BudgetCard() {
         title="Budget"
         link="Details"
         linkTestID="homeBudgetDetailsLink"
+        accessory={
+          view.standing ? (
+            <StandingChip testID="homeBudgetStanding" standing={view.standing} />
+          ) : null
+        }
         onLinkPress={() => router.push('/budget')}
       />
       <View className="flex-row items-baseline gap-2">
@@ -70,6 +76,14 @@ export function BudgetCard() {
       <Text className={`font-inter text-caption ${hero.over ? 'text-warn' : 'text-muted'}`}>
         {view.headline}
       </Text>
+      {view.today ? (
+        <Text
+          testID="homeBudgetToday"
+          className={`font-inter text-caption ${view.today.over > 0 ? 'text-warn' : 'text-muted'}`}
+        >
+          {view.today.line}
+        </Text>
+      ) : null}
     </View>
   );
 }

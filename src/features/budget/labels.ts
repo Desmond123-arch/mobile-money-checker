@@ -1,5 +1,6 @@
-import { planDays, planStatus, type PlanSpan } from '@/domain/budget/plan';
+import { planDays, planStatus, totalFromDaily, type PlanSpan } from '@/domain/budget/plan';
 import type { Pace, Progress } from '@/domain/budget/progress';
+import type { Standing } from '@/domain/budget/standing';
 import { shortDate } from '@/domain/calendar/week';
 import { formatGhs, pesewas } from '@/domain/money';
 
@@ -70,3 +71,11 @@ export function barLabel(total: Progress, pace: Pace): string {
   const base = `${ghs(total.spent)} of ${ghs(total.limit)} spent`;
   return pace.status === 'active' ? `${base}, day ${pace.dayNumber} of ${pace.days}` : base;
 }
+
+/** "GHS 50.00 × 30 days = GHS 1,500.00" */
+export function dailyTimesDays(daily: number, startDay: string, endDay: string): string {
+  return `${ghs(daily)} × ${dayWord(planDays(startDay, endDay))} = ${ghs(totalFromDaily(daily, startDay, endDay))}`;
+}
+
+export const standingChip = (standing: Standing): string =>
+  standing.status === 'safe' ? 'Safe' : 'Behind';
