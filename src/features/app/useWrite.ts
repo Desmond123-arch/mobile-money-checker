@@ -18,6 +18,7 @@ export const MONEY_KEYS = [
   'months',
   'needsNote',
   'cashOut',
+  'budget',
 ] as const;
 
 /** Prefixes that read categoriser settings and the unread list. */
