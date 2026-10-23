@@ -4,8 +4,11 @@ import { Pressable, Text, View } from 'react-native';
 
 import { getMeta } from '@/data/meta';
 import { useAppLock, useDb, useRequestSms, useScan } from '@/features/app';
+import { settingsSubtitle, useFeaturedPlan } from '@/features/budget';
 import { useCategories } from '@/features/categories';
 import { useKeywordCounts } from '@/features/categories/useCategoryWords';
+import { useToday } from '@/features/period';
+import { isoDate } from '@/domain/calendar/week';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
 import { checkRowSubtitle, type CheckState } from './checkRowSubtitle';
@@ -44,6 +47,8 @@ export function SettingsScreen() {
   const asideOf = (id: string) =>
     NAME_LISTED.includes(id) ? 'uses names' : wordsLabel(counts[id] ?? 0);
   const [lastImportAt, setLastImportAt] = useState<string | null>(null);
+  const budget = useFeaturedPlan();
+  const todayIso = isoDate(useToday());
   const scan = useScan();
   const requestSms = useRequestSms();
   const [check, setCheck] = useState<CheckState>({ kind: 'idle' });
@@ -154,6 +159,12 @@ export function SettingsScreen() {
         <View className="pb-2">
           <Heading>More</Heading>
         </View>
+        <Row
+          testID="settingsBudgetRow"
+          title="Budget"
+          subtitle={settingsSubtitle(budget?.featured ?? null, todayIso)}
+          onPress={() => router.push('/budget')}
+        />
         <Row
           testID="settingsImportBackupRow"
           title="Import a backup file"

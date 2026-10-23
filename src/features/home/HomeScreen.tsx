@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { dailyAverage } from '@/domain/summary/month';
 import { relativeDay } from '@/domain/transaction/label';
+import { BudgetCard } from '@/features/budget';
 import { ShareBar, ShareLegend, useCategories } from '@/features/categories';
 import { usePeriod, useToday } from '@/features/period';
 import { useCashOutPrompts } from '@/features/transactions/useCashOutPrompts';
@@ -62,6 +63,8 @@ export function HomeScreen() {
           }}
         />
       ) : null}
+
+      <BudgetCard />
 
       <View className="px-5 pt-9">
         <View className="pb-4">
