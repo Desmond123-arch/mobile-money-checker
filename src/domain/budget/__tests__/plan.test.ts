@@ -12,9 +12,11 @@ import {
   monthEndDay,
   planDays,
   planProblem,
+  perDayOf,
   planRange,
   planStatus,
   presetEnd,
+  totalFromDaily,
 } from '../plan';
 
 const ok = { startDay: '2026-11-01', endDay: '2026-11-30', total: 100_000 };
@@ -221,5 +223,23 @@ describe('defaultPreset', () => {
     expect(defaultPreset('2026-11-17')).toBe('month');
     expect(defaultPreset('2026-11-18')).toBe('fortnight');
     expect(defaultPreset('2026-11-30')).toBe('fortnight');
+  });
+});
+
+describe('a plan stated per day', () => {
+  it('multiplies the daily amount by both end days', () => {
+    expect(totalFromDaily(5_000, '2026-11-01', '2026-11-10')).toBe(50_000);
+    expect(totalFromDaily(5_000, '2026-11-01', '2026-11-01')).toBe(5_000);
+    expect(perDayOf(10_001, 10)).toBe(1_000);
+  });
+
+  it('needs a positive whole daily amount', () => {
+    for (const daily of [0, -1, 1.5, Number.NaN]) {
+      expect(planProblem({ ...ok, daily }, none)).toBe(
+        'Enter how much you plan to spend each day.',
+      );
+    }
+    expect(planProblem({ ...ok, daily: 3_000, total: 90_000 }, none)).toBeNull();
+    expect(planProblem({ ...ok, daily: null }, none)).toBeNull();
   });
 });

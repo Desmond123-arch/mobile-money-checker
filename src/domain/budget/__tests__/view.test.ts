@@ -133,3 +133,24 @@ describe('fitToTotal', () => {
     expect(fitToTotal(limits, 10_000)).toEqual(limits);
   });
 });
+
+describe('standing and today in the view', () => {
+  const stated = { ...plan, total: 100_000, daily: 10_000 };
+
+  it('carries the standing and today for a running plan', () => {
+    const view = buildBudgetView(stated, [], [], 28_000, '2026-11-03', 4_000);
+    expect(view.standing).toMatchObject({ status: 'safe', amount: 2_000 });
+    expect(view.today).toMatchObject({ spent: 4_000, allowance: 10_000, left: 6_000 });
+  });
+
+  it('is behind when spending outruns the days so far', () => {
+    const view = buildBudgetView(stated, [], [], 35_000, '2026-11-03', 20_000);
+    expect(view.standing).toMatchObject({ status: 'behind', amount: 5_000 });
+    expect(view.today).toMatchObject({ over: 10_000 });
+  });
+
+  it('has neither before it starts or after it ends', () => {
+    expect(buildBudgetView(stated, [], [], 0, '2026-10-30').standing).toBeNull();
+    expect(buildBudgetView(stated, [], [], 0, '2026-11-11').today).toBeNull();
+  });
+});

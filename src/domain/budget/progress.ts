@@ -1,6 +1,13 @@
 import { formatGhs, pesewas } from '../money';
 import { shortDate } from '../calendar/week';
-import { daysBetween, planDays, type PlanSpan, type PlanStatus, planStatus } from './plan';
+import {
+  daysBetween,
+  perDayOf,
+  planDays,
+  type PlanSpan,
+  type PlanStatus,
+  planStatus,
+} from './plan';
 
 export type Tone = 'fine' | 'watch' | 'over';
 
@@ -45,11 +52,20 @@ export interface Pace {
   expected: number;
   /** What can be spent each remaining day, today included, and still finish inside the plan. */
   safePerDay: number;
+  /** The plan's own daily pace: the amount the user stated, else the total over the days. */
+  perDay: number;
+  /** What an even pace allows by now minus what was spent. Negative means behind. 0 before it starts. */
+  cushion: number;
 }
 
-export function paceOf(plan: PlanSpan & { total: number }, spent: number, todayIso: string): Pace {
+export function paceOf(
+  plan: PlanSpan & { total: number; daily?: number | null },
+  spent: number,
+  todayIso: string,
+): Pace {
   const days = planDays(plan.startDay, plan.endDay);
   const status = planStatus(plan, todayIso);
+  const perDay = plan.daily ?? perDayOf(plan.total, days);
   if (status === 'upcoming') {
     return {
       status,
@@ -59,6 +75,8 @@ export function paceOf(plan: PlanSpan & { total: number }, spent: number, todayI
       startsIn: daysBetween(todayIso, plan.startDay),
       expected: 0,
       safePerDay: 0,
+      perDay,
+      cushion: 0,
     };
   }
   if (status === 'ended') {
@@ -70,18 +88,23 @@ export function paceOf(plan: PlanSpan & { total: number }, spent: number, todayI
       startsIn: 0,
       expected: plan.total,
       safePerDay: 0,
+      perDay,
+      cushion: plan.total - Math.max(spent, 0),
     };
   }
   const dayNumber = daysBetween(plan.startDay, todayIso) + 1;
   const daysLeft = days - dayNumber + 1;
+  const expected = Math.round((plan.total * dayNumber) / days);
   return {
     status,
     days,
     dayNumber,
     daysLeft,
     startsIn: 0,
-    expected: Math.round((plan.total * dayNumber) / days),
+    expected,
     safePerDay: Math.floor(Math.max(plan.total - Math.max(spent, 0), 0) / daysLeft),
+    perDay,
+    cushion: expected - Math.max(spent, 0),
   };
 }
 

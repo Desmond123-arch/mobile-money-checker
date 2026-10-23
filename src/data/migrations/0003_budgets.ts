@@ -10,9 +10,14 @@ CREATE TABLE budget_plans (
   start_day     TEXT NOT NULL CHECK (start_day GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   end_day       TEXT NOT NULL CHECK (end_day GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
   total_pesewas INTEGER NOT NULL CHECK (total_pesewas > 0),
+  -- Set when the user stated the plan as an amount a day. The total is then that amount times the
+  -- days, so changing the days changes the total and the two can never disagree.
+  daily_pesewas INTEGER CHECK (daily_pesewas IS NULL OR daily_pesewas > 0),
   created_at    INTEGER NOT NULL,
   updated_at    INTEGER NOT NULL,
-  CHECK (end_day >= start_day)
+  CHECK (end_day >= start_day),
+  CHECK (daily_pesewas IS NULL OR total_pesewas = daily_pesewas *
+         (CAST(julianday(end_day) - julianday(start_day) AS INTEGER) + 1))
 ) STRICT;
 
 CREATE TABLE budget_limits (

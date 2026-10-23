@@ -94,6 +94,65 @@ describe('createPlan', () => {
   });
 });
 
+describe('a plan stated per day', () => {
+  it('stores the daily amount and the total it comes to', async () => {
+    const id = await created(db, { startDay: '2026-11-01', endDay: '2026-11-10', daily: 5_000 });
+    expect(await db.get('SELECT total_pesewas, daily_pesewas FROM budget_plans')).toEqual({
+      total_pesewas: 50_000,
+      daily_pesewas: 5_000,
+    });
+    expect((await listPlans(db))[0]).toMatchObject({ id, total: 50_000, daily: 5_000 });
+  });
+
+  it('ignores a total given beside the daily amount', async () => {
+    await created(db, { startDay: '2026-11-01', endDay: '2026-11-02', daily: 700, total: 99 });
+    expect(await db.get('SELECT total_pesewas FROM budget_plans')).toEqual({
+      total_pesewas: 1_400,
+    });
+  });
+
+  it('follows the days when they change, so the two never disagree', async () => {
+    const id = await created(db, { startDay: '2026-11-01', endDay: '2026-11-10', daily: 5_000 });
+    await updatePlan(db, id, { startDay: '2026-11-01', endDay: '2026-11-20', daily: 5_000 }, NOW);
+    expect(await db.get('SELECT total_pesewas FROM budget_plans')).toEqual({
+      total_pesewas: 100_000,
+    });
+  });
+
+  it('can switch to a plain total and back', async () => {
+    const id = await created(db, { startDay: '2026-11-01', endDay: '2026-11-10', daily: 5_000 });
+    await updatePlan(db, id, { startDay: '2026-11-01', endDay: '2026-11-10', total: 40_000 }, NOW);
+    expect(await db.get('SELECT total_pesewas, daily_pesewas FROM budget_plans')).toEqual({
+      total_pesewas: 40_000,
+      daily_pesewas: null,
+    });
+  });
+
+  it('refuses a daily amount that would drop the total under the limits', async () => {
+    const id = await created(db, { startDay: '2026-11-01', endDay: '2026-11-10', total: 90_000 }, [
+      { categoryId: 'food', amount: 80_000 },
+    ]);
+    expect(
+      message(
+        await updatePlan(
+          db,
+          id,
+          { startDay: '2026-11-01', endDay: '2026-11-10', daily: 5_000 },
+          NOW,
+        ),
+      ),
+    ).toBe('Your category limits add up to GHS 800.00. Raise the total or lower them first.');
+  });
+
+  it('refuses a bad daily amount in the form words', async () => {
+    expect(
+      message(
+        await createPlan(db, { startDay: week.startDay, endDay: week.endDay, daily: 0 }, [], NOW),
+      ),
+    ).toBe('Enter how much you plan to spend each day.');
+  });
+});
+
 describe('updatePlan', () => {
   it('changes the days, total and name and keeps the limits', async () => {
     const id = await created(db, month, [{ categoryId: 'food', amount: 30_000 }]);

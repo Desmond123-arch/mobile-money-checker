@@ -234,6 +234,56 @@ describe('planLimits and budgetView', () => {
   });
 });
 
+describe('daily plans', () => {
+  const daily = (days: number, perDay: number, start = '2026-11-01') =>
+    db.run(
+      `INSERT INTO budget_plans (start_day, end_day, total_pesewas, daily_pesewas, created_at, updated_at)
+       VALUES (?, date(?, ?), ?, ?, 1, 1)`,
+      [start, start, `+${days - 1} days`, days * perDay, perDay],
+    );
+
+  it('holds the total to the daily amount times the days', async () => {
+    await expect(daily(10, 5_000)).resolves.toBeTruthy();
+    await expect(
+      db.run(
+        `INSERT INTO budget_plans (start_day, end_day, total_pesewas, daily_pesewas, created_at, updated_at)
+         VALUES ('2026-12-01', '2026-12-10', 49_999, 5_000, 1, 1)`,
+      ),
+    ).rejects.toThrow(/CHECK/);
+    await expect(
+      db.run(
+        `INSERT INTO budget_plans (start_day, end_day, total_pesewas, daily_pesewas, created_at, updated_at)
+         VALUES ('2026-12-01', '2026-12-10', 0, 0, 1, 1)`,
+      ),
+    ).rejects.toThrow(/CHECK/);
+    await expect(
+      db.run('UPDATE budget_plans SET end_day = ? WHERE daily_pesewas IS NOT NULL', ['2026-11-12']),
+    ).rejects.toThrow(/CHECK/);
+  });
+
+  it('tells a running plan whether it is safe or behind, with today', async () => {
+    const id = (await daily(10, 5_000)).lastInsertRowId;
+    const food = await categoryId(db, 'food');
+    await addTxn(db, {
+      amount_pesewas: 12_000,
+      occurred_at: at('2026-11-02'),
+      auto_category_id: food,
+    });
+    await addTxn(db, {
+      amount_pesewas: 4_000,
+      occurred_at: at('2026-11-03', 3_600_000),
+      auto_category_id: food,
+    });
+    const view = (await budgetView(db, id, '2026-11-03'))!;
+    expect(view.pace).toMatchObject({ perDay: 5_000, cushion: -1_000 });
+    expect(view.standing).toMatchObject({ status: 'behind', amount: 1_000 });
+    expect(view.today).toMatchObject({ spent: 4_000, allowance: 5_000, left: 1_000 });
+    const later = (await budgetView(db, id, '2026-11-04'))!;
+    expect(later.standing).toMatchObject({ status: 'safe', amount: 4_000 });
+    expect(later.today).toMatchObject({ spent: 0 });
+  });
+});
+
 describe('budgetHistory', () => {
   it('reads the same number of days right before the start', async () => {
     const food = await categoryId(db, 'food');

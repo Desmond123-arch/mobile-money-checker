@@ -2,12 +2,15 @@ import type { CategorySpend } from '../category/share';
 import { type Pace, type Progress, paceLine, paceOf, progressOf } from './progress';
 import type { PlanSpan, PlanStatus } from './plan';
 import { planStatus } from './plan';
+import { type Standing, type Today, standingOf, todayOf } from './standing';
 
 export interface PlanFacts extends PlanSpan {
   id: number;
   name: string | null;
   /** Pesewas. */
   total: number;
+  /** Pesewas a day, when the plan was stated that way; then `total` is this times the days. */
+  daily?: number | null;
 }
 
 export interface Limit {
@@ -35,6 +38,10 @@ export interface BudgetView {
   /** What is left to give a category: the total minus the limits already set. */
   unplanned: number;
   headline: string;
+  /** Safe or behind the daily pace, for a running plan; else null. */
+  standing: Standing | null;
+  /** Today's spending against the daily amount, for a running plan; else null. */
+  today: Today | null;
 }
 
 export function buildBudgetView(
@@ -43,6 +50,7 @@ export function buildBudgetView(
   spendByCategory: readonly CategorySpend[],
   totalSpent: number,
   todayIso: string,
+  todaySpent = 0,
 ): BudgetView {
   const spentIn = new Map(spendByCategory.map((s) => [s.categoryId, s.amount as number]));
   const categories = [...limits]
@@ -72,5 +80,7 @@ export function buildBudgetView(
     rest,
     unplanned,
     headline: paceLine(plan, total, pace),
+    standing: standingOf(pace),
+    today: todayOf(pace, todaySpent),
   };
 }

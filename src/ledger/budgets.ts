@@ -4,6 +4,7 @@ import {
   limitProblem,
   limitsProblem,
   planProblem,
+  totalFromDaily,
   type PlanSpan,
 } from '@/domain/budget/plan';
 
@@ -19,8 +20,23 @@ export interface LimitInput {
 
 export interface PlanInput extends PlanSpan {
   name?: string | null;
-  /** Pesewas. */
-  total: number;
+  /** Pesewas. Ignored when `daily` is given. */
+  total?: number | null;
+  /** Pesewas a day. The stored total is this times the plan's days. */
+  daily?: number | null;
+}
+
+interface Resolved extends PlanSpan {
+  name: string | null;
+  total: number | null;
+  daily: number | null;
+}
+
+function resolve(input: PlanInput): Resolved {
+  const daily = input.daily ?? null;
+  const total =
+    daily === null ? (input.total ?? null) : totalFromDaily(daily, input.startDay, input.endDay);
+  return { startDay: input.startDay, endDay: input.endDay, name: input.name ?? null, total, daily };
 }
 
 /** A refused plan carries the words the form shows. */
@@ -91,14 +107,15 @@ export function createPlan(
 ): Promise<PlanResult> {
   return ledgerQueue.run(() =>
     db.transaction(async (tx): Promise<PlanResult> => {
-      const problem = planProblem(input, { others: await othersOf(tx, null), limitsTotal: 0 });
+      const plan = resolve(input);
+      const problem = planProblem(plan, { others: await othersOf(tx, null), limitsTotal: 0 });
       if (problem !== null) return { ok: false, message: problem };
-      const rows = await limitRows(tx, limits, input.total);
+      const rows = await limitRows(tx, limits, plan.total!);
       if (typeof rows === 'string') return { ok: false, message: rows };
       const { lastInsertRowId } = await tx.run(
-        `INSERT INTO budget_plans (name, start_day, end_day, total_pesewas, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [cleanName(input.name), input.startDay, input.endDay, input.total, now, now],
+        `INSERT INTO budget_plans (name, start_day, end_day, total_pesewas, daily_pesewas,
+           created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [cleanName(plan.name), plan.startDay, plan.endDay, plan.total, plan.daily, now, now],
       );
       await insertLimits(tx, lastInsertRowId, rows);
       return { ok: true, id: lastInsertRowId };
@@ -116,15 +133,16 @@ export function updatePlan(
   return ledgerQueue.run(() =>
     db.transaction(async (tx): Promise<PlanResult> => {
       await livePlan(tx, planId);
-      const problem = planProblem(input, {
+      const plan = resolve(input);
+      const problem = planProblem(plan, {
         others: await othersOf(tx, planId),
         limitsTotal: await limitsTotal(tx, planId),
       });
       if (problem !== null) return { ok: false, message: problem };
       await tx.run(
         `UPDATE budget_plans SET name = ?, start_day = ?, end_day = ?, total_pesewas = ?,
-           updated_at = ? WHERE id = ?`,
-        [cleanName(input.name), input.startDay, input.endDay, input.total, now, planId],
+           daily_pesewas = ?, updated_at = ? WHERE id = ?`,
+        [cleanName(plan.name), plan.startDay, plan.endDay, plan.total, plan.daily, now, planId],
       );
       return { ok: true, id: planId };
     }),

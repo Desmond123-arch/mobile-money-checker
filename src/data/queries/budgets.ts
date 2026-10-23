@@ -3,6 +3,7 @@ import { planRange, type PlanSpan } from '@/domain/budget/plan';
 import { previousSpan } from '@/domain/budget/suggest';
 import { planDays } from '@/domain/budget/plan';
 import { buildBudgetView, type BudgetView, type Limit } from '@/domain/budget/view';
+import { dayRange } from '@/domain/calendar/month';
 import type { CategorySpend } from '@/domain/category/share';
 
 import { categorySpend } from './categories';
@@ -13,6 +14,8 @@ export interface PlanRow extends PlanSpan {
   name: string | null;
   /** Pesewas. */
   total: number;
+  /** Pesewas a day when the plan was stated that way, else null. */
+  daily: number | null;
   /** Net spend over the plan's days, in pesewas. */
   spent: number;
 }
@@ -23,6 +26,7 @@ interface RawPlan {
   start_day: string;
   end_day: string;
   total_pesewas: number;
+  daily_pesewas: number | null;
   spent: number;
 }
 
@@ -32,12 +36,13 @@ const toRow = (r: RawPlan): PlanRow => ({
   startDay: r.start_day,
   endDay: r.end_day,
   total: r.total_pesewas,
+  daily: r.daily_pesewas,
   spent: r.spent,
 });
 
 // A plan's days are UTC dates, so its range is the date at 00:00 UTC to the day after the last.
 const PLAN_SQL = `
-  SELECT p.id, p.name, p.start_day, p.end_day, p.total_pesewas,
+  SELECT p.id, p.name, p.start_day, p.end_day, p.total_pesewas, p.daily_pesewas,
     COALESCE((SELECT SUM(l.pesewas) FROM ledger_lines l
               WHERE l.bucket = 'spend'
                 AND l.at >= CAST(strftime('%s', p.start_day) AS INTEGER) * 1000
@@ -75,6 +80,12 @@ export async function budgetView(
   const plan = await budgetPlan(db, planId);
   if (plan === null) return null;
   const spend = await categorySpend(db, planRange(plan.startDay, plan.endDay));
+  const day = dayRange(todayIso);
+  const today = await db.get<{ s: number | null }>(
+    `SELECT SUM(pesewas) AS s FROM ledger_lines
+     WHERE bucket = 'spend' AND at >= ? AND at < ?`,
+    [day.start, day.end],
+  );
   return buildBudgetView(
     {
       id: plan.id,
@@ -82,11 +93,13 @@ export async function budgetView(
       startDay: plan.startDay,
       endDay: plan.endDay,
       total: plan.total,
+      daily: plan.daily,
     },
     await planLimits(db, planId),
     spend,
     plan.spent,
     todayIso,
+    today?.s ?? 0,
   );
 }
 
