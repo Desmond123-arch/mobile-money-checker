@@ -27,12 +27,14 @@ interface Props {
   min: string;
   max: string;
   onPick: (iso: string) => void;
+  /** Prefix of every testID, so two pickers in one app keep distinct ids. */
+  testIDPrefix?: string;
 }
 
 const monthKey = (iso: string) => iso.slice(0, 7);
 
 /** A month grid for choosing one day between `min` and `max`. Days outside are greyed and do nothing. */
-export function DayPicker({ value, min, max, onPick }: Props) {
+export function DayPicker({ value, min, max, onPick, testIDPrefix = 'cashAllocDay' }: Props) {
   const [shown, setShown] = useState(monthKey(value));
   const [year = 2026, month = 1] = shown.split('-').map(Number);
   const rows = monthGrid(year, month - 1);
@@ -45,10 +47,10 @@ export function DayPicker({ value, min, max, onPick }: Props) {
   const canForward = shown < monthKey(max);
 
   return (
-    <View testID="cashAllocDayPicker" className="gap-2">
+    <View testID={`${testIDPrefix}Picker`} className="gap-2">
       <View className="flex-row items-center justify-between pb-1">
         <Pressable
-          testID="cashAllocDayPrev"
+          testID={`${testIDPrefix}Prev`}
           accessibilityRole="button"
           accessibilityLabel="Previous month"
           disabled={!canBack}
@@ -61,7 +63,7 @@ export function DayPicker({ value, min, max, onPick }: Props) {
           {NAMES[month - 1]} {year}
         </Text>
         <Pressable
-          testID="cashAllocDayNext"
+          testID={`${testIDPrefix}Next`}
           accessibilityRole="button"
           accessibilityLabel="Next month"
           disabled={!canForward}
@@ -92,7 +94,7 @@ export function DayPicker({ value, min, max, onPick }: Props) {
             return (
               <View key={cell.iso} className="h-11 flex-1 items-center justify-center">
                 <Pressable
-                  testID={`cashAllocDay-${cell.iso}`}
+                  testID={`${testIDPrefix}-${cell.iso}`}
                   accessibilityRole="button"
                   accessibilityLabel={cell.iso}
                   accessibilityState={{ selected, disabled: !allowed }}
