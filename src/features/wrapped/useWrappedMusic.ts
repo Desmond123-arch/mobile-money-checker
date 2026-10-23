@@ -38,7 +38,7 @@ export function useWrappedMusic(
     let cancelled = false;
     driver.current = createMusicDriver({
       adapter,
-      assets: TRACKS.map((t) => t.asset),
+      sources: TRACKS.map((t) => ({ asset: t.asset, startAtSeconds: t.startAtSeconds })),
       dispatch: (e) => {
         if (!cancelled) dispatch(e);
       },

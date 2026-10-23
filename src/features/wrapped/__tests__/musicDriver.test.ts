@@ -4,6 +4,7 @@ import { createFakeAdapter } from '../audioFake';
 import { createMusicDriver } from '../musicDriver';
 
 const ASSETS = [10, 11, 12];
+const SOURCES = ASSETS.map((asset) => ({ asset, startAtSeconds: 0 }));
 
 function setup(lastStarted: number | null = null, muted = false) {
   const adapter = createFakeAdapter();
@@ -11,7 +12,7 @@ function setup(lastStarted: number | null = null, muted = false) {
   let state: PlayerState = IDLE;
   const driver = createMusicDriver({
     adapter,
-    assets: ASSETS,
+    sources: SOURCES,
     dispatch: (e) => send(e),
     onStarted: (i) => started.push(i),
   });
@@ -87,7 +88,7 @@ describe('music driver', () => {
     let state: PlayerState = IDLE;
     const driver = createMusicDriver({
       adapter,
-      assets: [7],
+      sources: [{ asset: 7, startAtSeconds: 0 }],
       dispatch: (e) => {
         state = reducePlayer(state, e);
         driver.sync(state);
@@ -104,5 +105,33 @@ describe('music driver', () => {
     driver.sync(state);
     adapter.fire('onEnded');
     expect(adapter.calls).toEqual(['play:7', 'play:7']);
+  });
+
+  it('starts a track part way in when its entry says so, and every time it comes round', () => {
+    const adapter = createFakeAdapter();
+    let state: PlayerState = IDLE;
+    const driver = createMusicDriver({
+      adapter,
+      sources: [
+        { asset: 20, startAtSeconds: 10 },
+        { asset: 21, startAtSeconds: 0 },
+      ],
+      dispatch: (e) => {
+        state = reducePlayer(state, e);
+        driver.sync(state);
+      },
+      onStarted: () => {},
+    });
+    state = reducePlayer(state, {
+      type: 'open',
+      lastStarted: null,
+      count: 2,
+      muted: false,
+      available: true,
+    });
+    driver.sync(state);
+    adapter.fire('onEnded');
+    adapter.fire('onEnded');
+    expect(adapter.calls).toEqual(['play:20@10', 'play:21', 'play:20@10']);
   });
 });

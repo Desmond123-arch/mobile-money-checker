@@ -11,8 +11,8 @@ export interface TrackHandlers {
 export interface MusicAdapter {
   /** False in Expo Go or a dev client built before `expo-audio`; nothing else may be called then. */
   isAvailable(): boolean;
-  /** Replaces the current track: releases it, then plays `asset` from the start with a fade-in. */
-  play(asset: number, handlers: TrackHandlers, fadeMs: number): void;
+  /** Replaces the current track: releases it, then plays `asset` from `startAtSeconds` with a fade-in. */
+  play(asset: number, handlers: TrackHandlers, fadeMs: number, startAtSeconds: number): void;
   pause(): void;
   resume(): void;
   /** Stops and releases the player. Safe to call when nothing is loaded. */
@@ -83,7 +83,7 @@ export function createExpoAdapter(): MusicAdapter {
   return {
     isAvailable: () => loadModule() !== null,
 
-    play(asset, handlers, fadeMs) {
+    play(asset, handlers, fadeMs, startAtSeconds) {
       const audio = loadModule();
       if (!audio) return handlers.onError();
       release();
@@ -104,8 +104,16 @@ export function createExpoAdapter(): MusicAdapter {
         player = next;
         wantPlaying = true;
         let started = false;
+        // The seek is asked for before play and again on the first loaded status, because a seek
+        // sent before the file has loaded may be dropped.
+        let sought = startAtSeconds <= 0;
+        const seek = () => void next.seekTo(startAtSeconds).catch(() => {});
         next.addListener('playbackStatusUpdate', (status) => {
           if (mine !== generation) return;
+          if (!sought && status.isLoaded) {
+            sought = true;
+            if (status.currentTime < startAtSeconds - 0.5) seek();
+          }
           if (status.didJustFinish) {
             wantPlaying = false;
             handlers.onEnded();
@@ -117,6 +125,7 @@ export function createExpoAdapter(): MusicAdapter {
           }
         });
         next.volume = 0;
+        if (startAtSeconds > 0) seek();
         next.play();
         fadeIn(next, fadeMs);
       } catch {

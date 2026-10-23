@@ -2,14 +2,15 @@
 
 The Wrapped story plays these tracks in order and wraps from the last to the first. The list is `tracks.ts`. Everything here is bundled in the app, so playback works offline.
 
-**The five tracks are PLACEHOLDERS.** `scripts/make-placeholder-music.mjs` synthesizes them (short pentatonic loops, mono, 22.05 kHz, about 17 s each). They are our own output, so there is no licence to honour. Run `node scripts/make-placeholder-music.mjs` to regenerate them. It writes `.m4a` when `ffmpeg` is on PATH and `.wav` otherwise; if you get `.wav`, change the `require` extensions in `tracks.ts`.
+**The five tracks are the owner's mp3 files** (`track-1.mp3` to `track-5.mp3`, about 25 MB together, which goes into the APK). They have no title, artist or licence tags, so `tracks.ts` carries stand-ins ("Track 1", "Unknown artist", "Unknown, confirm before release") until those are filled in. The synthesized placeholders from `scripts/make-placeholder-music.mjs` are no longer used.
 
 ## Replace a placeholder with a real track
 
 1. Drop the file into this folder. `.m4a`, `.mp3` and `.wav` all bundle (Metro's default asset extensions). Keep it small: a 2 to 3 minute track at 96 kbps is about 2 MB.
 2. Edit that track's entry in `tracks.ts`: point `asset: require('./your-file.mp3')` at it and fill in `title`, `artist`, `license`, `sourceUrl` and `credit`.
 3. Delete the old placeholder file if nothing else uses it.
-4. Nothing else changes. The count, the rotation and the now-playing line follow the array. Adding or removing entries is fine; the stored position wraps safely.
+4. To start a track part way in, set its `startAtSeconds` (for example `10` to skip a 10 second intro). It applies every time the track plays, including when the playlist wraps. A value past the end of the file plays nothing useful, so keep it well inside the track.
+5. Nothing else changes. The count, the rotation and the now-playing line follow the array. Adding or removing entries is fine; the stored position wraps safely.
 
 Audio files are assets, so a new track needs a new build (not a native rebuild if `expo-audio` is already in your dev client).
 
