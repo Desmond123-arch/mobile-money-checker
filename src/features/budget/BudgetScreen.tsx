@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 import type { PlanRow } from '@/data/queries';
+import { attentionLine, attentionOf } from '@/domain/budget/attention';
 import { featuredPlan, planDays, planStatus } from '@/domain/budget/plan';
 import { fitToTotal, suggestPlan } from '@/domain/budget/suggest';
 import { isoDate } from '@/domain/calendar/week';
@@ -75,6 +76,7 @@ export function BudgetScreen() {
   const ended = view.status === 'ended';
   const active = view.status === 'active';
   const hero = heroOf(view.total, view.pace);
+  const attention = active ? attentionOf(view.categories) : null;
   const suggestion = history ? suggestPlan(history.spend, history.days, days) : null;
   const others = plans.filter((p) => p.id !== shown.id);
 
@@ -158,6 +160,14 @@ export function BudgetScreen() {
               className={`font-inter-semibold text-caption ${view.standing.status === 'behind' ? 'text-warn' : 'text-ink'}`}
             >
               {view.standing.line}
+            </Text>
+          ) : null}
+          {attention ? (
+            <Text
+              testID="budgetAttention"
+              className={`font-inter text-caption ${attention.tone === 'over' ? 'text-warn' : 'text-muted'}`}
+            >
+              {attentionLine(attention, categoryById(attention.categoryId)?.name ?? 'Other')}
             </Text>
           ) : null}
           {view.today ? (

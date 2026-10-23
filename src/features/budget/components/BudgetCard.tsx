@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { attentionLine, attentionOf } from '@/domain/budget/attention';
 import { planStatus } from '@/domain/budget/plan';
 import { isoDate } from '@/domain/calendar/week';
 import { pesewas } from '@/domain/money';
+import { categoryById } from '@/features/categories';
 import { useToday } from '@/features/period';
 import { Amount, Icon, SectionHeader } from '@/ui';
 
@@ -47,6 +49,7 @@ export function BudgetCard() {
   if (!view) return null;
   const hero = heroOf(view.total, view.pace);
   const active = view.status === 'active';
+  const attention = active ? attentionOf(view.categories) : null;
 
   return (
     <View testID="homeBudgetCard" className="gap-3 px-5 pt-9">
@@ -82,6 +85,14 @@ export function BudgetCard() {
           className={`font-inter text-caption ${view.today.over > 0 ? 'text-warn' : 'text-muted'}`}
         >
           {view.today.line}
+        </Text>
+      ) : null}
+      {attention ? (
+        <Text
+          testID="homeBudgetAttention"
+          className={`font-inter text-caption ${attention.tone === 'over' ? 'text-warn' : 'text-muted'}`}
+        >
+          {attentionLine(attention, categoryById(attention.categoryId)?.name ?? 'Other')}
         </Text>
       ) : null}
     </View>
