@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
 
-import { TRACKS, type Track } from '../../../assets/audio/tracks';
+import { TRACKS } from '../../../assets/audio/tracks';
 import { getMeta, setMeta } from '@/data/meta';
 import { IDLE, reducePlayer, type PlayerStatus } from '@/domain/music/playlist';
 import { useDb } from '@/features/app/DbProvider';
@@ -16,8 +16,6 @@ export interface WrappedMusic {
   /** False when the audio engine is missing or failed; the mute button is hidden then. */
   available: boolean;
   muted: boolean;
-  /** The track playing now (or paused, or next on unmute); `null` while idle, unavailable or muted. */
-  track: Track | null;
   toggleMute: () => void;
 }
 
@@ -83,11 +81,9 @@ export function useWrappedMusic(
     void setMeta(db, 'wrapped_muted', next ? '1' : '0').catch(() => {});
   }, [canToggle, muted, db]);
 
-  const hasTrack = state.status === 'playing' || state.status === 'paused';
   return {
     available: enabled && state.status !== 'unavailable' && adapter.isAvailable(),
     muted,
-    track: hasTrack ? (TRACKS[state.index] ?? null) : null,
     toggleMute,
   };
 }

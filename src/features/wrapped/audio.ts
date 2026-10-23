@@ -38,7 +38,36 @@ const loadModule = (): ExpoAudio | null => {
   return loaded;
 };
 
-let modeSet = false;
+let modeReady: Promise<void> | null = null;
+
+// The audio mode must be in force before the first player is created: setting it while a player
+// is starting makes the platform change audio focus under it, and the first track never sounds.
+const ensureMode = (audio: ExpoAudio): Promise<void> => {
+  modeReady ??= audio
+    .setAudioModeAsync({
+      // Take focus so other apps pause, and honour the silent switch. No background playback.
+      interruptionMode: 'doNotMix',
+      playsInSilentMode: false,
+      shouldPlayInBackground: false,
+    })
+    .then(() => undefined)
+    .catch(() => undefined);
+  return modeReady;
+};
+
+/**
+ * `remove()` only forgets a player: the native player keeps playing, which is how replaced tracks
+ * overlapped and kept going after the screen closed. Pause it, forget it, then release it.
+ */
+export function disposePlayer(player: AudioPlayer): void {
+  for (const step of [() => player.pause(), () => player.remove(), () => player.release()]) {
+    try {
+      step();
+    } catch {
+      // Already released by the system.
+    }
+  }
+}
 
 export function createExpoAdapter(): MusicAdapter {
   let player: AudioPlayer | null = null;
@@ -46,6 +75,8 @@ export function createExpoAdapter(): MusicAdapter {
   // Bumped on every play and stop, so events from a released player are ignored.
   let generation = 0;
   let wantPlaying = false;
+  // A track that finished loading its audio mode while paused, started by the next resume.
+  let deferred: (() => void) | null = null;
 
   const cancelFade = () => {
     if (fade !== null) clearInterval(fade);
@@ -71,13 +102,10 @@ export function createExpoAdapter(): MusicAdapter {
     cancelFade();
     generation += 1;
     wantPlaying = false;
+    deferred = null;
     const old = player;
     player = null;
-    try {
-      old?.remove();
-    } catch {
-      // Already released by the system.
-    }
+    if (old) disposePlayer(old);
   };
 
   return {
@@ -88,50 +116,51 @@ export function createExpoAdapter(): MusicAdapter {
       if (!audio) return handlers.onError();
       release();
       const mine = generation;
-      try {
-        if (!modeSet) {
-          modeSet = true;
-          // Take focus so other apps pause, and honour the silent switch. No background playback.
-          void audio
-            .setAudioModeAsync({
-              interruptionMode: 'doNotMix',
-              playsInSilentMode: false,
-              shouldPlayInBackground: false,
-            })
-            .catch(() => {});
-        }
-        const next = audio.createAudioPlayer(asset);
-        player = next;
+      wantPlaying = true;
+
+      const start = () => {
+        if (mine !== generation) return;
+        deferred = null;
         wantPlaying = true;
-        let started = false;
-        // The seek is asked for before play and again on the first loaded status, because a seek
-        // sent before the file has loaded may be dropped.
-        let sought = startAtSeconds <= 0;
-        const seek = () => void next.seekTo(startAtSeconds).catch(() => {});
-        next.addListener('playbackStatusUpdate', (status) => {
-          if (mine !== generation) return;
-          if (!sought && status.isLoaded) {
-            sought = true;
-            if (status.currentTime < startAtSeconds - 0.5) seek();
-          }
-          if (status.didJustFinish) {
-            wantPlaying = false;
-            handlers.onEnded();
-          } else if (status.playing) {
-            started = true;
-          } else if (started && wantPlaying && status.isLoaded) {
-            started = false;
-            handlers.onInterrupted();
-          }
-        });
-        next.volume = 0;
-        if (startAtSeconds > 0) seek();
-        next.play();
-        fadeIn(next, fadeMs);
-      } catch {
-        release();
-        handlers.onError();
-      }
+        try {
+          const next = audio.createAudioPlayer(asset);
+          player = next;
+          let started = false;
+          // The seek is asked for before play and again on the first loaded status, because a
+          // seek sent before the file has loaded may be dropped.
+          let sought = startAtSeconds <= 0;
+          const seek = () => void next.seekTo(startAtSeconds).catch(() => {});
+          next.addListener('playbackStatusUpdate', (status) => {
+            if (mine !== generation) return;
+            if (!sought && status.isLoaded) {
+              sought = true;
+              if (status.currentTime < startAtSeconds - 0.5) seek();
+            }
+            if (status.didJustFinish) {
+              wantPlaying = false;
+              handlers.onEnded();
+            } else if (status.playing) {
+              started = true;
+            } else if (started && wantPlaying && status.isLoaded) {
+              started = false;
+              handlers.onInterrupted();
+            }
+          });
+          next.volume = 0;
+          if (startAtSeconds > 0) seek();
+          next.play();
+          fadeIn(next, fadeMs);
+        } catch {
+          release();
+          handlers.onError();
+        }
+      };
+
+      void ensureMode(audio).then(() => {
+        if (mine !== generation) return;
+        if (wantPlaying) start();
+        else deferred = start;
+      });
     },
 
     pause() {
@@ -145,7 +174,10 @@ export function createExpoAdapter(): MusicAdapter {
     },
 
     resume() {
-      if (!player) return;
+      if (!player) {
+        deferred?.();
+        return;
+      }
       wantPlaying = true;
       try {
         player.play();
