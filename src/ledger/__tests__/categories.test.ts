@@ -218,18 +218,22 @@ describe('deleteCategory', () => {
     expect(await categoryId(db, 'food')).toBeGreaterThan(0);
   });
 
-  it('includes budget rows in the counts once the budgets table exists', async () => {
+  it('counts budget limits in the confirmation and removes them with the category', async () => {
     const id = await userCategory();
-    await db.exec(
-      `CREATE TABLE budgets (id INTEGER PRIMARY KEY, category_id INTEGER REFERENCES categories(id) ON DELETE CASCADE)`,
-    );
     const row = await db.get<{ id: number }>('SELECT id FROM categories WHERE name = ?', [
       'Church',
     ]);
-    await db.run('INSERT INTO budgets (category_id) VALUES (?)', [row!.id]);
+    await db.run(
+      `INSERT INTO budget_plans (start_day, end_day, total_pesewas, created_at, updated_at)
+       VALUES ('2026-11-01', '2026-11-30', 10000, 1, 1)`,
+    );
+    await db.run(
+      'INSERT INTO budget_limits (plan_id, category_id, limit_pesewas) VALUES (1, ?, 500)',
+      [row!.id],
+    );
     expect((await categoryImpact(db, id))!.budgets).toBe(1);
     await deleteCategory(db, id);
-    expect(await db.get('SELECT COUNT(*) AS n FROM budgets')).toEqual({ n: 0 });
+    expect(await db.get('SELECT COUNT(*) AS n FROM budget_limits')).toEqual({ n: 0 });
   });
 });
 

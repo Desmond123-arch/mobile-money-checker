@@ -39,7 +39,7 @@ export interface CategoryImpact {
   rules: number;
   /** Cash-out breakdown entries that move to Misc. */
   allocations: number;
-  /** 0 until the budgets migration exists. */
+  /** Budget limits on it, which are removed with it. */
   budgets: number;
 }
 
@@ -50,9 +50,6 @@ export async function categoryImpact(db: Db, categoryId: string): Promise<Catego
   );
   if (category === null) return null;
   const count = async (sql: string) => (await db.get<{ n: number }>(sql, [category.id]))?.n ?? 0;
-  const hasBudgets = await db.get(
-    `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'budgets'`,
-  );
   return {
     deletable: category.system_key === null,
     transactions: await count(
@@ -63,9 +60,7 @@ export async function categoryImpact(db: Db, categoryId: string): Promise<Catego
     keywords: await count('SELECT COUNT(*) AS n FROM keywords WHERE category_id = ?'),
     rules: await count('SELECT COUNT(*) AS n FROM recipient_rules WHERE category_id = ?'),
     allocations: await count('SELECT COUNT(*) AS n FROM cash_allocations WHERE category_id = ?'),
-    budgets: hasBudgets
-      ? await count('SELECT COUNT(*) AS n FROM budgets WHERE category_id = ?')
-      : 0,
+    budgets: await count('SELECT COUNT(*) AS n FROM budget_limits WHERE category_id = ?'),
   };
 }
 

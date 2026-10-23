@@ -147,6 +147,7 @@ export function deleteCategory(db: Db, categoryId: string): Promise<void> {
         id,
       ]);
       await tx.run('UPDATE cash_allocations SET category_id = ? WHERE category_id = ?', [misc, id]);
+      await tx.run('DELETE FROM budget_limits WHERE category_id = ?', [id]);
       await tx.run('DELETE FROM recipient_rules WHERE category_id = ?', [id]);
       await tx.run('DELETE FROM keywords WHERE category_id = ?', [id]);
       await recategoriseIn(tx);

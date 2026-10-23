@@ -62,7 +62,9 @@ export function EditCategoryScreen() {
       `${impact.keywords} ${impact.keywords === 1 ? 'word is' : 'words are'} removed.`,
       `${impact.rules} ${impact.rules === 1 ? 'recipient rule is' : 'recipient rules are'} removed.`,
       ...(impact.budgets > 0
-        ? [`${impact.budgets} ${impact.budgets === 1 ? 'budget is' : 'budgets are'} removed.`]
+        ? [
+            `${impact.budgets} ${impact.budgets === 1 ? 'budget limit is' : 'budget limits are'} removed.`,
+          ]
         : []),
       'Your notes stay.',
     ];

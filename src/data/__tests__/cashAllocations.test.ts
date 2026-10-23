@@ -48,8 +48,8 @@ describe('migration 0002', () => {
     expect(await db.get(`SELECT 1 FROM sqlite_master WHERE name = 'cash_allocations'`)).not.toBe(
       null,
     );
-    expect(MIGRATIONS.map((m) => m.version)).toEqual([1, 2]);
-    await expect(migrate(db, MIGRATIONS)).resolves.toBe(2);
+    expect(MIGRATIONS.slice(0, 2).map((m) => m.version)).toEqual([1, 2]);
+    await expect(migrate(db, MIGRATIONS)).resolves.toBe(MIGRATIONS.length);
     const views = await db.all<{ name: string }>(
       `SELECT name FROM sqlite_master WHERE type = 'view' ORDER BY name`,
     );
@@ -75,7 +75,7 @@ describe('migration 0002', () => {
     const before = await monthsWithData(db);
     const lines = await db.all('SELECT * FROM ledger_lines ORDER BY transaction_id, part');
     await migrate(db, MIGRATIONS);
-    expect(await db.get('PRAGMA user_version')).toEqual({ user_version: 2 });
+    expect(await db.get('PRAGMA user_version')).toEqual({ user_version: MIGRATIONS.length });
     expect(await monthsWithData(db)).toEqual(before);
     expect(await db.all('SELECT * FROM ledger_lines ORDER BY transaction_id, part')).toEqual(lines);
     expect(await yearsWithData(db)).toHaveLength(1);
