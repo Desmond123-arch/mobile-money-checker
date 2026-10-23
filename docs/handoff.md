@@ -169,6 +169,15 @@ Manual checklist on a real phone (new dev build, screen lock and fingerprint set
 9. On a phone (or emulator) with no screen lock: the Lock the app row shows the note and the switch does nothing.
 10. With the lock on, remove the phone's screen lock in system settings and reopen the app: the lock screen shows `lockUnavailableNote`. Set a screen lock, tap Unlock.
 
+### Navigation bar
+
+Built, unit tested, not run on a device. It needs a **new dev build and a new production build**, because `expo-navigation-bar` is a native module (no permission, no config plugin). Some phones draw the system navigation bar over the app's bottom edge; with the setting on (the default) the app hides it, so nothing sits behind it, and the screens' bottom inset falls back to the 16 dp floor in `src/ui/insets.ts`.
+
+- **Files.** `src/features/app/navBar.ts` is the only file that imports `expo-navigation-bar`; it loads the module on use inside try/catch, so a dev client built before it runs and simply keeps its bar. `createNavBarController` holds the rule and is tested with a fake bar. `NavBarProvider` (inside `DbProvider`, wrapping `LockGate`) reads `meta.hide_nav_bar` (`'1'` or `'0'`, absent means hidden), applies it, and applies it again each time `AppState` becomes `active`, because the system shows the bar again after dialogs, pickers and trips to other apps. `useNavBar` feeds the Settings switch (`settingsNavBarToggle`, row `settingsNavBarRow`).
+- **Behaviour.** The module hides the bar with `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`: a swipe up from the bottom edge shows it briefly, then it hides again.
+- **If content still sits behind the bar with the switch off,** the inset is wrong on that phone. Look at what `useSafeAreaInsets().bottom` reports there; the 16 dp floor only covers a reported 0.
+- **Manual checks.** On a three-button phone and a gesture phone: the bar is gone on launch; swipe up shows it and it hides again; the file picker, the SMS permission dialog and the lock prompt each bring it back and the app hides it on return; the switch off shows it at once and leaves the content clear of it; the choice survives a restart; Expo Go and an old dev client show no error.
+
 ### Wrapped music
 
 Built with five mp3 files supplied by the owner (no embedded title, artist or licence, so `tracks.ts` carries stand-in metadata). The pieces:

@@ -17,7 +17,14 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
-import { DbProvider, FirstRunGate, LockGate, QueryProvider, ScanProvider } from '@/features/app';
+import {
+  DbProvider,
+  FirstRunGate,
+  LockGate,
+  NavBarProvider,
+  QueryProvider,
+  ScanProvider,
+} from '@/features/app';
 import { PeriodProvider } from '@/features/period';
 import { TransactionFilterProvider } from '@/features/transactions';
 
@@ -41,32 +48,34 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <DbProvider>
-        <LockGate>
-          <ScanProvider>
-            <PeriodProvider>
-              <TransactionFilterProvider>
-                <StatusBar style="dark" />
-                <FirstRunGate />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: '#FFFFFF' },
-                  }}
-                >
-                  <Stack.Screen name="wrapped" options={{ animation: 'fade' }} />
-                  <Stack.Screen
-                    name="sheets"
-                    options={{
-                      presentation: 'transparentModal',
-                      animation: 'slide_from_bottom',
-                      contentStyle: { backgroundColor: 'transparent' },
+        <NavBarProvider>
+          <LockGate>
+            <ScanProvider>
+              <PeriodProvider>
+                <TransactionFilterProvider>
+                  <StatusBar style="dark" />
+                  <FirstRunGate />
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: '#FFFFFF' },
                     }}
-                  />
-                </Stack>
-              </TransactionFilterProvider>
-            </PeriodProvider>
-          </ScanProvider>
-        </LockGate>
+                  >
+                    <Stack.Screen name="wrapped" options={{ animation: 'fade' }} />
+                    <Stack.Screen
+                      name="sheets"
+                      options={{
+                        presentation: 'transparentModal',
+                        animation: 'slide_from_bottom',
+                        contentStyle: { backgroundColor: 'transparent' },
+                      }}
+                    />
+                  </Stack>
+                </TransactionFilterProvider>
+              </PeriodProvider>
+            </ScanProvider>
+          </LockGate>
+        </NavBarProvider>
       </DbProvider>
     </QueryProvider>
   );

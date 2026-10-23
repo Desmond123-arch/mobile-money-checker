@@ -3,6 +3,7 @@ import type { Db } from './db';
 export type MetaKey =
   | 'app_lock_enabled'
   | 'first_import_done'
+  | 'hide_nav_bar'
   | 'first_import_at'
   | 'last_import_at'
   | 'onboarding_choice'

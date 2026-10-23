@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { getMeta } from '@/data/meta';
-import { useAppLock, useDb, useRequestSms, useScan } from '@/features/app';
+import { useAppLock, useDb, useNavBar, useRequestSms, useScan } from '@/features/app';
 import { settingsSubtitle, useFeaturedPlan } from '@/features/budget';
 import { useCategories } from '@/features/categories';
 import { useKeywordCounts } from '@/features/categories/useCategoryWords';
@@ -32,6 +32,7 @@ function Heading({ children }: { children: string }) {
 export function SettingsScreen() {
   const router = useRouter();
   const lock = useAppLock();
+  const navBar = useNavBar();
   const [lockBusy, setLockBusy] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const db = useDb();
@@ -198,6 +199,19 @@ export function SettingsScreen() {
               value={lock.enabled}
               disabled={lockToggleDisabled(lock.available, lock.enabled) || lockBusy}
               onChange={(next) => void changeLock(next)}
+            />
+          }
+        />
+        <Row
+          testID="settingsNavBarRow"
+          title="Hide the navigation bar"
+          subtitle="Swipe up from the bottom edge to bring it back"
+          trailing={
+            <Toggle
+              testID="settingsNavBarToggle"
+              label="Hide the navigation bar"
+              value={navBar.hidden}
+              onChange={navBar.setHidden}
             />
           }
         />
