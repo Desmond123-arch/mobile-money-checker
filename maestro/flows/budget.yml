@@ -1,0 +1,26 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsBudgetRow'
+- tapOn:
+    id: 'settingsBudgetRow'
+- assertVisible:
+    id: 'budgetScreen'
+- assertVisible:
+    id: 'budgetEmpty'
+- tapOn:
+    id: 'budgetCreateBtn'
+- assertVisible:
+    id: 'budgetPlanSheet'
+- tapOn:
+    id: 'budgetTotalInput'
+- inputText: '500'
+- hideKeyboard
+- tapOn:
+    id: 'budgetPlanSaveBtn'
+- assertVisible:
+    id: 'budgetHero'
