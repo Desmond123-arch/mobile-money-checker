@@ -15,7 +15,7 @@ export function NeedsNoteCard({ count, onPress }: { count: number; onPress: () =
         <Icon name="pencil" size={22} color="#F5B800" strokeWidth={1.9} />
       </View>
       <View className="min-w-0 flex-1 gap-[2px]">
-        <Text className="font-tight-extrabold text-[18px] leading-[22px] tracking-[-0.01em] text-ink">
+        <Text className="font-tight-extrabold text-[18px] leading-[24px] tracking-[-0.01em] text-ink">
           What were these for?
         </Text>
         <Text className="font-inter text-[14px] leading-5 text-ink">

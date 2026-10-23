@@ -15,13 +15,13 @@ export const UNREAD_MESSAGES = [
     when: 'Fri 16 Oct · 08:12',
     hint: 'Not a payment?',
     body: "Y'ello Valued Customer, your wallet limit has been upgraded. Dial *170# to view your new limits. Thank you for choosing MTN MoMo.",
-    action: 'Ignore like this',
+    looksLikePayment: false,
   },
   {
     id: 'u2',
     when: 'Wed 14 Oct · 19:40',
     hint: 'Looks like a payment',
     body: 'Bill payment of GHS 60.00 to ECG PREPAID has been completed. Token: 4521 8839 0012 7765. New balance GHS 351.20. Ref 41802219377.',
-    action: 'Add by hand',
+    looksLikePayment: true,
   },
 ] as const;

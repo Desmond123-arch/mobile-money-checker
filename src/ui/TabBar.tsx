@@ -63,7 +63,7 @@ export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
                   <Animated.Text
                     entering={FadeIn.duration(200).delay(60)}
                     exiting={FadeOut.duration(80)}
-                    className="font-inter-bold text-[14px] leading-[18px] text-ink"
+                    className="font-inter-bold text-[14px] leading-[19px] text-ink"
                   >
                     {tab.label}
                   </Animated.Text>

@@ -3,25 +3,18 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { SEED_CATEGORIES } from '@/domain/category/seed';
-import {
-  DashedChip,
-  Icon,
-  Screen,
-  ScreenTitle,
-  TAB_BAR_CLEARANCE,
-  Toggle,
-  WordChip,
-  hardShadow,
-} from '@/ui';
+import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
+import { NameList } from './components/NameList';
 import { Row } from './components/Row';
 import { CATEGORY_WORD_COUNTS, FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
 
 const LISTED = SEED_CATEGORIES.filter((c) => c.id in CATEGORY_WORD_COUNTS);
+const HIDDEN = SEED_CATEGORIES.filter((c) => !(c.id in CATEGORY_WORD_COUNTS));
 
 function Heading({ children }: { children: string }) {
   return (
-    <Text className="font-tight-extrabold text-[22px] leading-7 tracking-[-0.01em] text-ink">
+    <Text className="font-tight-extrabold text-[22px] leading-[29px] tracking-[-0.01em] text-ink">
       {children}
     </Text>
   );
@@ -30,6 +23,7 @@ function Heading({ children }: { children: string }) {
 export function SettingsScreen() {
   const router = useRouter();
   const [locked, setLocked] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   return (
     <Screen testID="settingsScreen" bottomPad={TAB_BAR_CLEARANCE}>
@@ -50,9 +44,27 @@ export function SettingsScreen() {
             onPress={() => router.push(`/category/${c.id}`)}
           />
         ))}
+        {showAll
+          ? HIDDEN.map((c) => (
+              <Row
+                key={c.id}
+                testID={`categoryRow-${c.id}`}
+                swatch={c.color}
+                title={c.name}
+                aside="no words yet"
+                onPress={() => router.push(`/category/${c.id}`)}
+              />
+            ))
+          : null}
         <Row
-          title={`Health, Education and ${SEED_CATEGORIES.length - LISTED.length - 2} more`}
+          testID="settingsMoreCategoriesRow"
+          title={showAll ? 'Show fewer' : `Health, Education and ${HIDDEN.length - 2} more`}
+          chevron={false}
           last
+          trailing={
+            <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
+          }
+          onPress={() => setShowAll(!showAll)}
         />
         <Pressable
           testID="settingsNewCategoryBtn"
@@ -62,7 +74,9 @@ export function SettingsScreen() {
           style={hardShadow()}
         >
           <Icon name="plusLarge" size={20} strokeWidth={2.2} />
-          <Text className="font-tight-extrabold text-body leading-5 text-ink">New category</Text>
+          <Text className="font-tight-extrabold text-body leading-[21px] text-ink">
+            New category
+          </Text>
         </Pressable>
       </View>
 
@@ -71,20 +85,10 @@ export function SettingsScreen() {
         <Text className="font-inter text-[14px] leading-5 text-muted">
           When a note has one of these names, the payment is filed under it.
         </Text>
-        <Text className="pt-1 font-inter-bold text-[14px] leading-[18px] text-ink">Family</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {FAMILY_NAMES.map((n) => (
-            <WordChip key={n} testID={`familyName-${n}`} label={n} tint="#FBEBC4" />
-          ))}
-          <DashedChip testID="addFamilyNameBtn" label="Add name" icon />
-        </View>
-        <Text className="pt-2 font-inter-bold text-[14px] leading-[18px] text-ink">Friends</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {FRIEND_NAMES.map((n) => (
-            <WordChip key={n} testID={`friendName-${n}`} label={n} tint="#D9E8FA" />
-          ))}
-          <DashedChip testID="addFriendNameBtn" label="Add name" icon />
-        </View>
+        <Text className="pt-1 font-inter-bold text-[14px] leading-[19px] text-ink">Family</Text>
+        <NameList idPrefix="family" initial={FAMILY_NAMES} tint="#FBEBC4" />
+        <Text className="pt-2 font-inter-bold text-[14px] leading-[19px] text-ink">Friends</Text>
+        <NameList idPrefix="friend" initial={FRIEND_NAMES} tint="#D9E8FA" />
       </View>
 
       <View className="px-5 pt-10">
@@ -115,6 +119,7 @@ export function SettingsScreen() {
           title="Privacy"
           subtitle="Everything stays on this phone"
           last
+          onPress={() => router.push('/privacy')}
         />
       </View>
     </Screen>

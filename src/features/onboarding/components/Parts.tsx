@@ -17,7 +17,7 @@ export function IconTile({ icon, tone }: { icon: IconName; tone: 'signal' | 'war
 
 export function Headline({ children }: { children: string }) {
   return (
-    <Text className="pt-3 font-tight-extrabold text-[44px] leading-[46px] tracking-[-0.03em] text-ink">
+    <Text className="pt-3 font-tight-extrabold text-[44px] leading-[58px] tracking-[-0.03em] text-ink">
       {children}
     </Text>
   );

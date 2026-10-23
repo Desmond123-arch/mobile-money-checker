@@ -56,7 +56,7 @@ export function WordChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink py-2 pl-[14px] pr-2"
       style={{ backgroundColor: tint }}
     >
-      <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
       <Pressable
         testID={testID ? `${testID}Remove` : undefined}
         accessibilityLabel={`Remove ${label}`}
@@ -88,7 +88,7 @@ export function DashedChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-dashed border-ink bg-ground px-[14px] py-2"
     >
       {icon ? <Icon name="plusSmall" size={14} strokeWidth={2.2} /> : null}
-      <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
     </Pressable>
   );
 }
@@ -110,7 +110,7 @@ export function SuggestionChip({
       className="flex-row items-center gap-[6px] rounded-full border-hard border-ink bg-ground py-2 pl-[10px] pr-[14px]"
     >
       <Icon name="plusSmall" size={14} strokeWidth={2.2} />
-      <Text className="font-inter-medium text-[14px] leading-[18px] text-ink">{label}</Text>
+      <Text className="font-inter-medium text-[14px] leading-[19px] text-ink">{label}</Text>
     </Pressable>
   );
 }
@@ -142,6 +142,29 @@ export function FilterPill({
         {label}
       </Text>
       {dropdown ? <Icon name="chevronDown" size={16} strokeWidth={1.75} /> : null}
+    </Pressable>
+  );
+}
+
+export function ClearButton({
+  onPress,
+  testID,
+  label = 'Clear',
+}: {
+  onPress?: () => void;
+  testID?: string;
+  label?: string;
+}) {
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      className="flex-row items-center gap-[6px] rounded-full border-hard border-ink bg-ground py-[6px] pl-[10px] pr-3"
+    >
+      <Icon name="close" size={14} strokeWidth={2} />
+      <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink">{label}</Text>
     </Pressable>
   );
 }

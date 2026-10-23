@@ -1,61 +1,12 @@
 import { Text, View } from 'react-native';
 
-interface WeekdayBar {
-  label: string;
-  cedis: number;
-}
-
 interface MonthBar {
   label: string;
   out: number;
   in: number;
 }
 
-const WEEKDAY_MAX_HEIGHT = 92;
 const MONTH_MAX_HEIGHT = 114;
-
-export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
-  const max = Math.max(...days.map((d) => d.cedis));
-  return (
-    <View>
-      <View className="mt-5 h-32 flex-row items-end justify-between">
-        {days.map((d) => {
-          const peak = d.cedis === max;
-          return (
-            <View
-              key={d.label}
-              testID={`weekdayBar-${d.label}`}
-              className="h-32 w-10 items-center justify-end gap-[6px]"
-            >
-              {peak ? (
-                <Text
-                  numberOfLines={1}
-                  className="min-w-16 text-center font-tight-bold text-caption text-ink"
-                >
-                  GHS {d.cedis}
-                </Text>
-              ) : null}
-              <View
-                className={`w-10 rounded-b-[3px] rounded-t-[8px] ${peak ? 'bg-ink' : 'bg-[#DADADA]'}`}
-                style={{ height: Math.max(4, Math.round((d.cedis / max) * WEEKDAY_MAX_HEIGHT)) }}
-              />
-            </View>
-          );
-        })}
-      </View>
-      <View className="flex-row justify-between border-t border-hairline pt-2">
-        {days.map((d) => (
-          <Text
-            key={d.label}
-            className={`w-10 text-center text-caption ${d.cedis === max ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
-          >
-            {d.label}
-          </Text>
-        ))}
-      </View>
-    </View>
-  );
-}
 
 export function Legend({ items }: { items: readonly { label: string; color: string }[] }) {
   return (

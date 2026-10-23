@@ -57,9 +57,7 @@ export const SAMPLE_RECENT: readonly { row: TransactionRow; when: string }[] = [
 export const SAMPLE_DETAIL: TransactionDetail = {
   ...row('t3', 'Auntie Ama Provisions', 'food', 'rice, eggs', 32),
   occurredAtLabel: 'Tue 20 Oct · 12:41',
-  kindLabel: 'Paid to a merchant. Fees and tax are on top of this.',
-  fee: pesewas(16),
-  tax: pesewas(0),
+  kindLabel: 'Paid to a merchant.',
   balanceAfter: pesewas(41184),
   noteSource: 'sms',
   originalMessage:
