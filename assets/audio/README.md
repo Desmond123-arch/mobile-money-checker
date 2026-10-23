@@ -2,9 +2,19 @@
 
 The Wrapped story plays these tracks in order and wraps from the last to the first. The list is `tracks.ts`. Everything here is bundled in the app, so playback works offline.
 
-**The five tracks are the owner's mp3 files** (`track-1.mp3` to `track-5.mp3`, about 25 MB together, which goes into the APK). They have no title, artist or licence tags, so `tracks.ts` carries stand-ins ("Track 1", "Unknown artist", "Unknown, confirm before release") until those are filled in. The synthesized placeholders from `scripts/make-placeholder-music.mjs` are no longer used.
+**The five tracks are CC0 (public domain dedication), about 7.5 MB together.** CC0 asks for no credit. Each page was checked on 23 Oct 2026; the links are in `tracks.ts`.
 
-## Replace a placeholder with a real track
+| Track                  | Artist              | Source                                                                                                       | Notes                                                                                                                                    |
+| ---------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Little Ducklin         | Maarten Schellekens | [Free Music Archive](https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/little-ducklin/) | 2:19                                                                                                                                     |
+| Medieval Theme         | Maarten Schellekens | [Free Music Archive](https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/medieval-theme/) | 2:37. The page marks it as AI generated. CC0 is declared, but the copyright status of AI music is less settled than a human-made track's |
+| 4 mei                  | Maarten Schellekens | [Free Music Archive](https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/4-mei/)          | 1:06                                                                                                                                     |
+| Children's March Theme | Cleyton Kauffman    | [OpenGameArt](https://opengameart.org/content/childrens-march-theme)                                         | 1:04. The page asks for no credit; the author shares a SoundCloud link                                                                   |
+| Happy Clappy Loop      | OwlishMedia         | [OpenGameArt](https://opengameart.org/content/happy-clappy-loop)                                             | The original is a 17 second seamless loop; it is repeated three times here (52 s)                                                        |
+
+**How the files were made.** Each was downloaded from its source page, converted to 128 kbps stereo mp3 at 44.1 kHz, levelled to the same loudness with ffmpeg's `loudnorm` (-16 LUFS) so no track jumps in volume, and stripped of embedded cover art. Happy Clappy Loop was looped three times with `-stream_loop 2`. The earlier synthesized placeholders and the owner's first set of mp3s are no longer used.
+
+## Replace a track
 
 1. Drop the file into this folder. `.m4a`, `.mp3` and `.wav` all bundle (Metro's default asset extensions). Keep it small: a 2 to 3 minute track at 96 kbps is about 2 MB.
 2. Edit that track's entry in `tracks.ts`: point `asset: require('./your-file.mp3')` at it and fill in `title`, `artist`, `license`, `sourceUrl` and `credit`.
@@ -21,7 +31,7 @@ Record these in the `tracks.ts` entry and keep the licence page link in `sourceU
 - Title and artist.
 - Licence name and version (for example "CC BY 4.0", "CC0", "Pixabay Content Licence").
 - Source URL of the page where you got it and where the licence is stated.
-- Attribution text, exactly as the licence asks (`credit`).
+- Attribution text, exactly as the licence asks (`credit`). Nothing on screen shows it since the now-playing line was removed, so a CC BY track needs a credits screen before it ships.
 - The date you checked the licence (add it as a comment above the entry).
 
 ## Credits

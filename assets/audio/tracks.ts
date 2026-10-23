@@ -1,7 +1,7 @@
 /**
- * The Wrapped playlist. Order here is playback order. The five files are the owner's mp3s. The
- * mp3s carry no title, artist or licence tags, so those fields are stand-ins until they are
- * filled in (see README.md). To change a track, drop the file next to this one and edit its entry.
+ * The Wrapped playlist. Order here is playback order. All five tracks are CC0 (public domain
+ * dedication), checked on each source page on 23 Oct 2026. CC0 asks for no credit, so `credit` is
+ * null. To change a track, drop the file next to this one and edit its entry (see README.md).
  */
 export interface Track {
   id: string;
@@ -10,7 +10,7 @@ export interface Track {
   /** Licence name, for example "CC BY 4.0". */
   license: string;
   sourceUrl: string | null;
-  /** The attribution line the licence demands, shown under the title. `null` when none is needed. */
+  /** The attribution line a licence demands. `null` when none is needed. Nothing displays it today, so a track that needs one wants a credits screen first. */
   credit: string | null;
   /** A `require()` of the audio file, so Metro bundles it. */
   asset: number;
@@ -20,53 +20,55 @@ export interface Track {
 
 export const TRACKS: readonly Track[] = [
   {
-    id: 'track-1',
-    title: 'Track 1',
-    artist: 'Unknown artist',
-    license: 'Unknown, confirm before release',
-    sourceUrl: null,
+    id: 'little-ducklin',
+    title: 'Little Ducklin',
+    artist: 'Maarten Schellekens',
+    license: 'CC0 1.0 Universal',
+    sourceUrl:
+      'https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/little-ducklin/',
     credit: null,
-    asset: require('./track-1.mp3'),
+    asset: require('./little-ducklin.mp3'),
     startAtSeconds: 0,
   },
   {
-    id: 'track-2',
-    title: 'Track 2',
-    artist: 'Unknown artist',
-    license: 'Unknown, confirm before release',
-    sourceUrl: null,
+    id: 'medieval-theme',
+    title: 'Medieval Theme',
+    artist: 'Maarten Schellekens',
+    license: 'CC0 1.0 Universal',
+    sourceUrl:
+      'https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/medieval-theme/',
     credit: null,
-    asset: require('./track-2.mp3'),
+    asset: require('./medieval-theme.mp3'),
     startAtSeconds: 0,
   },
   {
-    id: 'track-3',
-    title: 'Track 3',
-    artist: 'Unknown artist',
-    license: 'Unknown, confirm before release',
-    sourceUrl: null,
+    id: '4-mei',
+    title: '4 mei',
+    artist: 'Maarten Schellekens',
+    license: 'CC0 1.0 Universal',
+    sourceUrl: 'https://freemusicarchive.org/music/maarten-schellekens/public-domain-1/4-mei/',
     credit: null,
-    asset: require('./track-3.mp3'),
+    asset: require('./4-mei.mp3'),
     startAtSeconds: 0,
   },
   {
-    id: 'track-4',
-    title: 'Track 4',
-    artist: 'Unknown artist',
-    license: 'Unknown, confirm before release',
-    sourceUrl: null,
+    id: 'childrens-march-theme',
+    title: "Children's March Theme",
+    artist: 'Cleyton Kauffman',
+    license: 'CC0 1.0 Universal',
+    sourceUrl: 'https://opengameart.org/content/childrens-march-theme',
     credit: null,
-    asset: require('./track-4.mp3'),
+    asset: require('./childrens-march-theme.mp3'),
     startAtSeconds: 0,
   },
   {
-    id: 'track-5',
-    title: 'Track 5',
-    artist: 'Unknown artist',
-    license: 'Unknown, confirm before release',
-    sourceUrl: null,
+    id: 'happy-clappy-loop',
+    title: 'Happy Clappy Loop',
+    artist: 'OwlishMedia',
+    license: 'CC0 1.0 Universal',
+    sourceUrl: 'https://opengameart.org/content/happy-clappy-loop',
     credit: null,
-    asset: require('./track-5.mp3'),
+    asset: require('./happy-clappy-loop.mp3'),
     startAtSeconds: 0,
   },
 ];
