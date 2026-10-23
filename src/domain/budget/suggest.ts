@@ -40,3 +40,18 @@ export function suggestPlan(
   const limited = limits.reduce((sum, l) => sum + l.amount, 0);
   return { total: roundUp(Math.max(spent * scale, limited), TOTAL_STEP), limits };
 }
+
+/**
+ * The largest limits, in order, that still add up to no more than `total`. A suggestion made for
+ * a bigger total can then be applied to a plan the user sized smaller.
+ */
+export function fitToTotal<T extends { amount: number }>(limits: readonly T[], total: number): T[] {
+  const fitted: T[] = [];
+  let sum = 0;
+  for (const limit of limits) {
+    if (sum + limit.amount > total) continue;
+    fitted.push(limit);
+    sum += limit.amount;
+  }
+  return fitted;
+}

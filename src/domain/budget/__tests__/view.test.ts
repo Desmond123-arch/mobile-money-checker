@@ -1,6 +1,6 @@
 import { pesewas } from '../../money';
 import { buildBudgetView } from '../view';
-import { previousSpan, suggestPlan } from '../suggest';
+import { fitToTotal, previousSpan, suggestPlan } from '../suggest';
 
 const plan = { id: 1, name: null, startDay: '2026-11-01', endDay: '2026-11-10', total: 100_000 };
 const spend = (...rows: [string, number][]) =>
@@ -122,5 +122,14 @@ describe('suggestPlan', () => {
     expect(suggestPlan(spend(['food', 0]), 7, 7)).toBeNull();
     expect(suggestPlan(spend(['food', 100]), 0, 7)).toBeNull();
     expect(suggestPlan(spend(['food', 100]), 7, 0)).toBeNull();
+  });
+});
+
+describe('fitToTotal', () => {
+  it('keeps the biggest limits that fit, skipping one that does not and trying the next', () => {
+    const limits = [{ amount: 600 }, { amount: 500 }, { amount: 300 }, { amount: 100 }];
+    expect(fitToTotal(limits, 1_000)).toEqual([{ amount: 600 }, { amount: 300 }, { amount: 100 }]);
+    expect(fitToTotal(limits, 50)).toEqual([]);
+    expect(fitToTotal(limits, 10_000)).toEqual(limits);
   });
 });

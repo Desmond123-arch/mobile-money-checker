@@ -55,6 +55,11 @@ export function presetEnd(startDay: string, preset: Exclude<PeriodPreset, 'custo
   return monthEndDay(startDay);
 }
 
+/** A fortnight when less than two weeks of the month are left, else to the month's end. */
+export function defaultPreset(todayIso: string): Exclude<PeriodPreset, 'custom'> {
+  return daysBetween(todayIso, monthEndDay(todayIso)) >= 13 ? 'month' : 'fortnight';
+}
+
 export type PlanStatus = 'upcoming' | 'active' | 'ended';
 
 export interface PlanSpan {

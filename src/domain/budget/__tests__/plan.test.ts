@@ -3,6 +3,7 @@ import {
   PERIOD_PRESETS,
   addDays,
   cleanName,
+  defaultPreset,
   daysBetween,
   featuredPlan,
   isIsoDay,
@@ -211,5 +212,14 @@ describe('limitsProblem', () => {
     expect(limitsProblem([{ categoryId: 'food', amount: 0 }], 1_000)).toBe(
       'Enter an amount above 0.',
     );
+  });
+});
+
+describe('defaultPreset', () => {
+  it('runs to month end with two weeks or more left, else a fortnight', () => {
+    expect(defaultPreset('2026-11-01')).toBe('month');
+    expect(defaultPreset('2026-11-17')).toBe('month');
+    expect(defaultPreset('2026-11-18')).toBe('fortnight');
+    expect(defaultPreset('2026-11-30')).toBe('fortnight');
   });
 });
