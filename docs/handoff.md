@@ -4,7 +4,7 @@ Read this before connecting the app to real data. It lists what is real, what is
 
 ## 1. State in one paragraph
 
-All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is compiled and has run on the emulator, but not on a real phone (section 5, "Live SMS reading"). Nothing user-facing is a stand-in any more. "Lock the app" is real (section 5, "App lock"). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
+All 14 screens plus the month, calendar, category-filter and add-expense sheets are built. The backup import is real: `DbProvider` opens, migrates and seeds the database at startup, and importing an SMS Backup & Restore file parses it and writes real rows through `src/ledger`. Home, Transactions (list and detail), Insights and the month and calendar sheets read those rows through `src/data/queries` and TanStack Query, and every button that saves now writes to SQLite through `src/ledger` (hand-added expenses, notes, category tags, recipient rules, categories and their words, family and friends names, ignored messages; section 4). Live SMS reading is compiled and has run on the emulator, but not on a real phone (section 5, "Live SMS reading"). Budgets are built (section 5, "Budgets"). Nothing user-facing is a stand-in any more. "Lock the app" is real (section 5, "App lock"). `src/domain` is pure and tested; `src/features` and `src/ui` are UI only.
 
 ## 2. Real versus stand-in
 
@@ -25,7 +25,8 @@ All 14 screens plus the month, calendar, category-filter and add-expense sheets 
 | Hand-added expenses | Real. `addManualExpense` (`src/ledger/manualExpense.ts`). `ExpensesProvider` and `merge.ts` are deleted; the views return manual rows | Keep |
 | "Today" | Device clock via `useToday()` (UTC dates) | Keep |
 | Permission, importing | Real for a picked backup file. "Allow SMS access" now asks for `READ_SMS` and runs the first scan through the same import store and Importing screen. Built, not run on a device | Compile `modules/momo-sms` in a dev build and run the manual tests in section 5 |
-| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue, and the user-side writes (`manualExpense`, `transactionEdit`, `categories`, `names`, `unread`). Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
+| Budget | Real. Plans and limits in `budget_plans` and `budget_limits` (migration 0003), pure rules in `src/domain/budget`, reads in `src/data/queries/budgets.ts`, writes in `src/ledger/budgets.ts`, screens in `src/features/budget`. Spend is read from `ledger_lines`, never stored with the plan | Keep |
+| Ledger | Real. `src/ledger`: `ingest`, `finishImport`, `importSummary`, the write queue, and the user-side writes (`manualExpense`, `transactionEdit`, `categories`, `names`, `unread`, `cashAllocations`, `budgets`). Categories are real (`src/ledger/categorise.ts`, `recategorise.ts`, section 5) | Keep |
 
 Rules the code already follows: money is integer pesewas, dates are ISO `YYYY-MM-DD` in UTC (Ghana is UTC+0), the domain imports no React, Expo or SQLite (ESLint enforces it).
 
@@ -50,6 +51,9 @@ These now persist. Each runs one queued exclusive transaction (`ledgerQueue.run`
 | Save note (`addNoteSaveBtn`) | Note and/or category in `transaction_annotations` | `transactionEdit.test.ts` |
 | Save and Ask me later (`cashOutSaveBtn`, `cashOutAskLaterLink`) | Category and note, or `prompt_snoozed_until` (24 hours ahead) | `transactionEdit.test.ts` |
 | Add to the breakdown / Save changes (`cashAllocSave`), remove (`cashAllocDelete-<id>`) | `cash_allocations` through `addAllocation`, `updateAllocation`, `deleteAllocation`; refusals come back as `{ ok: false, message }` and show in `cashAllocError` | `cashAllocations.test.ts` (ledger and data) |
+| Start my plan / Save changes (`budgetPlanSaveBtn`) | `budget_plans` through `createPlan` or `updatePlan`; a refusal comes back as `{ ok: false, message }` and shows in `budgetPlanError` | `budgets.test.ts` (ledger and data) |
+| Set a limit, remove it (`budgetLimitSaveBtn`, `budgetLimitRemoveLink`), Start from your last days (`budgetSuggestBtn`) | `budget_limits` through `setLimit`, `removeLimit`, `replaceLimits` | `budgets.test.ts` |
+| Delete plan (`budgetDeleteLink`) | `deletePlan` (the plan and its limits; spending is untouched) | `budgets.test.ts` |
 | Create category (`createCategoryBtn`) | `categories` (sort_order above the seeded ones, tint from the colour) and any starting `keywords`, then recategorise | `categories.test.ts` |
 | Add a word, remove a word, suggestion chips | `keywords`, then recategorise | `categories.test.ts` |
 | Delete this category (`deleteCategoryBtn`) | `deleteCategory` (system-design 7.8) | `categories.test.ts` |
@@ -65,7 +69,7 @@ Behaviour worth knowing:
 - Allocations only move a cash-out's amount between categories (see `data-model.md`, Cash-out allocations). New test ids: `cashAllocSheet`, `cashAllocLeft`, `cashAllocSpent`, `cashAllocList`, `cashAllocRow-<id>`, `cashAllocDelete-<id>`, `cashAllocForm`, `cashAllocAddBtn`, `cashAllocAmount`, `cashAllocRestBtn`, `cashAllocCategory` (the group) and `cashAllocCategory-<id>`, `cashAllocNote`, `cashAllocDayToday`, `cashAllocDayYesterday`, `cashAllocDayPick`, `cashAllocDayPicker`, `cashAllocDayPrev`, `cashAllocDayNext`, `cashAllocDay-<iso>`, `cashAllocError`, `cashAllocSave`, `cashAllocCancelLink`, `cashAllocDone`. The names `cashAllocAmount`, `cashAllocNote` and `cashAllocSave` were asked for and do not follow the `...Input` and `...Btn` suffix rule in `maestro/README.md`.
 - A word belongs to one category. Adding one that exists elsewhere, or one of the junk references (`momo`, `no`, ...), is refused with a message. Family, Friends, Income, Cash and Other take no words; their edit screen says why. Aliases are listed with the words and can be removed.
 - A name belongs to one list. Adding it to the other list is refused with a message.
-- Only user-made categories (no `system_key`) can be deleted, so the button is hidden for the others. The confirmation shows the transaction, word, rule and (once the `budgets` table exists) budget counts. Payments move to Other, manual tags on it become Other, notes stay.
+- Only user-made categories (no `system_key`) can be deleted, so the button is hidden for the others. The confirmation shows the transaction, word, rule, cash-out breakdown entry and budget limit counts. Payments move to Other, manual tags on it become Other, notes stay.
 - The "Words you removed" section of the edit screen offers seed words the user deleted. It replaced the hardcoded "People often add" list.
 - **Messages we couldn't read** lists inbox rows only, and message text is never stored. So the list is empty after a backup import (by design) and until the inbox scan exists. Rows show a time and "Format not known yet", not the text. "Copy text" is gone because there is nothing to copy; `expo-clipboard` is no longer used by any screen.
 
@@ -76,7 +80,7 @@ Still not built: reparse. `modules/momo-sms` and `src/scan` exist but are unveri
 `src/data` holds the schema and the read queries. `src/features/app` (`DbProvider`), `src/ledger` and the read hooks in `src/features` use it. The schema and the reasons for it are in [`data-model.md`](data-model.md); it supersedes `system-design.md` section 6.
 
 - `db.ts` defines the async `Db` interface (`exec`, `run`, `all`, `get`, `transaction`) and `openDatabase(name?)`, the only file that imports `expo-sqlite`. `transaction` is exclusive and a nested call joins the open one.
-- `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0003_*.ts` and append it to `migrations/index.ts`. Every table is STRICT, and triggers go through `execAsync` like any other statement.
+- `migrate.ts` applies `src/data/migrations` in order with `PRAGMA user_version`, one transaction each. Migrations are `.ts` files exporting SQL strings because Metro cannot bundle `.sql`. Add the next one as `0004_*.ts` and append it to `migrations/index.ts`. Every table is STRICT, and triggers go through `execAsync` like any other statement.
 - `0001_init` inserts the five protected categories (family, friends, income, cash, misc). `seedDatabase(db)` adds the other UI categories (`system_key` is the UI id; UI `other` is the Misc row) once per seed version and is safe to call on every launch. Seed step 2 adds six categories (`electronics`, `entertainment`, `personalcare`, `giving`, `savings`, `services`) and the seed keywords (`origin = 'seed'`, aliases `is_alias = 1`), and sets `sort_order` of the keyword categories to the priority in `docs/categorisation.md` (200 and up). Keywords are inserted once per seed version, so a deleted word never returns; a word the user already added keeps its owner. UI `other` is still in `SEED_CATEGORIES` because samples use it; it maps to Misc and goes when the screens read the database.
 - Tests run in plain Node against `node:sqlite` through `src/data/__tests__/nodeDb.ts`, which implements `Db`.
 
@@ -205,9 +209,18 @@ Every read is a function in `src/data/queries` over the `Db` interface (listed i
 
 Manual expenses (written by `addManualExpense`) are `transactions` rows with `origin = 'manual'`, `momo_txn_id` NULL, `occurred_at_source = 'user'`, `flow = 'spend'` and no auto category. The "what was it for" title goes in `counterparty_name` and the chosen category in `transaction_annotations.category_id`.
 
-### How budgets will plug in
+### Budgets
 
-Budgets arrive as migration `0002` (`budgets` and `budget_alerts`, sketched in `data-model.md` and applied in `src/data/__tests__/budgets.test.ts`). `transactions` does not change. Spend against a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= ? AND at < ?`. The month's time range uses `transactions_time`; the category filter is applied after, because the effective category is a join result and `transactions_cat_time` cannot serve it. Category ids are never reused. `deleteCategory` must add the budget count to its confirmation, because the cascade removes those rows.
+Built, tested in Node, and not run on a device. A budget is a **plan**: a start day, an end day (both inclusive, UTC), a total, an optional name, and optional per-category limits. Design 8.15 has the screens; `data-model.md` has the schema and the reasons.
+
+- **No spending is stored.** `listPlans` and `budgetView` read `ledger_lines` over the plan's days, so a refund, a re-tag, a cash-out breakdown or a fresh import changes a plan with no budget write. A plan may start in the past.
+- **Rules live in one place.** `src/domain/budget/plan.ts` (`planProblem`, `limitProblem`, `limitsProblem`, periods, status, `featuredPlan`), `progress.ts` (`progressOf`, `paceOf`, `paceLine`), `view.ts` (`buildBudgetView`), `suggest.ts` (`suggestPlan`, `fitToTotal`). The form and the ledger call the same functions, and triggers back them up.
+- **Writes** (`src/ledger/budgets.ts`): `createPlan`, `updatePlan`, `setLimit`, `removeLimit`, `replaceLimits`, `deletePlan`. All go through `ledgerQueue` and one exclusive transaction. `useWrite` with group `money` refreshes the `budget` query keys, which are in `MONEY_KEYS`.
+- **Screens** (`src/features/budget`): `/budget` (not a tab), the sheets `/sheets/budget-plan` and `/sheets/budget-limit`, a Budget section on Home and a row in Settings. Navigation is `?id=` for an earlier plan, `?from=` to prefill the next plan, `?plan=&category=` for a limit.
+- **Deleting a category** deletes its limits and `categoryImpact().budgets` counts them for the confirmation.
+- **Not built.** Rollover, recurring plans and alerts. Alerts need a notification module and permission (a new native module, and the app asks for nothing like it today). The status shows on Home and the Budget screen instead.
+- **Manual device checks.** None of the budget screens has rendered. Check: the plan sheet's two day pickers inside a scrolling sheet and with the keyboard up; the bar and its pace tick at 0%, 80%, 100% and over; the category rows' amount lane with long names; Home with and without a plan; a plan that starts in the past; the last day of a plan; an ended plan and "Plan the next one"; deleting a category that has a limit.
+- **Maestro.** `maestro/flows/budget.yml` works on an empty database (Settings, Budget, make a plan). It has never run.
 
 Still not built: the rest of `src/ledger` (reparse). Writes live in `src/ledger` (there is no `src/data/repos`); `deleteCategory` is built and `categoryImpact` supplies the budget count for its confirmation.
 

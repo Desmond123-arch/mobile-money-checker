@@ -6,7 +6,7 @@ Status: draft. Supersedes the original requirements doc where they differ. Categ
 
 An Android app that reads MTN MoMo confirmation SMS on the device, turns them into a categorised spending history, and shows where the money goes each month. All data stays on the device. Expo dev build with a custom Kotlin module; parsing in TypeScript; storage in SQLite.
 
-Out of scope for the POC: iOS, other networks, live SMS listener, multi-device, web dashboard, ML categorisation, budgets, exports, Play Store release. The Go sync backend stays a stretch goal (M5).
+Out of scope for the POC: iOS, other networks, live SMS listener, multi-device, web dashboard, ML categorisation, exports, Play Store release. The Go sync backend stays a stretch goal (M5).
 
 ## 2. Findings from real data
 
@@ -117,6 +117,7 @@ Order: manual tag → recipient rule → reference (family and friends names, th
 | FR-15 | View unparsed messages | Should |
 | FR-16 | "Needs a reference" list on open; cash-out "what was this for?" prompt | Must |
 | FR-19 | Import the first load from an SMS Backup & Restore XML file (section 5.1a); show steps to export it | Should |
+| FR-20 | Budget: plan a span of days with a total and optional per-category limits; see what is left, the pace and the status; plans never overlap (design 8.15) | Should |
 | FR-17 | Opt-in sync to Go backend | Could |
 | FR-18 | Export CSV | Could |
 

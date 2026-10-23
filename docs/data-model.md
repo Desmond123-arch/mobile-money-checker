@@ -1,6 +1,6 @@
 # Data model
 
-The SQLite schema in `src/data/migrations` (`0001_init.ts`, `0002_cash_allocations.ts`) is the source of truth. This file explains its shape and the reasons. It supersedes section 6 of `system-design.md`. When the two disagree, this file and the migration win.
+The SQLite schema in `src/data/migrations` (`0001_init.ts`, `0002_cash_allocations.ts`, `0003_budgets.ts`) is the source of truth. This file explains its shape and the reasons. It supersedes section 6 of `system-design.md`. When the two disagree, this file and the migration win.
 
 ## Conventions
 
@@ -18,7 +18,7 @@ Data is split by writer so one writer cannot clobber another.
 |---|---|---|
 | Observed | `sms_messages`, `sms_fragments` | The parser only. No message text is stored. |
 | Derived | `transactions` where `origin = 'sms'`, auto rows of `reversal_links`, the `auto_category_*` columns | The ledger. Each SMS transaction is `mergeAll(fragments)` plus the categoriser. |
-| User-owned | `transaction_annotations`, `cash_allocations`, `message_dismissals`, `categories`, `keywords`, `name_lists`, `recipient_rules`, `transactions` where `origin = 'manual'`, user rows of `reversal_links`, `meta` | The user, through the app. |
+| User-owned | `transaction_annotations`, `cash_allocations`, `budget_plans`, `budget_limits`, `message_dismissals`, `categories`, `keywords`, `name_lists`, `recipient_rules`, `transactions` where `origin = 'manual'`, user rows of `reversal_links`, `meta` | The user, through the app. |
 
 Tables:
 
@@ -30,6 +30,7 @@ Tables:
 - `transaction_annotations`. The user's category tag, note and "ask me later" snooze, one row per transaction.
 - `reversal_links`. One row per credit, pointing at its original (or at nothing, when the user says there is none).
 - `cash_allocations`. Where a cash-out's money went: one row per category it was spent on (migration 0002, below).
+- `budget_plans`, `budget_limits`. A span of days with a total, and optional per-category limits (migration 0003, below).
 - `message_dismissals`. "Ignore" on "Messages we couldn't read".
 
 Views:
@@ -98,13 +99,17 @@ Query plan: the time range is pushed into every branch of the view and uses `tra
 | `wrappedFacts(db, scope)` | The `WrappedFacts` for a year or all time: the totals come from `yearSummary` or `allTimeSummary` so they equal Insights, plus the queries above and `categorySpend`. `buildWrapped` turns them into slides |
 | `daySpend(db, iso)` | A day's total and category split |
 | `weekdayAverage(db, weekday)` | An average day of that weekday (0 is Sunday): spend on it divided by how many of that weekday fall between the first and last day with spend |
+| `listPlans(db)` | Every budget plan, latest first, each with its net spend over its days (one correlated SUM over `ledger_lines`) |
+| `budgetPlan(db, id)` / `planLimits(db, id)` | One plan with its spend / its limits as UI category ids, biggest first |
+| `budgetView(db, id, todayIso)` | A plan measured: the total, each limited category, "everything else", the pace and a one-line headline, built by `buildBudgetView` from `categorySpend` over the plan's range and the plan's spend |
+| `budgetHistory(db, startDay, days)` | Net spend per category over the same number of days right before `startDay`, for `suggestPlan` |
 | `listCategories(db)` | The categories table in display order with UI ids |
 | `categoryKeywords(db, id)` / `keywordCounts(db)` | A category's words (the user's first) / the word count per category |
 | `categoryImpact(db, id)` | Whether a category can be deleted and the transactions, words, rules and budgets that deleting it touches |
 | `nameLists(db)` | Family and friend names |
 | `unreadMessages(db)` | Rows of `unread_messages` (inbox only; no text) |
 
-Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCategory`, `addKeyword`, `removeKeyword`, `deleteCategory`, `addName`, `removeName`, `dismissMessage`, `addAllocation`, `updateAllocation`, `deleteAllocation`. Each is one `ledgerQueue` task and one exclusive transaction, and each that changes the categoriser's inputs ends with `recategoriseIn`.
+Writes are in `src/ledger`: `addManualExpense`, `editTransaction`, `createCategory`, `addKeyword`, `removeKeyword`, `deleteCategory`, `addName`, `removeName`, `dismissMessage`, `addAllocation`, `updateAllocation`, `deleteAllocation`, `createPlan`, `updatePlan`, `setLimit`, `removeLimit`, `replaceLimits`, `deletePlan`. Each is one `ledgerQueue` task and one exclusive transaction, and each that changes the categoriser's inputs ends with `recategoriseIn`.
 
 ## Cash-out allocations (migration 0002)
 
@@ -153,29 +158,36 @@ Dependents of `ledger_lines` (all read it and follow with no change): `monthsWit
 
 The migration inserts the five protected categories (Cash is `#444444`). `seedDatabase` inserts the other UI categories from `src/domain/category/seed.ts`, with `system_key` equal to the UI id; UI `other` is the existing Misc row. Each seed step lists only the rows version N introduced, and runs once when `meta.seed_version` is below N. A row the user deleted therefore never comes back, with no tombstone table. Every row stores the `seed_version` that introduced it.
 
-## Budgeting as the next migration
+## Budget plans (migration 0003)
 
-Additive. `src/data/__tests__/budgets.test.ts` applies this after every shipped migration (it would be 0003 today).
+A plan is a span of days the user means to stay inside a total for, with optional limits per category. It replaces the earlier sketch, which assumed monthly limits that carried forward from an `effective_from` month: people budget for a week, a fortnight or until payday, not only a calendar month, so the span is the unit.
 
 ```sql
-CREATE TABLE budgets (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  category_id    INTEGER REFERENCES categories(id) ON DELETE CASCADE,  -- NULL = overall limit
-  effective_from TEXT NOT NULL CHECK (effective_from GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]'),
-  limit_pesewas  INTEGER NOT NULL CHECK (limit_pesewas >= 0),          -- applies until a later row replaces it
-  rollover       INTEGER NOT NULL DEFAULT 0 CHECK (rollover IN (0,1)),
-  created_at     INTEGER NOT NULL
+CREATE TABLE budget_plans (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT CHECK (name IS NULL OR (name <> '' AND name = trim(name))),
+  start_day TEXT NOT NULL CHECK (start_day GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+  end_day   TEXT NOT NULL CHECK (end_day   GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]'),
+  total_pesewas INTEGER NOT NULL CHECK (total_pesewas > 0),
+  created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL,
+  CHECK (end_day >= start_day)
 ) STRICT;
-CREATE UNIQUE INDEX budgets_category_from ON budgets(category_id, effective_from) WHERE category_id IS NOT NULL;
-CREATE UNIQUE INDEX budgets_overall_from  ON budgets(effective_from) WHERE category_id IS NULL;
-CREATE TABLE budget_alerts (
-  budget_id INTEGER NOT NULL REFERENCES budgets(id) ON DELETE CASCADE,
-  month TEXT NOT NULL, threshold_pct INTEGER NOT NULL, fired_at INTEGER NOT NULL,
-  PRIMARY KEY (budget_id, month, threshold_pct)
+CREATE TABLE budget_limits (
+  plan_id     INTEGER NOT NULL REFERENCES budget_plans(id) ON DELETE CASCADE,
+  category_id INTEGER NOT NULL REFERENCES categories(id)   ON DELETE CASCADE,
+  limit_pesewas INTEGER NOT NULL CHECK (limit_pesewas > 0),
+  PRIMARY KEY (plan_id, category_id)
 ) STRICT;
 ```
 
-Spend against a limit is `SELECT SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND category_id = ? AND at >= :start AND at < :end`. Rollover is the same sum over earlier months. `deleteCategory()` shows the budget count in its confirmation because the cascade removes those rows.
+- `start_day` and `end_day` are UTC dates, both inclusive, so a one-day plan has the same day twice. A plan's range is `[start_day 00:00, end_day + 1 day 00:00)` in epoch ms, which is the `[start, end)` every query takes. `planRange` (domain) and `PLAN_SQL` (`strftime('%s', ...)`) are the two statements of the rule; `budgets.test.ts` checks they agree to the millisecond at both edges.
+- Nothing about spending is stored. Spend against a plan or a limit is `SUM(pesewas) FROM ledger_lines WHERE bucket = 'spend' AND at >= :start AND at < :end` (plus `AND category_id = ?` for a limit). A refund, a re-tag, a cash-out allocation or a new import therefore moves a plan with no budget write. A plan may start in the past and counts what was already spent in its days.
+- Triggers, because `foreign_keys` can be OFF and a CHECK cannot read another table: two plans cannot share a day (insert, and update of either day); limits cannot add up to more than the total (insert, update of amount or plan, and update of the plan's total); income takes no limit.
+- The ledger functions check first with the same pure rules (`planProblem`, `limitProblem`, `limitsProblem`) and return a message; the triggers are the backstop. `setLimit` updates then inserts instead of upserting, because SQLite runs the insert trigger before it resolves a conflict, which would count the old limit twice.
+- Limits need not add up to the total. What they leave is "Everything else": its allowance is `total - sum(limits)` and its spend is the plan's spend outside the limited categories. A limit never changes how a transaction is categorised.
+- Deleting a category deletes its limits in `deleteCategory` (explicitly, because the cascade does not run with foreign keys OFF) and `categoryImpact().budgets` counts them for the confirmation. Deleting a plan deletes its limits and leaves every transaction alone.
+- Tone: a line is `watch` from 80% of its limit and `over` past 100%. A net refund reads as nothing spent. Pace, the safe amount per remaining day (today included) and the headline sentence are pure functions in `src/domain/budget`.
+- Not built: rollover, recurring plans, alerts. Alerts would need a notification permission and module; the status is shown in the app instead.
 
 ## Riskiest assumptions
 

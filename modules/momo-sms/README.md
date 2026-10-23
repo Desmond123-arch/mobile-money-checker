@@ -2,7 +2,7 @@
 
 Local Expo module (Android only) that reads the SMS inbox for one sender, `MobileMoney`. Contract: `docs/system-design.md` section 8. Only `src/scan` may import it (ESLint enforces this).
 
-**Status: written but never compiled.** The authoring machine has no Android SDK. The first compile happens in an EAS dev build (`npm run build:dev`). Nothing here has run on a device. Where an API was used from memory it was checked against the sources in `node_modules/expo-modules-core`.
+**Status: compiled and run on an Android emulator, not on a real phone.** It compiled in an EAS dev build on 21 Oct 2026 and the permission dialog, a scan of a seeded inbox, the observer, merging, OTP filtering and sender filtering worked there. The checks that need a real phone are in `docs/handoff.md` section 5. Where an API was used from memory it was checked against the sources in `node_modules/expo-modules-core`.
 
 ## JS surface (`src/index.ts`, types in `src/types.ts`)
 
@@ -32,9 +32,8 @@ momoSms.addInboxChangedListener(cb): { remove(): void }
 | Change events                | `ContentResolver.registerContentObserver(Telephony.Sms.CONTENT_URI, true, ContentObserver)` on the main looper. `Handler.postDelayed` debounces by 1000 ms and then `Module.sendEvent("onInboxChanged")`                                                                                                  |
 | Events and functions         | `expo.modules.kotlin` DSL: `Events`, `AsyncFunction`, `Function`, `OnDestroy`, and `Record` classes for return values                                                                                                                                                                                     |
 
-## Things to check first on a device
+## Things to check on a real phone
 
-- The build compiles (Kotlin and Gradle were never run).
 - `ContentResolver.query` accepts the `LIKE` selection on the SMS provider on the test phone.
 - `getPermissionStatus` returns `undetermined` before the first request and `blocked` after "don't ask again".
 - A `Long` id round-trips through a JS array as an integer.
