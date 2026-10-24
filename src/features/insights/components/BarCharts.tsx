@@ -1,61 +1,12 @@
 import { Text, View } from 'react-native';
 
-interface WeekdayBar {
-  label: string;
-  cedis: number;
-}
-
 interface MonthBar {
   label: string;
   out: number;
   in: number;
 }
 
-const WEEKDAY_MAX_HEIGHT = 92;
 const MONTH_MAX_HEIGHT = 114;
-
-export function WeekdayChart({ days }: { days: readonly WeekdayBar[] }) {
-  const max = Math.max(...days.map((d) => d.cedis));
-  return (
-    <View>
-      <View className="mt-5 h-32 flex-row items-end justify-between">
-        {days.map((d) => {
-          const peak = d.cedis === max;
-          return (
-            <View
-              key={d.label}
-              testID={`weekdayBar-${d.label}`}
-              className="h-32 w-10 items-center justify-end gap-[6px]"
-            >
-              {peak ? (
-                <Text
-                  numberOfLines={1}
-                  className="min-w-16 text-center font-tight-bold text-caption text-ink"
-                >
-                  GHS {d.cedis}
-                </Text>
-              ) : null}
-              <View
-                className={`w-10 rounded-b-[3px] rounded-t-[8px] ${peak ? 'bg-ink' : 'bg-[#DADADA]'}`}
-                style={{ height: Math.max(4, Math.round((d.cedis / max) * WEEKDAY_MAX_HEIGHT)) }}
-              />
-            </View>
-          );
-        })}
-      </View>
-      <View className="flex-row justify-between border-t border-hairline pt-2">
-        {days.map((d) => (
-          <Text
-            key={d.label}
-            className={`w-10 text-center text-caption ${d.cedis === max ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
-          >
-            {d.label}
-          </Text>
-        ))}
-      </View>
-    </View>
-  );
-}
 
 export function Legend({ items }: { items: readonly { label: string; color: string }[] }) {
   return (
@@ -70,20 +21,32 @@ export function Legend({ items }: { items: readonly { label: string; color: stri
   );
 }
 
-export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
-  const max = Math.max(...months.flatMap((m) => [m.out, m.in]));
+/**
+ * Bars per label. `compact` fits twelve or more on a phone: each slot shares the width and only
+ * money out is drawn.
+ */
+export function MonthlyChart({
+  months,
+  compact = false,
+}: {
+  months: readonly MonthBar[];
+  compact?: boolean;
+}) {
+  // A run of empty months has max 0; dividing by 1 keeps every bar at its minimum height.
+  const max = Math.max(1, ...months.flatMap((m) => (compact ? [m.out] : [m.out, m.in])));
   const peak = Math.max(...months.map((m) => m.out));
   const h = (v: number) => Math.max(4, Math.round((v / max) * MONTH_MAX_HEIGHT));
+  const slot = compact ? 'flex-1' : 'w-12';
   return (
     <View>
       <View className="mt-3 h-[148px] flex-row items-end justify-between">
         {months.map((m) => {
-          const isPeak = m.out === peak;
+          const isPeak = peak > 0 && m.out === peak;
           return (
             <View
               key={m.label}
               testID={`monthBar-${m.label}`}
-              className="h-[148px] w-12 items-center justify-end gap-[6px]"
+              className={`h-[148px] ${slot} items-center justify-end gap-[6px]`}
             >
               {isPeak ? (
                 <Text
@@ -95,23 +58,25 @@ export function MonthlyChart({ months }: { months: readonly MonthBar[] }) {
               ) : null}
               <View className="flex-row items-end gap-[3px]">
                 <View
-                  className={`w-5 rounded-b-[2px] rounded-t-[5px] ${isPeak ? 'border-hard border-ink bg-signal' : 'bg-ink'}`}
-                  style={{ height: h(m.out) }}
+                  className={`${compact ? 'w-4' : 'w-5'} rounded-b-[2px] rounded-t-[5px] ${isPeak ? 'border-hard border-ink bg-signal' : 'bg-ink'}`}
+                  style={{ height: m.out === 0 && compact ? 2 : h(m.out) }}
                 />
-                <View
-                  className="w-5 rounded-b-[2px] rounded-t-[5px] bg-[#CFCFCF]"
-                  style={{ height: h(m.in) }}
-                />
+                {compact ? null : (
+                  <View
+                    className="w-5 rounded-b-[2px] rounded-t-[5px] bg-[#CFCFCF]"
+                    style={{ height: h(m.in) }}
+                  />
+                )}
               </View>
             </View>
           );
         })}
       </View>
-      <View className="flex-row justify-between border-t border-hairline pt-2">
+      <View className="flex-row justify-between pt-2">
         {months.map((m) => (
           <Text
             key={m.label}
-            className={`w-12 text-center text-caption ${m.out === peak ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
+            className={`${slot} text-center text-caption ${peak > 0 && m.out === peak ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
           >
             {m.label}
           </Text>

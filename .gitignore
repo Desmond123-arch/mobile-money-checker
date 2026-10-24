@@ -56,3 +56,6 @@ coverage/
 
 # verification evidence
 artifacts/
+
+# anonymiser output that must stay local
+.local/

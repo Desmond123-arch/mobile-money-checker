@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Tabs } from 'expo-router';
 
 import { Icon, type IconName } from './Icon';
+import { tabBarBottom } from './insets';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
@@ -21,7 +22,7 @@ export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
     <View
       pointerEvents="box-none"
       className="absolute inset-x-4"
-      style={{ bottom: Math.max(insets.bottom, 12) + 4 }}
+      style={{ bottom: tabBarBottom(insets.bottom) }}
     >
       <View className="flex-row items-center justify-between rounded-[36px] bg-ink p-2">
         {state.routes.map((route, index) => {
@@ -63,7 +64,7 @@ export function TabBar({ state, emitter, navigateToTab }: TabBarProps) {
                   <Animated.Text
                     entering={FadeIn.duration(200).delay(60)}
                     exiting={FadeOut.duration(80)}
-                    className="font-inter-bold text-[14px] leading-[18px] text-ink"
+                    className="font-inter-bold text-[14px] leading-[19px] text-ink"
                   >
                     {tab.label}
                   </Animated.Text>

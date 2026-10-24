@@ -1,0 +1,437 @@
+{
+  "shape": "payment_made",
+  "messages": [
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-1",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 103.00 to KESABA LOTESA Current Balance: GHS 7,816.13 . Available Balance: GHS 7,816.13. Reference: Lokelo Sagumi. Transaction ID: 90001055436. Fee charged: GHS0.77 Tax charged: 0.03. Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1714563673404
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001055436",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 10300,
+          "fee": 77,
+          "tax": 3,
+          "balanceAfter": 781613,
+          "counterpartyName": "KESABA LOTESA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Lokelo Sagumi",
+          "occurredAt": {
+            "at": 1714563673404,
+            "source": "received"
+          },
+          "receivedAt": 1714563673404,
+          "androidId": "fx-payment_made-1",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-2",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 103.00 to KESABA LOTESA. Current Balance: GHS 7,816.13. Available Balance: GHS 7,816.13. Reference: Lokelo Sagumi. Transaction ID: 90001055436. Fee charged: GHS 0.77 TAX charged: GHS 0.03.",
+        "receivedAt": 1714563674728
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001055436",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 10300,
+          "fee": 77,
+          "tax": 3,
+          "balanceAfter": 781613,
+          "counterpartyName": "KESABA LOTESA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Lokelo Sagumi",
+          "occurredAt": {
+            "at": 1714563674728,
+            "source": "received"
+          },
+          "receivedAt": 1714563674728,
+          "androidId": "fx-payment_made-2",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-3",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 33.00 to KEGUMI VONUSA Current Balance: GHS 7,786.30 . Available Balance: GHS 7,786.30. Reference: Sagumi. Transaction ID: 90001087112. Fee charged: GHS0.00 Tax charged: 0.33. Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1714679291486
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001087112",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 3300,
+          "fee": 0,
+          "tax": 33,
+          "balanceAfter": 778630,
+          "counterpartyName": "KEGUMI VONUSA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Sagumi",
+          "occurredAt": {
+            "at": 1714679291486,
+            "source": "received"
+          },
+          "receivedAt": 1714679291486,
+          "androidId": "fx-payment_made-3",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-4",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 33.00 to KEGUMI VONUSA. Current Balance: GHS 7,786.30. Available Balance: GHS 7,786.30. Reference: Sagumi. Transaction ID: 90001087112. Fee charged: GHS 0.00 TAX charged: GHS 0.33.",
+        "receivedAt": 1714679292689
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001087112",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 3300,
+          "fee": 0,
+          "tax": 33,
+          "balanceAfter": 778630,
+          "counterpartyName": "KEGUMI VONUSA",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Sagumi",
+          "occurredAt": {
+            "at": 1714679292689,
+            "source": "received"
+          },
+          "receivedAt": 1714679292689,
+          "androidId": "fx-payment_made-4",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-5",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 14.00 to DIFAMI LODITE Current Balance: GHS 8,181.12 . Available Balance: GHS 8,181.12. Reference: bread. Transaction ID: 90001950283. Fee charged: GHS0.14 Tax charged: 0. Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1718794336572
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001950283",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1400,
+          "fee": 14,
+          "tax": 0,
+          "balanceAfter": 818112,
+          "counterpartyName": "DIFAMI LODITE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "bread",
+          "occurredAt": {
+            "at": 1718794336572,
+            "source": "received"
+          },
+          "receivedAt": 1718794336572,
+          "androidId": "fx-payment_made-5",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-6",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 14.00 to ZUNUBA ENTERPRISE 233200000005. Current Balance: GHS 8,181.12. Available Balance: GHS 8,181.12. Reference: bread. Transaction ID: 90001950283. Fee charged: GHS 0.14 TAX charged: GHS 0.00.",
+        "receivedAt": 1718794339554
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001950283",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1400,
+          "fee": 14,
+          "tax": 0,
+          "balanceAfter": 818112,
+          "counterpartyName": "ZUNUBA ENTERPRISE 233200000005",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "bread",
+          "occurredAt": {
+            "at": 1718794339554,
+            "source": "received"
+          },
+          "receivedAt": 1718794339554,
+          "androidId": "fx-payment_made-6",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-7",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 8.00 to Kefate Vobami Current Balance: GHS 7,878.76 . Available Balance: GHS 7,878.76. Reference: beans. Transaction ID: 90002219529. Fee charged: GHS0.00 Tax charged: 0. Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1719677226886
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002219529",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 800,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 787876,
+          "counterpartyName": "Kefate Vobami",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "beans",
+          "occurredAt": {
+            "at": 1719677226886,
+            "source": "received"
+          },
+          "receivedAt": 1719677226886,
+          "androidId": "fx-payment_made-7",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-8",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 8.00 to Kefate Vobami. Current Balance: GHS 7,878.76. Available Balance: GHS 7,878.76. Reference: beans. Transaction ID: 90002219529. Fee charged: GHS 0.00 TAX charged: GHS 0.00.",
+        "receivedAt": 1719677228422
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002219529",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 800,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 787876,
+          "counterpartyName": "Kefate Vobami",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "beans",
+          "occurredAt": {
+            "at": 1719677228422,
+            "source": "received"
+          },
+          "receivedAt": 1719677228422,
+          "androidId": "fx-payment_made-8",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-9",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 30.00 to ZUSAKE NUFALO Current Balance: GHS 8,224.61 . Available Balance: GHS 8,224.61. Reference: rice. Transaction ID: 90002591722. Fee charged: GHS0.00 Tax charged: 0. Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1721397635399
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002591722",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 3000,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 822461,
+          "counterpartyName": "ZUSAKE NUFALO",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "rice",
+          "occurredAt": {
+            "at": 1721397635399,
+            "source": "received"
+          },
+          "receivedAt": 1721397635399,
+          "androidId": "fx-payment_made-9",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-10",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 40.00 to Bamisa Saminu Current Balance: GHS 8,312.18 . Available Balance: GHS 8,312.18. Reference: rice. Transaction ID: 90006274057. Fee charged: GHS0.00 Tax charged: 0. Download the MoMo App for a Faster & Easier Experience. Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1740149912926
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006274057",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 4000,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 831218,
+          "counterpartyName": "Bamisa Saminu",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "rice",
+          "occurredAt": {
+            "at": 1740149912926,
+            "source": "received"
+          },
+          "receivedAt": 1740149912926,
+          "androidId": "fx-payment_made-10",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-11",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 40.00 to Bamisa Saminu. Current Balance: GHS 8,312.18. Available Balance: GHS 8,312.18. Reference: rice. Transaction ID: 90006274057. Fee charged: GHS 0.00 TAX charged: GHS 0.00.",
+        "receivedAt": 1740149917780
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006274057",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 4000,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 831218,
+          "counterpartyName": "Bamisa Saminu",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "rice",
+          "occurredAt": {
+            "at": 1740149917780,
+            "source": "received"
+          },
+          "receivedAt": 1740149917780,
+          "androidId": "fx-payment_made-11",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_made-12",
+        "sender": "MobileMoney",
+        "body": "Payment made for GHS 28.00 to Kefate Vobami Current Balance: GHS 7,802.89 . Available Balance: GHS 7,802.89. Reference: . Transaction ID: 90007232256. Fee charged: GHS0.00 Tax charged: 0. Download the MoMo App for a Faster & Easier Experience. Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1744812602458
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007232256",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 2800,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 780289,
+          "counterpartyName": "Kefate Vobami",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1744812602458,
+            "source": "received"
+          },
+          "receivedAt": 1744812602458,
+          "androidId": "fx-payment_made-12",
+          "template": {
+            "name": "payment_made",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

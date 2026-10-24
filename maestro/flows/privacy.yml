@@ -1,0 +1,18 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsPrivacyRow'
+- tapOn:
+    id: 'settingsPrivacyRow'
+- assertVisible:
+    id: 'privacyScreen'
+- assertVisible:
+    id: 'privacy-read'
+- tapOn:
+    id: 'backBtn'
+- assertVisible:
+    id: 'settingsScreen'

@@ -1,9 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { SEED_CATEGORIES } from '@/domain/category/seed';
-import { formatGhs, totalDebited } from '@/domain/money';
+import { formatGhs, formatPlain, pesewas } from '@/domain/money';
+import type { TransactionDetail } from '@/domain/transaction/transaction';
 import {
   Amount,
   BackButton,
@@ -14,36 +14,22 @@ import {
   Screen,
   SubHeading,
   TextField,
+  TextLink,
   Toggle,
 } from '@/ui';
 
-import { categoryIcon, categoryById } from '@/features/categories';
+import { useWrite } from '@/features/app';
+import { categoryIcon, categoryById, useCategories } from '@/features/categories';
+import { editTransaction } from '@/ledger/transactionEdit';
 
-import { SAMPLE_DETAIL } from './sample';
+import { useCashOutBreakdown } from './useCashAllocations';
+import { useTransactionDetail } from './useTransactions';
 
-const VISIBLE_CATEGORIES = SEED_CATEGORIES.slice(0, 5);
-
-function BreakdownRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
+function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
-    <View
-      className={`flex-row justify-between py-3 ${strong ? 'border-t-2 border-ink' : 'border-t border-hairline'}`}
-    >
-      <Text
-        className={`text-body leading-5 ${strong ? 'font-inter-bold text-ink' : 'font-inter text-muted'}`}
-      >
-        {label}
-      </Text>
-      <Text
-        className={`text-body tabular-nums leading-5 text-ink ${strong ? 'font-tight-extrabold' : 'font-tight-semibold'}`}
-      >
+    <View className="flex-row justify-between py-3">
+      <Text className="font-inter text-body leading-[21px] text-muted">{label}</Text>
+      <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
         {value}
       </Text>
     </View>
@@ -51,19 +37,74 @@ function BreakdownRow({
 }
 
 export function TransactionDetailScreen() {
+  const { id = '' } = useLocalSearchParams<{ id: string }>();
+  const tx = useTransactionDetail(id);
+
+  if (tx === undefined) return <Screen testID="detailLoading">{null}</Screen>;
+  if (tx === null) return <DetailNotFound />;
+  return <DetailBody key={tx.id} tx={tx} />;
+}
+
+function DetailNotFound() {
   const router = useRouter();
-  const tx = SAMPLE_DETAIL;
+  return (
+    <Screen testID="detailNotFound">
+      <View className="px-5 pt-2">
+        <BackButton onPress={() => router.back()} />
+      </View>
+      <View className="items-start gap-2 px-5 pt-8">
+        <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">
+          We could not find that payment.
+        </Text>
+        <Text className="font-inter text-body leading-6 text-muted">
+          It may have been removed. Go back and pick another.
+        </Text>
+      </View>
+    </Screen>
+  );
+}
+
+function DetailBody({ tx }: { tx: TransactionDetail }) {
+  const router = useRouter();
+  const categories = useCategories();
+  const { run, busy, error } = useWrite();
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [categoryId, setCategoryId] = useState(tx.categoryId);
   const [note, setNote] = useState(tx.note ?? '');
   const [alwaysTag, setAlwaysTag] = useState(true);
   const [showOriginal, setShowOriginal] = useState(false);
   const category = categoryById(categoryId);
+  const cash = useCashOutBreakdown(tx.id);
+
+  const initialNote = tx.note ?? '';
+  const noteChanged = note.trim() !== initialNote;
+  const categoryChanged = categoryId !== tx.categoryId;
+  const chips = showAllCategories
+    ? categories
+    : categories.filter((c, i) => i < 5 || c.id === categoryId);
+
+  // Only what changed is written, so an untouched category keeps following the categoriser.
+  const save = async () => {
+    if (!noteChanged && !categoryChanged) {
+      router.back();
+      return;
+    }
+    const saved = await run(
+      (db) =>
+        editTransaction(db, Number(tx.id), {
+          ...(noteChanged ? { note } : {}),
+          ...(categoryChanged && categoryId !== null ? { categoryId, alwaysTag } : {}),
+        }),
+      ['money'],
+    );
+    if (saved) router.back();
+  };
 
   return (
     <Screen testID="transactionDetailScreen">
       <View className="flex-row items-center justify-between px-5 pt-2">
         <BackButton onPress={() => router.back()} />
-        <Text className="font-inter-semibold text-[14px] leading-[18px] text-muted">
+        <Text className="font-inter-semibold text-[14px] leading-[19px] text-muted">
           {tx.occurredAtLabel}
         </Text>
       </View>
@@ -76,30 +117,76 @@ export function TransactionDetailScreen() {
           >
             <Icon name={categoryIcon(categoryId)} size={22} strokeWidth={1.8} />
           </View>
-          <Text className="flex-1 font-inter-semibold text-[18px] leading-[22px] text-ink">
+          <Text className="flex-1 font-inter-semibold text-[18px] leading-[24px] text-ink">
             {tx.counterparty}
           </Text>
         </View>
-        <Amount testID="detailAmount" amount={tx.amount} sign="−" />
+        <Amount testID="detailAmount" amount={tx.amount} sign={tx.direction === 'in' ? '+' : '−'} />
         <Text className="font-inter text-[14px] leading-5 text-muted">{tx.kindLabel}</Text>
       </View>
 
       <View className="px-5 pt-7">
         <BreakdownRow label="Amount" value={formatGhs(tx.amount)} />
-        <BreakdownRow label="Fee" value={formatGhs(tx.fee)} />
-        <BreakdownRow label="Tax" value={formatGhs(tx.tax)} />
-        <BreakdownRow
-          label="Total taken"
-          value={formatGhs(totalDebited(tx.amount, tx.fee, tx.tax))}
-          strong
-        />
-        <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
+        {tx.balanceAfter !== null ? (
+          <BreakdownRow label="Balance after" value={formatGhs(tx.balanceAfter)} />
+        ) : null}
       </View>
+
+      {cash ? (
+        <View testID="detailCashSection" className="gap-3 px-5 pt-8">
+          <SubHeading
+            title="Where the cash went"
+            aside={cash.left > 0 ? `${formatGhs(pesewas(cash.left))} left` : 'All accounted for'}
+          />
+          {cash.allocations.length === 0 ? (
+            <Text className="font-inter text-[14px] leading-5 text-muted">
+              Break the withdrawal down into what you spent it on, a bit at a time.
+            </Text>
+          ) : (
+            <View testID="detailCashList">
+              {cash.allocations.map((entry) => (
+                <View key={entry.id} className="flex-row justify-between gap-3 py-2">
+                  <Text
+                    numberOfLines={1}
+                    className="min-w-0 flex-1 font-inter text-body leading-[21px] text-ink"
+                  >
+                    {[categoryById(entry.categoryId)?.name ?? 'Other', entry.note]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                  <Text className="font-tight-semibold text-body tabular-nums leading-[21px] text-ink">
+                    {formatPlain(pesewas(entry.amount))}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <Button
+            testID="detailCashAllocBtn"
+            variant="outline"
+            label={cash.allocations.length === 0 ? 'Break it down' : 'Edit the breakdown'}
+            onPress={() => router.push(`/sheets/cash-allocations?id=${tx.id}`)}
+          />
+          {cash.allocations.length === 0 && tx.categoryId === 'cash' && tx.noteSource !== 'user' ? (
+            <TextLink
+              testID="detailCashOutLink"
+              label="Or say what it was for"
+              onPress={() => router.push(`/sheets/cash-out?id=${tx.id}`)}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
       <View className="gap-[10px] px-5 pt-8">
         <SubHeading
           title="What was it for?"
-          aside={tx.noteSource === 'sms' ? 'From the SMS' : 'Entered by you'}
+          aside={
+            tx.noteSource === 'sms'
+              ? 'From the SMS'
+              : tx.noteSource === 'user'
+                ? 'Entered by you'
+                : ''
+          }
         />
         <TextField
           testID="detailNoteInput"
@@ -112,7 +199,7 @@ export function TransactionDetailScreen() {
       <View className="gap-3 px-5 pt-8">
         <SubHeading title="Category" aside="Picked from your note" />
         <View className="flex-row flex-wrap gap-2">
-          {VISIBLE_CATEGORIES.map((c) => (
+          {chips.map((c) => (
             <CategoryChip
               key={c.id}
               testID={`detailCategory-${c.id}`}
@@ -122,28 +209,36 @@ export function TransactionDetailScreen() {
               onPress={() => setCategoryId(c.id)}
             />
           ))}
-          <DashedChip testID="detailAllCategoriesBtn" label={`All ${SEED_CATEGORIES.length}`} />
-        </View>
-        <View className="flex-row items-center gap-3 pt-4">
-          <Toggle
-            testID="detailAlwaysTagToggle"
-            label="Always tag this recipient"
-            value={alwaysTag}
-            onChange={setAlwaysTag}
+          <DashedChip
+            testID="detailAllCategoriesBtn"
+            label={showAllCategories ? 'Fewer' : `All ${categories.length}`}
+            onPress={() => setShowAllCategories(!showAllCategories)}
           />
-          <Text className="flex-1 font-inter text-[15px] leading-[22px] text-ink">
-            Always tag {tx.counterparty} as {category?.name ?? 'this category'}
-          </Text>
         </View>
+        {tx.manual ? null : (
+          <View className="flex-row items-center gap-3 pt-4">
+            <Toggle
+              testID="detailAlwaysTagToggle"
+              label="Always tag this recipient"
+              value={alwaysTag}
+              onChange={setAlwaysTag}
+            />
+            <Text className="flex-1 font-inter text-[15px] leading-[22px] text-ink">
+              Always tag {tx.counterparty} as {category?.name ?? 'this category'}
+            </Text>
+          </View>
+        )}
       </View>
 
       <Pressable
         testID="detailOriginalMessageToggle"
         accessibilityRole="button"
         onPress={() => setShowOriginal((v) => !v)}
-        className="mx-5 mt-8 flex-row items-center justify-between border-y border-hairline py-4"
+        className="mx-5 mt-8 flex-row items-center justify-between rounded-[14px] bg-hairline px-4 py-4"
       >
-        <Text className="font-inter-semibold text-body leading-5 text-ink">Original message</Text>
+        <Text className="font-inter-semibold text-body leading-[21px] text-ink">
+          Original message
+        </Text>
         <Icon name="chevronDownLarge" size={20} strokeWidth={2} />
       </Pressable>
       {showOriginal ? (
@@ -151,12 +246,22 @@ export function TransactionDetailScreen() {
           testID="detailOriginalMessage"
           className="mx-5 pt-3 font-inter text-[14px] leading-5 text-muted"
         >
-          {tx.originalMessage}
+          {tx.originalMessage ?? 'The original message is not kept in this app.'}
         </Text>
       ) : null}
 
       <View className="px-5 pb-2 pt-7">
-        <Button testID="detailSaveBtn" label="Save changes" onPress={() => router.back()} />
+        {error ? (
+          <Text testID="detailError" className="pb-3 font-inter text-caption text-warn">
+            {error}
+          </Text>
+        ) : null}
+        <Button
+          testID="detailSaveBtn"
+          label="Save changes"
+          disabled={busy}
+          onPress={() => void save()}
+        />
       </View>
     </Screen>
   );

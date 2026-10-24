@@ -11,6 +11,8 @@ maestro test maestro/flows/tab-navigation.yml # one flow
 
 Needs a dev build (`npm run android`) installed on the device, because the flows use the app id `com.momospend.app`. Expo Go has a different app id and cannot be driven by these flows.
 
+A fresh install opens on Permission (the first-run gate). `setupApp.yml` runs `flows/_skipOnboarding.yml`, which taps `permissionNotNowBtn` when it is visible, so flows can keep assuming Home. `_skipOnboarding.yml` is a helper; `flows/**` also runs it on its own, which is harmless.
+
 ## testID convention
 
 Every element a flow touches has a camelCase `testID`. Maestro reads it as the Android `resource-id`, so flows use `id:` and never rely on visible text.

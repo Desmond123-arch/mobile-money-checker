@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
@@ -21,20 +22,23 @@ export function Toggle({
   onChange,
   label,
   testID,
+  disabled = false,
 }: {
   value: boolean;
   onChange?: (next: boolean) => void;
   label: string;
   testID?: string;
+  disabled?: boolean;
 }) {
   return (
     <Pressable
       testID={testID}
       accessibilityRole="switch"
       accessibilityLabel={label}
-      accessibilityState={{ checked: value }}
+      accessibilityState={{ checked: value, disabled }}
+      disabled={disabled}
       onPress={() => onChange?.(!value)}
-      className={`h-7 w-12 shrink-0 justify-center rounded-[14px] px-[3px] ${value ? 'bg-ink' : 'bg-[#DADADA]'}`}
+      className={`h-7 w-12 shrink-0 justify-center rounded-[14px] px-[3px] ${value ? 'bg-ink' : 'bg-[#DADADA]'} ${disabled ? 'opacity-40' : ''}`}
     >
       <Animated.View
         layout={LinearTransition.duration(180)}
@@ -62,7 +66,7 @@ export function BackButton({ onPress }: { onPress: () => void }) {
 export function Hint({ title, children }: { title: string; children: string }) {
   return (
     <View className="gap-[6px] rounded-chip bg-[#F4F4F4] px-[14px] py-3">
-      <Text className="font-inter-bold text-[14px] leading-[18px] text-ink">{title}</Text>
+      <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">{title}</Text>
       <Text className="font-inter text-[14px] leading-5 text-muted">{children}</Text>
     </View>
   );
@@ -73,18 +77,23 @@ export function SectionHeader({
   link,
   onLinkPress,
   linkTestID,
+  accessory,
 }: {
   title: string;
   link?: string;
   onLinkPress?: () => void;
   linkTestID?: string;
+  accessory?: ReactNode;
 }) {
   return (
-    <View className="flex-row items-baseline justify-between">
-      <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
+    <View className={`flex-row justify-between ${accessory ? 'items-center' : 'items-baseline'}`}>
+      <View className="flex-row items-center gap-2">
+        <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">{title}</Text>
+        {accessory}
+      </View>
       {link ? (
         <Pressable testID={linkTestID} accessibilityRole="link" onPress={onLinkPress}>
-          <Text className="font-inter-semibold text-[14px] leading-[18px] text-ink underline">
+          <Text className="font-inter-semibold text-[14px] leading-[19px] text-ink underline">
             {link}
           </Text>
         </Pressable>

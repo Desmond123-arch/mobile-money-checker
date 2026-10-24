@@ -5,12 +5,7 @@ appId: com.momospend.app
 - assertVisible:
     id: 'permissionScreen'
 - tapOn:
-    label: 'Not now leads to the denied screen'
-    id: 'notNowLink'
-- assertVisible:
-    id: 'permissionDeniedScreen'
-- tapOn:
-    label: 'Can keep looking around without access'
-    id: 'keepLookingLink'
+    label: 'Not now lands on Home'
+    id: 'permissionNotNowBtn'
 - assertVisible:
     id: 'homeScreen'

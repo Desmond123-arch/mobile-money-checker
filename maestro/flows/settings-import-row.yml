@@ -1,0 +1,19 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsImportBackupRow'
+- tapOn:
+    label: 'The row opens the import steps'
+    id: 'settingsImportBackupRow'
+- assertVisible:
+    id: 'importStepsSheet'
+- assertVisible:
+    id: 'chooseFileBtn'
+- tapOn:
+    id: 'sheetScrim'
+- assertVisible:
+    id: 'settingsScreen'

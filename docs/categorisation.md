@@ -23,13 +23,13 @@ The first rule that applies sets `category_id` and `category_source`.
 | 5 | Type default: cash-out → Cash, incoming → Income | `default` |
 | 6 | Nothing matched → Misc | `default` |
 
-Cash-out SMS carry no reference. A cash-out stays in **Cash** until the user answers "what was it for?", which sets a manual category on that transaction.
+Cash-out SMS carry no reference. A cash-out stays in **Cash** until the user answers "what was it for?", which sets a manual category on that transaction, or breaks the withdrawal down into allocations (each with its own category), which also ends the question.
 
 ## Reference extraction
 
 1. Take the free-text note. For shapes with `Reference:` use that field; for the "You have Paid" shape use `Message from sender:`.
 2. If the note has commas (`name,number,note`), keep only the last part.
-3. Lowercase, trim, collapse whitespace.
+3. Trim and collapse whitespace. The stored `reference_clean` keeps the original case for display; matching lowercases.
 4. Treat as **empty**: `` (blank), `-`, `.`, `momo`, `1`, `no`, `merchantpay`, `my number`, `stuff`, `direct`, `debit`. (`credit` is not here: it is an Airtime & Data keyword. A word is either junk or a keyword, never both; a seed test checks this.)
 5. Split into tokens on anything that is not a letter or digit (`bread+egg` → `bread`, `egg`).
 
@@ -77,7 +77,8 @@ The user's own name is never matched by default. If the user types it into a lis
 | Services | tailoring, tailor, repair, fix, delivery, courier, rider, plumber, electrician, mechanic, design, printing service, photographer |
 
 Notes:
-- A keyword appears in only one category. Where the table repeats a word (`market`, `fufu`, `printing`, `fees`, `school fees`, `trip`, `tv`), the implementation resolves it to the category that lists it first in priority order; the seed data file removes the duplicates before the first release.
+- A keyword appears in only one category. The table above repeats `market`, `fufu` and `printing`, and mentions `school fees` under Rent & Bills; `src/domain/categorise/seed.ts` keeps each word in the first category that lists it (Food, Food, Education) and drops the rest. A test asserts no word is listed twice and none is also junk. `kenky` moved to the alias list with `waskye`, `wayer` and `shitor`.
+- The priority order is stored as `categories.sort_order` (seed step 2), because the database tie-break reads it.
 - Keyword lists are a starting point. Users add, remove or move keywords per category, and add or rename categories.
 
 ## Built-in counterparty rules
@@ -90,14 +91,14 @@ Matched as case-insensitive substrings of the counterparty name, only when the r
 | `bills` | Rent & Bills |
 | `paystack`, `mojopay`, `cellulant` | Misc until the user chooses (these are online payments with no fixed meaning) |
 
-Rule 4 (built-in counterparty rules and word hints) applies only to **outgoing, non-cash-out** transactions. Cash-outs and incoming payments go straight to rule 5, so a cash-out to an agent called "… Food Ventures" stays in Cash and an incoming payment from a business stays Income.
+Rule 4 (built-in counterparty rules and word hints) applies only to **outgoing, non-cash-out** transactions. Cash-outs and incoming payments skip the reference and go to rule 5 (a recipient rule still applies first), so a cash-out to an agent called "… Food Ventures" stays in Cash and an incoming payment from a business stays Income.
 
 Counterparty word hints (apply to names that look like businesses): `food`, `joint`, `chop bar`, `kitchen` → Food; `pharmacy`, `chemist`, `clinic` → Health; `fuel`, `filling` → Transport. Other business words (`enterprise`, `ventures`, `limited`, `consult`) give no signal.
 
 ## Prompting
 
 - **Needs a reference.** On app open, transactions with an empty reference (and not cash-outs) appear in a list at the top of the home screen: show the counterparty, amount and date, and let the user type a reference or pick a category. Entering a reference re-runs the rules; picking a category sets a manual tag.
-- **Cash-outs** show a "What was this for?" prompt that sets a manual category.
+- **Cash-outs** show a "What was this for?" prompt. Answering sets a manual category; they can also be broken down into allocations that move parts of the amount to other categories without changing any total.
 - The app reads the SMS inbox; it cannot write a reference back to MoMo. The reference lives in the app only (`reference` column, user-edited).
 - If the SMS already carries a reference, show it and categorise from it; no prompt.
 
@@ -109,6 +110,10 @@ Counterparty word hints (apply to names that look like businesses): `food`, `joi
 - `categories`: add Health, Education, Entertainment & Subscriptions, Personal Care, Giving, Savings & Investing, Electronics, Services, Friends, Misc; drop Other and Self.
 - `name_lists(id, kind: family|friend, value, created_at)`.
 - `keywords(id, category_id, value, is_alias)` replaces `categories.keywords[]` so edits are row-level.
+
+## Real-export result
+
+On the author's export (1,194 outgoing, non-cash-out transactions) 77.1% land outside Misc: Airtime & Data 42.1% (almost all from built-in counterparty rules), Food 24.7%, Misc 22.9%, Rent & Bills 4.3%. 57.9% have no usable reference. 104 non-empty references fell to Misc; only 3 are within one plain edit of a keyword, so the first/last-letter rule costs almost nothing. Family and Friends are 0% until the user adds names. This phone was used to write the rules, so the figure is an upper bound for the 70% criterion. Reproduce with `npm run check:categories -- <export.xml>`.
 
 ## Success measures
 

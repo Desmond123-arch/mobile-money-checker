@@ -1,0 +1,18 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'needsNoteCard'
+- assertVisible:
+    id: 'addNoteSheet'
+- tapOn:
+    label: 'Can change the category the note is filed under'
+    id: 'addNoteCategoryBtn'
+- tapOn:
+    id: 'addNoteCategory-health'
+- assertVisible: 'Health'
+- tapOn:
+    id: 'addNoteInput'
+- inputText: 'soap and tissue'
+- assertVisible:
+    id: 'addNoteSaveBtn'

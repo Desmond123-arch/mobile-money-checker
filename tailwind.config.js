@@ -25,10 +25,10 @@ module.exports = {
         'tight-extrabold': ['InterTight_800ExtraBold'],
       },
       fontSize: {
-        caption: ['13px', { lineHeight: '16px' }],
-        body: ['16px', { lineHeight: '20px' }],
-        section: ['20px', { lineHeight: '24px' }],
-        title: ['24px', { lineHeight: '30px' }],
+        caption: ['13px', { lineHeight: '17px' }],
+        body: ['16px', { lineHeight: '21px' }],
+        section: ['20px', { lineHeight: '26px' }],
+        title: ['24px', { lineHeight: '31px' }],
       },
       borderRadius: {
         chip: '12px',

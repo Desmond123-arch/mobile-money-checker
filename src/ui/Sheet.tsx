@@ -1,13 +1,17 @@
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
+import { useBottomInset } from './useBottomInset';
 
 export function Sheet({ children, testID }: { children: ReactNode; testID?: string }) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const bottom = useBottomInset();
   return (
-    <View testID={testID} className="flex-1 justify-end bg-black/50">
+    <KeyboardAvoidingView
+      behavior="padding"
+      testID={testID}
+      className="flex-1 justify-end bg-black/50"
+    >
       <Pressable
         testID="sheetScrim"
         accessibilityLabel="Close"
@@ -24,20 +28,20 @@ export function Sheet({ children, testID }: { children: ReactNode; testID?: stri
             gap: 20,
             paddingHorizontal: 20,
             paddingTop: 8,
-            paddingBottom: Math.max(insets.bottom, 16) + 16,
+            paddingBottom: bottom + 16,
           }}
         >
           {children}
         </ScrollView>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 export function SheetTitle({ title, body }: { title: string; body?: string }) {
   return (
     <View className="gap-[6px]">
-      <Text className="font-tight-extrabold text-[28px] leading-8 tracking-[-0.02em] text-ink">
+      <Text className="font-tight-extrabold text-[28px] leading-[37px] tracking-[-0.02em] text-ink">
         {title}
       </Text>
       {body ? (

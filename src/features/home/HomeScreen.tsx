@@ -1,41 +1,70 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { ShareBar, ShareLegend, SAMPLE_SPEND } from '@/features/categories';
+import { dailyAverage } from '@/domain/summary/month';
+import { relativeDay } from '@/domain/transaction/label';
+import { BudgetCard } from '@/features/budget';
+import { ShareBar, ShareLegend, useCategories } from '@/features/categories';
+import { usePeriod, useToday } from '@/features/period';
+import { useCashOutPrompts } from '@/features/transactions/useCashOutPrompts';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
-import { SAMPLE_RECENT } from '@/features/transactions/sample';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
 
 import { DailyChart } from './components/DailyChart';
 import { HeroSummary, TotalsRow } from './components/HeroSummary';
 import { NeedsNoteCard } from './components/NeedsNoteCard';
+import { SmsOffBanner } from './components/SmsOffBanner';
 import { HomeEmptyState } from './HomeEmptyState';
-import { SAMPLE_MONTH } from './sample';
+import { useHomeData } from './useHomeData';
 
 export function HomeScreen() {
   const router = useRouter();
-  const month = SAMPLE_MONTH;
+  const today = useToday();
+  const { month: selected, hasData, ready } = usePeriod();
+  const data = useHomeData(selected.id);
+  const cashOuts = useCashOutPrompts(selected.id);
+  useCategories();
 
-  if (month.payments === 0) return <HomeEmptyState month={month} />;
+  if (!ready || data === undefined)
+    return <View testID="homeLoading" className="flex-1 bg-ground" />;
+
+  const { summary: month, spend } = data;
+  const recent = data.recent.map(({ iso, row }) => ({ row, when: relativeDay(iso, today) }));
+
+  if (month.payments === 0) return <HomeEmptyState month={month} otherMonthsHaveData={hasData} />;
 
   return (
     <Screen testID="homeScreen" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary
         monthLabel={month.label}
+        onMonthPress={() => router.push('/sheets/month')}
+        onFilterPress={() => router.push('/sheets/category-filter?goTo=transactions')}
+        onAddPress={() => router.push('/sheets/add-expense')}
         spent={month.spent}
         delta={{ label: month.deltaLabel, compare: month.deltaCompare }}
       >
         <DailyChart daily={month.daily} today={month.today} peakLabel={month.peakLabel} />
         <TotalsRow
           moneyIn={month.moneyIn}
-          feesAndTax={month.feesAndTax}
           payments={month.payments}
+          average={dailyAverage(month.spent, month.today)}
         />
       </HeroSummary>
 
+      <SmsOffBanner />
+
       {month.needNote > 0 ? (
-        <NeedsNoteCard count={month.needNote} onPress={() => router.push('/sheets/add-note')} />
+        <NeedsNoteCard
+          count={month.needNote}
+          onPress={() => {
+            // Cash-outs come first; their sheet is the breakdown one.
+            const first = cashOuts?.[0];
+            router.push(first ? `/sheets/cash-allocations?id=${first.row.id}` : '/sheets/add-note');
+          }}
+        />
       ) : null}
+
+      <BudgetCard />
 
       <View className="px-5 pt-9">
         <View className="pb-4">
@@ -46,8 +75,8 @@ export function HomeScreen() {
             onLinkPress={() => router.push('/insights')}
           />
         </View>
-        <ShareBar spend={SAMPLE_SPEND} />
-        <ShareLegend spend={SAMPLE_SPEND} limit={3} />
+        <ShareBar spend={spend} />
+        <ShareLegend spend={spend} limit={3} />
       </View>
 
       <View className="px-5 pt-10">
@@ -59,7 +88,7 @@ export function HomeScreen() {
             onLinkPress={() => router.push('/transactions')}
           />
         </View>
-        {SAMPLE_RECENT.map(({ row, when }) => (
+        {recent.map(({ row, when }) => (
           <TransactionRow
             key={row.id}
             row={row}

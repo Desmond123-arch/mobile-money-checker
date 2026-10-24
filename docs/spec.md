@@ -6,7 +6,7 @@ Status: draft. Supersedes the original requirements doc where they differ. Categ
 
 An Android app that reads MTN MoMo confirmation SMS on the device, turns them into a categorised spending history, and shows where the money goes each month. All data stays on the device. Expo dev build with a custom Kotlin module; parsing in TypeScript; storage in SQLite.
 
-Out of scope for the POC: iOS, other networks, live SMS listener, multi-device, web dashboard, ML categorisation, budgets, exports, Play Store release. The Go sync backend stays a stretch goal (M5).
+Out of scope for the POC: iOS, other networks, live SMS listener, multi-device, web dashboard, ML categorisation, exports, Play Store release. The Go sync backend stays a stretch goal (M5).
 
 ## 2. Findings from real data
 
@@ -16,7 +16,7 @@ Source: an SMS Backup & Restore export of one phone (4,592 messages; 2,488 from 
 - About 390 of the `MobileMoney` messages are OTP / login codes. They are never stored or parsed.
 - Every financial message has a transaction ID, under three labels: `Transaction ID`, `Transaction Id`, `Financial Transaction Id`.
 - The same transaction can arrive as more than one message in different formats, so a naive parse double-counts it.
-- Fees and tax are charged on top of the amount. Balances reconcile as `balance_before - (amount + fee + tax) = balance_after`. Checked on 1,321 consecutive outgoing payments: 877 reconcile on amount alone (fee and tax were zero), 408 reconcile only with fee and tax, 36 do not (messages missing from the export).
+- Fees and tax are charged on top of the amount. Balances reconcile as `balance_before - (amount + fee + tax) = balance_after`. First check, on 1,321 consecutive outgoing payments: 877 reconcile on amount alone (fee and tax were zero), 408 reconcile only with fee and tax, 36 do not (messages missing from the export). Re-checked with the built parser and merge (`npm run check:sms`, one row per transaction, so a fee or tax missing from one message is filled in from the other): 1,327 payments, 897 on amount alone, 415 with fee and tax, 15 do not reconcile.
 - There is no E-Levy in the data. The SMS field is "Tax". The only E-Levy mention is a promo saying the levy was abolished.
 - Incoming payments show the sender's reference. Cash-out messages have no reference.
 - About 61% of outgoing transactions in this history have an empty or `-` reference. New transactions are expected to carry one (the app nudges the user), so this history is used only to build and test the rules.
@@ -25,17 +25,19 @@ Source: an SMS Backup & Restore export of one phone (4,592 messages; 2,488 from 
 
 | # | Shape | Direction | Notes |
 |---|-------|-----------|-------|
-| 1 | `Payment made for GHS x to NAME …` | Out | Reference, fee, tax |
-| 2 | `Your payment of GHS x to NAME has been completed at <time>` | Out | Timestamp in body; `name,number,note` references |
-| 3 | `Payment for GHS x to NAME` (airtime, bundle, MTN) | Out | No reference |
+| 1 | `Payment made for GHS x to NAME …` | Out | Reference, fee, tax. Two layouts (`Tax charged: 0.03` and `TAX charged: GHS 0.03`, the second with a dot after the name) that often arrive together for one transaction |
+| 2 | `Your payment of GHS x to NAME has been completed at <time>` | Out | Timestamp in body; `name,number,note` references; the reference sits before or after `Your new balance`; ends with a `Financial Transaction Id` and an `External Transaction Id` (never the key) |
+| 3 | `Payment for GHS x to NAME` (MTN airtime and bundles, Just4U, Paystack, bills, Other Networks) | Out | No reference |
 | 4 | `Y'ello. You have Paid GHS x to Merchant NNN` | Out | Reference is `Message from sender:`; the 12-digit value is `yyyy`+`dd`+`HH`+`mm`+`ss` with no month, so the received time is used |
 | 5 | `Cash Out made for GHS x to AGENT` | Out | No reference; fee |
 | 6 | `You have transferred x GHS to Other Networks …` | Out | Reference text like `airtime:Telecel:…` |
-| 7 | `Payment received for GHS x from NAME` | In | Reference, fee |
+| 7 | `Payment received for GHS x from NAME` | In | Reference (may be `name,number,note`), fee; the name can be empty. One message from a sender called "Interest …" is also this shape and stays `payment_in` |
 | 8 | `Cash In received for GHS x from NAME` | In | Free |
 | 9 | `An amount of GHS x has been credited …` (interest) | In | Maps to Income |
-| 10 | `… has successfully refunded GHS x …` | In | Income, links to original |
-| 11 | `… has been reversed on <time> with transaction ID …` | Reversal | Offsets the original (see 5.3) |
+| 10 | `Hello, NAME has successfully refunded GHS x to your … account at <time>` | In | Income, links to original; ends `TRANSACTION FEE IS 0` |
+| 11 | `… the transfer\|payment of GHS x to NAME has been reversed on <time> with transaction ID: …` | Reversal | Offsets the original (see 5.3). The only shape with a lowercase `transaction ID` |
+
+Counts in the export (messages parsed): shape 1 597, shape 2 458, shape 3 326, shape 4 80, shape 5 134, shape 6 6, shape 7 256, shape 8 43, shape 9 7, shape 10 3, shape 11 3; 6 more are failed payments (ignored). Total 1,913 parsed of 1,919 labelled.
 
 Not stored (recorded as `ignored` in `seen_messages` by id only, no text kept): OTPs, promos, "withheld, pending reversal", "Airtime recharge received" (no transaction ID or balance), PIN-suspended notices.
 
@@ -46,11 +48,11 @@ Focus is the current formats. Older formats (pre-2024 wording) are handled later
 All money is stored as integer pesewas, parsed from the string, never via floats (`"103.00"` → `10300`).
 
 - **Amount:** `GHS 3.00`, `GHS3.00`, `GHS 10`, `10.00 GHS`; strip `GHS`, spaces, thousands commas, trailing dots. `GHC` is accepted.
-- **Fee:** `Fee charged: GHS0.77`, `Fee was GHS 0.05`, `TRANSACTION FEE: 0.00`, `Fee charged: GHS 0.`. Missing → 0.
-- **Tax:** `Tax charged: 0.03`, `TAX charged: GHS 0.03`, `Tax was GHS 0.30`, `,Tax Charged 0`, `Tax was GHS -`. `-` or missing → 0. Stored as `tax_pesewas`.
-- **Balance after:** `Current Balance`, `Your new balance`, `Your new balance is`.
+- **Fee:** `Fee charged: GHS0.77`, `Fee was GHS 0.05`, `TRANSACTION FEE: 0.00`, `Fee charged: GHS 0.`, `TRANSACTION FEE IS 0`, `Transaction fee is GHS0`. Missing → not stated (null), counted as 0 in totals unless another message of the transaction states it.
+- **Tax:** `Tax charged: 0.03`, `TAX charged: GHS 0.03`, `Tax was GHS 0.30`, `Tax charged: GHS0.11`, `,Tax Charged 0`, `Tax was GHS -`. `-` is zero; missing (shapes 4 to 11 have no Tax field) → not stated (null), counted as 0 in totals unless another message of the transaction states it. Stored as `tax_pesewas`.
+- **Balance after:** `Current Balance: GHS x`, `Current Balance GHS x`, `Your new balance: GHS x`, `Your new balance:x GHS`, `Your new balance is GHS x`. Shapes 1 and 7 also print `Available Balance`; it is the same number.
 - **Counterparty:** name after `to` or `from`; a number when the reference carries one (`name,number,note`).
-- **Timestamp:** the ISO time in the body if present; otherwise the SMS received time. The "You have Paid" shape's 12-digit value is not `yyyyMMddHHmm` (only 14 of 80 even parse that way, and all 14 are wrong); it is `yyyy dd HH mm ss` with no month, so it is not parsed. About 71% of financial messages have no body time, so most rows use the received time; `occurred_at_source` records which, and the UI marks received-time rows as approximate. When two messages of a transaction disagree, a body time beats a received time.
+- **Timestamp:** the ISO time in the body if present; otherwise the SMS received time. The "You have Paid" shape's 12-digit value is not `yyyyMMddHHmm` (only 14 of 80 even parse that way, and all 14 are wrong); it is `yyyy dd HH mm ss` with no month, so it is not parsed. About 75% of financial messages (1,443 of 1,913) have no body time, so most rows use the received time; `occurred_at_source` records which, and the UI marks received-time rows as approximate. When two messages of a transaction disagree, a body time beats a received time.
 - **Failed payments:** `Your payment of … has failed` carries a transaction id but no money moves. It is ignored (never spend).
 - **Classification:** a message with no transaction-id label is ignored (`no_txn_id`); a labelled message that matches no template is `unparsed`. Parse rate = parsed / labelled messages.
 - **Reference:** extracted per `categorisation.md` (last comma-part, junk values treated as empty).
@@ -63,6 +65,9 @@ Each template has a name and a version. A wording change becomes a new template,
 
 ### 5.1 Scan
 Read the inbox from the `MobileMoney` sender only. Each scan lists the inbox's message ids and diffs them against the ids already seen, then reads only the new ones (no date cursor, so restored or back-dated messages are caught; ingestion is idempotent). Runs on app open and when the app returns to the foreground. First import of 2,000 messages under 10 s; incremental scan under 1 s. Detail in `system-design.md` 7.1.
+
+### 5.1a Backup import (first-run alternative)
+The first load can also come from an SMS Backup & Restore XML export instead of the inbox. This covers phones where the SMS permission is blocked or hidden (Android 13+ restricted settings, MIUI and similar ROMs) and keeps the app usable if `READ_SMS` is ever refused. The user picks the file; the app streams it, keeps only `address="MobileMoney"` messages, and sends them through the same parse and ingest path as the inbox scan. The file is read once and no message text is stored. Backup messages have no Android id, so they carry no live message to show under "Original message". Re-importing a newer backup is safe because transactions dedupe on `momo_txn_id`. Once the user grants SMS access, the inbox scan takes over for new payments. Detail in `system-design.md` 7.9.
 
 ### 5.2 Deduplication
 Key: `momo_txn_id`. When several messages share an ID, merge them into one row with a commutative per-field rule (a non-null value beats null, a body time beats a received time, a real name beats `Merchant NNNNNN`; `system-design.md` section 5), so the order the messages arrive in never changes the result. A message without an ID is not turned into a transaction.
@@ -111,6 +116,8 @@ Order: manual tag → recipient rule → reference (family and friends names, th
 | FR-14 | Filter list by month, category, direction | Should |
 | FR-15 | View unparsed messages | Should |
 | FR-16 | "Needs a reference" list on open; cash-out "what was this for?" prompt | Must |
+| FR-19 | Import the first load from an SMS Backup & Restore XML file (section 5.1a); show steps to export it | Should |
+| FR-20 | Budget: plan a span of days with a total and optional per-category limits; see what is left, the pace and the status; plans never overlap (design 8.15) | Should |
 | FR-17 | Opt-in sync to Go backend | Could |
 | FR-18 | Export CSV | Could |
 
@@ -144,7 +151,7 @@ Order: manual tag → recipient rule → reference (family and friends names, th
 | M0 | Samples collected (done: one export; need a second phone for the 70% test) |
 | M1 | Expo dev build, Kotlin module, permission flow, raw messages listed |
 | M2 | Templates for each shape, dedupe, unparsed table, fixture tests |
-| M3 | SQLite schema, incremental scan, list and detail |
+| M3 | SQLite schema, incremental scan, list and detail, backup import |
 | M4 | Categorisation, re-tag, names and keywords, monthly summary |
 | M5 (stretch) | Go sync |
 

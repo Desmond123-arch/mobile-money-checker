@@ -1,0 +1,37 @@
+appId: com.momospend.app
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarTransactionsBtn'
+- tapOn:
+    label: 'Search opens a field'
+    id: 'transactionsSearchBtn'
+- tapOn:
+    id: 'transactionsSearchInput'
+- inputText: 'bolt'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- assertVisible:
+    id: 'transactionRow-t2'
+- assertNotVisible:
+    id: 'transactionRow-t3'
+- tapOn:
+    id: 'transactionsSearchBtn'
+- tapOn:
+    label: 'The Category pill opens the filter sheet'
+    id: 'transactionsFilterCategory'
+- assertVisible:
+    id: 'categoryFilterSheet'
+- tapOn:
+    id: 'categoryFilter-food'
+- assertVisible:
+    id: 'transactionRow-t3'
+- assertNotVisible:
+    id: 'transactionRow-t1'
+- tapOn:
+    id: 'transactionsClearCategory'
+- assertVisible:
+    id: 'transactionRow-t1'

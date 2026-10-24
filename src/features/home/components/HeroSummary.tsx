@@ -10,25 +10,48 @@ interface HeroProps {
   spent: Pesewas;
   delta?: { label: string; compare: string };
   children?: ReactNode;
+  onMonthPress?: (() => void) | undefined;
+  onFilterPress?: (() => void) | undefined;
+  onAddPress?: (() => void) | undefined;
 }
 
-export function HeroSummary({ monthLabel, spent, delta, children }: HeroProps) {
+export function HeroSummary({
+  monthLabel,
+  spent,
+  delta,
+  children,
+  onMonthPress,
+  onFilterPress,
+  onAddPress,
+}: HeroProps) {
   const insets = useSafeAreaInsets();
   return (
     <View className="rounded-b-[32px] bg-ink pb-6" style={{ paddingTop: insets.top + 8 }}>
       <View className="flex-row items-center justify-between px-5">
-        <MonthPill testID="homeMonthPill" label={monthLabel} />
-        <Pressable
-          testID="homeFilterBtn"
-          accessibilityRole="button"
-          accessibilityLabel="Filter"
-          className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
-        >
-          <Icon name="filter" size={20} color="#FFFFFF" strokeWidth={1.75} />
-        </Pressable>
+        <MonthPill testID="homeMonthPill" label={monthLabel} onPress={onMonthPress} />
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            testID="homeAddExpenseBtn"
+            onPress={onAddPress}
+            accessibilityRole="button"
+            accessibilityLabel="Add an expense"
+            className="size-10 items-center justify-center rounded-[20px] bg-signal"
+          >
+            <Icon name="plusLarge" size={20} strokeWidth={2.2} />
+          </Pressable>
+          <Pressable
+            testID="homeFilterBtn"
+            onPress={onFilterPress}
+            accessibilityRole="button"
+            accessibilityLabel="Filter"
+            className="size-10 items-center justify-center rounded-[20px] bg-white/[0.12]"
+          >
+            <Icon name="filter" size={20} color="#FFFFFF" strokeWidth={1.75} />
+          </Pressable>
+        </View>
       </View>
       <View className="gap-2 px-5 pt-7">
-        <Text className="font-inter-medium text-[14px] leading-[18px] text-white/70">
+        <Text className="font-inter-medium text-[14px] leading-[19px] text-white/70">
           Spent so far this month
         </Text>
         <Amount testID="homeSpentAmount" amount={spent} tone="inverse" />
@@ -51,18 +74,24 @@ function Stat({
   label,
   value,
   tone = 'ground',
-  lane,
+  divider = false,
+  testID,
 }: {
   label: string;
   value: string;
   tone?: 'ground' | 'in';
-  lane?: boolean;
+  divider?: boolean;
+  testID: string;
 }) {
   return (
-    <View className={`gap-[2px] ${lane ? 'w-[72px]' : 'flex-1'}`}>
+    <View
+      testID={testID}
+      className={`w-1/3 items-center gap-[2px] ${divider ? 'border-l border-white/[0.14]' : ''}`}
+    >
       <Text className="font-inter text-caption text-white/70">{label}</Text>
       <Text
-        className={`font-tight-bold text-[18px] tabular-nums leading-[22px] ${tone === 'in' ? 'text-[#7FE0A8]' : 'text-ground'}`}
+        numberOfLines={1}
+        className={`font-tight-bold text-[16px] tabular-nums leading-[24px] ${tone === 'in' ? 'text-[#7FE0A8]' : 'text-ground'}`}
       >
         {value}
       </Text>
@@ -72,18 +101,18 @@ function Stat({
 
 export function TotalsRow({
   moneyIn,
-  feesAndTax,
   payments,
+  average,
 }: {
   moneyIn: Pesewas;
-  feesAndTax: Pesewas;
   payments: number;
+  average: Pesewas;
 }) {
   return (
     <View className="mx-5 mt-6 flex-row border-t border-white/[0.14] pt-5">
-      <Stat label="Money in" value={`+${formatGhs(moneyIn)}`} tone="in" />
-      <Stat label="Fees and tax" value={formatGhs(feesAndTax)} />
-      <Stat label="Payments" value={String(payments)} lane />
+      <Stat testID="homeMoneyIn" label="Money in" value={`+${formatGhs(moneyIn)}`} tone="in" />
+      <Stat testID="homePayments" label="Payments" value={String(payments)} divider />
+      <Stat testID="homeDailyAverage" label="A day" value={formatGhs(average)} divider />
     </View>
   );
 }

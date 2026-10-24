@@ -1,0 +1,257 @@
+{
+  "shape": "cash_in",
+  "messages": [
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-1",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 101.00 from ZUFASA 88 VENTURES . Current Balance GHS 7,915.93 Available Balance GHS 7,915.93. Transaction ID: 90001039598. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1714559030652
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001039598",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 10100,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 791593,
+          "counterpartyName": "ZUFASA 88 VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1714559030652,
+            "source": "received"
+          },
+          "receivedAt": 1714559030652,
+          "androidId": "fx-cash_in-1",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-2",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 360.00 from KESALO COMPANY LIMITED. Current Balance GHS 8,175.63 Available Balance GHS 8,175.63. Transaction ID: 90001071274. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1714677464762
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001071274",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 36000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 817563,
+          "counterpartyName": "KESALO COMPANY LIMITED",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1714677464762,
+            "source": "received"
+          },
+          "receivedAt": 1714677464762,
+          "androidId": "fx-cash_in-2",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-3",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 101.00 from D-KEKEKE 119 VENTURES. Current Balance GHS 7,978.46 Available Balance GHS 7,978.46. Transaction ID: 90007469826. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1745616577394
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007469826",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 10100,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 797846,
+          "counterpartyName": "D-KEKEKE 119 VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1745616577394,
+            "source": "received"
+          },
+          "receivedAt": 1745616577394,
+          "androidId": "fx-cash_in-3",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-4",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 20.00 from VONUMI KEDILO ZUSALO VENTURES. Current Balance GHS 7,794.04 Available Balance GHS 7,794.04. Transaction ID: 90007960804. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1747228737027
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007960804",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 2000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 779404,
+          "counterpartyName": "VONUMI KEDILO ZUSALO VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1747228737027,
+            "source": "received"
+          },
+          "receivedAt": 1747228737027,
+          "androidId": "fx-cash_in-4",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-5",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 202.00 from ZULOBA - LOGUKE  VENTURES . Current Balance GHS 8,008.95 Available Balance GHS 8,008.95. Transaction ID: 90009204087. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1754418258425
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90009204087",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 20200,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 800895,
+          "counterpartyName": "ZULOBA - LOGUKE VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1754418258425,
+            "source": "received"
+          },
+          "receivedAt": 1754418258425,
+          "androidId": "fx-cash_in-5",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-6",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 50.00 from NUKESA VOGUBA BABAMI. Current Balance GHS 7,855.35 Available Balance GHS 7,855.35. Transaction ID: 90010027663. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1757578144780
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010027663",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 5000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 785535,
+          "counterpartyName": "NUKESA VOGUBA BABAMI",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1757578144780,
+            "source": "received"
+          },
+          "receivedAt": 1757578144780,
+          "androidId": "fx-cash_in-6",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_in-7",
+        "sender": "MobileMoney",
+        "body": "Cash In received for GHS 20.00 from BASAKE MIKENU LIMITED. Current Balance GHS 7,792.27 Available Balance GHS 7,792.27. Transaction ID: 90010186043. Fee charged: GHS 0. Cash in (Deposit) is a free transaction on MTN Mobile Money. Please do not pay any fees for it.",
+        "receivedAt": 1758532826821
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010186043",
+          "kind": "cash_in",
+          "direction": "in",
+          "amount": 2000,
+          "fee": 0,
+          "tax": null,
+          "balanceAfter": 779227,
+          "counterpartyName": "BASAKE MIKENU LIMITED",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1758532826821,
+            "source": "received"
+          },
+          "receivedAt": 1758532826821,
+          "androidId": "fx-cash_in-7",
+          "template": {
+            "name": "cash_in",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

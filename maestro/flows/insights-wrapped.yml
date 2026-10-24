@@ -1,0 +1,30 @@
+appId: com.momospend.app
+---
+# Needs a phone with imported payments: the button is disabled on an empty history.
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarInsightsBtn'
+- tapOn:
+    id: 'insightsPeriodPill'
+- tapOn:
+    id: 'calendarModeAll'
+- tapOn:
+    id: 'calendarAllConfirm'
+- assertVisible:
+    id: 'wrappedBtn'
+- tapOn:
+    id: 'wrappedBtn'
+- assertVisible:
+    id: 'wrappedSlide-intro'
+- tapOn:
+    id: 'wrappedNextZone'
+- assertVisible:
+    id: 'wrappedSlide-total'
+- tapOn:
+    id: 'wrappedPrevZone'
+- assertVisible:
+    id: 'wrappedSlide-intro'
+- tapOn:
+    id: 'wrappedClose'
+- assertVisible:
+    id: 'insightsScreen'

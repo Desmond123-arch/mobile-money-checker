@@ -1,0 +1,89 @@
+{
+  "shape": "failed",
+  "messages": [
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-1",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 30.00 to VODAFONE PUSH  has failed at 2024-10-08 17:17:11. Reference: bundle. Financial Transaction Id: 90004690257. External Transaction Id: -. TRANSACTION FEE IS 0",
+        "receivedAt": 1728407838365
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-2",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to TELECEL PUSH  has failed at 2025-02-07 12:07:43. Reference: LODIKE NUTENU SAGUMI,233200000013,nugumi. Financial Transaction Id: 90006084001. External Transaction Id: 90006084001. TRANSACTION FEE IS 0",
+        "receivedAt": 1738930180442
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-3",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to TELECEL PUSH  has failed at 2025-02-07 12:14:52. Reference: mitemi. Financial Transaction Id: 90006091920. External Transaction Id: 90006091920. TRANSACTION FEE IS 0",
+        "receivedAt": 1738930493771
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-4",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 5.00 to MTN AIRTIME  has failed at 2025-04-30 20:18:30. Reference: -. Financial Transaction Id: 90007580692. External Transaction Id: 90007580692. TRANSACTION FEE IS 0",
+        "receivedAt": 1746044326510
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-5",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to MTN AIRTIME  has failed at 2025-05-12 09:23:32. Reference: -. Financial Transaction Id: 90007905371. External Transaction Id: 90007905371. TRANSACTION FEE IS 0",
+        "receivedAt": 1747041828772
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-failed-6",
+        "sender": "MobileMoney",
+        "body": "Your payment of GHS 10.00 to TELECEL PUSH  has failed at 2025-05-12 09:24:46. Reference: LODIKE NUTENU SAGUMI,233200000013,nugumi. Financial Transaction Id: 90007913290. External Transaction Id: 90007913290. TRANSACTION FEE IS 0",
+        "receivedAt": 1747041904152
+      },
+      "expected": {
+        "status": "ignored",
+        "reason": "failed"
+      }
+    }
+  ]
+}

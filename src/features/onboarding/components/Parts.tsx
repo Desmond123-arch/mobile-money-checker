@@ -17,7 +17,7 @@ export function IconTile({ icon, tone }: { icon: IconName; tone: 'signal' | 'war
 
 export function Headline({ children }: { children: string }) {
   return (
-    <Text className="pt-3 font-tight-extrabold text-[44px] leading-[46px] tracking-[-0.03em] text-ink">
+    <Text className="pt-3 font-tight-extrabold text-[44px] leading-[58px] tracking-[-0.03em] text-ink">
       {children}
     </Text>
   );
@@ -37,10 +37,7 @@ export function RuledList({
   return (
     <View>
       {items.map((text, i) => (
-        <View
-          key={text}
-          className={`flex-row items-start gap-[14px] border-t border-hairline py-[14px] ${i === items.length - 1 ? 'border-b' : ''}`}
-        >
+        <View key={text} className="flex-row items-start gap-[14px] py-[14px]">
           {lead(i)}
           <Text className="flex-1 font-inter text-body leading-6 text-ink">{text}</Text>
         </View>

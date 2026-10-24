@@ -16,8 +16,19 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
 
+import {
+  DbProvider,
+  FirstRunGate,
+  LockGate,
+  NavBarProvider,
+  QueryProvider,
+  ScanProvider,
+} from '@/features/app';
+import { PeriodProvider } from '@/features/period';
+import { TransactionFilterProvider } from '@/features/transactions';
+
+// The splash stays up until FirstRunGate (or the database error screen) has decided the landing.
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -32,25 +43,40 @@ export default function RootLayout() {
     InterTight_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (loaded || error) void SplashScreen.hideAsync();
-  }, [loaded, error]);
-
   if (!loaded && !error) return null;
 
   return (
-    <>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FFFFFF' } }}>
-        <Stack.Screen
-          name="sheets"
-          options={{
-            presentation: 'transparentModal',
-            animation: 'slide_from_bottom',
-            contentStyle: { backgroundColor: 'transparent' },
-          }}
-        />
-      </Stack>
-    </>
+    <QueryProvider>
+      <DbProvider>
+        <NavBarProvider>
+          <LockGate>
+            <ScanProvider>
+              <PeriodProvider>
+                <TransactionFilterProvider>
+                  <StatusBar style="dark" />
+                  <FirstRunGate />
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: '#FFFFFF' },
+                    }}
+                  >
+                    <Stack.Screen name="wrapped" options={{ animation: 'fade' }} />
+                    <Stack.Screen
+                      name="sheets"
+                      options={{
+                        presentation: 'transparentModal',
+                        animation: 'slide_from_bottom',
+                        contentStyle: { backgroundColor: 'transparent' },
+                      }}
+                    />
+                  </Stack>
+                </TransactionFilterProvider>
+              </PeriodProvider>
+            </ScanProvider>
+          </LockGate>
+        </NavBarProvider>
+      </DbProvider>
+    </QueryProvider>
   );
 }

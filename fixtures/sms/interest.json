@@ -1,0 +1,221 @@
+{
+  "shape": "interest",
+  "messages": [
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-1",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 7.93 has been credited to your mobile money account. Message:Interest for January to March 2024. Your new balance: GHS 7,779.30. Financial Transaction Id: 90001261330.",
+        "receivedAt": 1715490896022
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001261330",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 793,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 777930,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for January to March 2024",
+          "occurredAt": {
+            "at": 1715490896022,
+            "source": "received"
+          },
+          "receivedAt": 1715490896022,
+          "androidId": "fx-interest-1",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-2",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 5.02 has been credited to your mobile money account. Message:Interest for April to June 2024. Your new balance: GHS 8,155.47. Financial Transaction Id: 90003446974.",
+        "receivedAt": 1724416154593
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90003446974",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 502,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 815547,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for April to June 2024",
+          "occurredAt": {
+            "at": 1724416154593,
+            "source": "received"
+          },
+          "receivedAt": 1724416154593,
+          "androidId": "fx-interest-2",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-3",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 9.43 has been credited to your mobile money account. Message:Interest for October to December 2024. Your new balance: GHS 9,153.64. Financial Transaction Id: 90005996892.",
+        "receivedAt": 1738543046654
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90005996892",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 943,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 915364,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for October to December 2024",
+          "occurredAt": {
+            "at": 1738543046654,
+            "source": "received"
+          },
+          "receivedAt": 1738543046654,
+          "androidId": "fx-interest-3",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-4",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 24.51 has been credited to your mobile money account. Message:Interest for January to March 2025. Your new balance: GHS 7,922.46. Financial Transaction Id: 90007414393.",
+        "receivedAt": 1745493088080
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007414393",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 2451,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 792246,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for January to March 2025",
+          "occurredAt": {
+            "at": 1745493088080,
+            "source": "received"
+          },
+          "receivedAt": 1745493088080,
+          "androidId": "fx-interest-4",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "extra",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-5",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 3.18 has been credited to your mobile money account. Message:Interest for April to June 2025. Your new balance: GHS 7,893.95. Financial Transaction Id: 90009164492.",
+        "receivedAt": 1754330905067
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90009164492",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 318,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 789395,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for April to June 2025",
+          "occurredAt": {
+            "at": 1754330905067,
+            "source": "received"
+          },
+          "receivedAt": 1754330905067,
+          "androidId": "fx-interest-5",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-interest-6",
+        "sender": "MobileMoney",
+        "body": "An amount of GHS 2.26 has been credited to your mobile money account. Message:Interest for July to September 2025. Your new balance: GHS 7,785.50. Financial Transaction Id: 90010946267.",
+        "receivedAt": 1763057827307
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010946267",
+          "kind": "interest",
+          "direction": "in",
+          "amount": 226,
+          "fee": null,
+          "tax": null,
+          "balanceAfter": 778550,
+          "counterpartyName": null,
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": "Interest for July to September 2025",
+          "occurredAt": {
+            "at": 1763057827307,
+            "source": "received"
+          },
+          "receivedAt": 1763057827307,
+          "androidId": "fx-interest-6",
+          "template": {
+            "name": "interest",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}
