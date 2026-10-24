@@ -1,18 +1,25 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { SEED_CATEGORIES } from '@/domain/category/seed';
 import { parseAmount } from '@/domain/money';
-import { Button, CategoryChip, FilterPill, Sheet, SheetTitle, TextField } from '@/ui';
+import { useWrite } from '@/features/app';
+import { useCategories } from '@/features/categories';
+import { useOpenCashOut } from '@/features/transactions';
+import { addManualExpense } from '@/ledger/manualExpense';
+import { Button, CategoryChip, FilterPill, Sheet, SheetTitle, TextField, TextLink } from '@/ui';
 
-import { useExpenses, type ExpenseDay } from './ExpensesProvider';
+type ExpenseDay = 'today' | 'yesterday';
 
-const CHOICES = SEED_CATEGORIES.filter((c) => c.id !== 'income');
+const DAY_MS = 86_400_000;
 
 export function AddExpenseSheet() {
   const router = useRouter();
-  const { addExpense } = useExpenses();
+  const { sourceMessageId } = useLocalSearchParams<{ sourceMessageId?: string }>();
+  const linked = sourceMessageId === undefined ? undefined : Number(sourceMessageId);
+  const choices = useCategories().filter((c) => c.id !== 'income');
+  const { run, busy, error } = useWrite();
+  const openCash = useOpenCashOut();
   const [amountText, setAmountText] = useState('');
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState('other');
@@ -21,10 +28,25 @@ export function AddExpenseSheet() {
   const amount = parseAmount(amountText);
   const valid = amount !== null && amount > 0 && name.trim() !== '';
 
-  const save = () => {
+  const save = async () => {
     if (!valid) return;
-    addExpense({ name: name.trim(), amount, categoryId, day });
-    router.back();
+    const now = Date.now();
+    const saved = await run(
+      (db) =>
+        addManualExpense(
+          db,
+          {
+            name,
+            amount,
+            categoryId,
+            occurredAt: day === 'today' ? now : now - DAY_MS,
+            ...(linked === undefined ? {} : { sourceMessageId: linked }),
+          },
+          now,
+        ),
+      linked === undefined ? ['money'] : ['money', 'settings'],
+    );
+    if (saved) router.back();
   };
 
   return (
@@ -33,6 +55,13 @@ export function AddExpenseSheet() {
         title="Add an expense"
         body="For cash, or anything MoMo did not send a message for."
       />
+      {openCash && linked === undefined ? (
+        <TextLink
+          testID="addExpenseCashHintLink"
+          label="Spent cash? Break the withdrawal down instead"
+          onPress={() => router.replace(`/sheets/cash-allocations?id=${openCash.id}`)}
+        />
+      ) : null}
       <View className="gap-2">
         <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">Amount (GHS)</Text>
         <TextField
@@ -58,7 +87,7 @@ export function AddExpenseSheet() {
       <View className="gap-2">
         <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">Category</Text>
         <View className="flex-row flex-wrap gap-2">
-          {CHOICES.map((c) => (
+          {choices.map((c) => (
             <CategoryChip
               key={c.id}
               testID={`addExpenseCategory-${c.id}`}
@@ -70,24 +99,40 @@ export function AddExpenseSheet() {
           ))}
         </View>
       </View>
-      <View className="gap-2">
-        <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">When</Text>
-        <View className="flex-row gap-2">
-          <FilterPill
-            testID="addExpenseDayToday"
-            label="Today"
-            active={day === 'today'}
-            onPress={() => setDay('today')}
-          />
-          <FilterPill
-            testID="addExpenseDayYesterday"
-            label="Yesterday"
-            active={day === 'yesterday'}
-            onPress={() => setDay('yesterday')}
-          />
+      {linked === undefined ? (
+        <View className="gap-2">
+          <Text className="font-inter-bold text-[14px] leading-[19px] text-ink">When</Text>
+          <View className="flex-row gap-2">
+            <FilterPill
+              testID="addExpenseDayToday"
+              label="Today"
+              active={day === 'today'}
+              onPress={() => setDay('today')}
+            />
+            <FilterPill
+              testID="addExpenseDayYesterday"
+              label="Yesterday"
+              active={day === 'yesterday'}
+              onPress={() => setDay('yesterday')}
+            />
+          </View>
         </View>
-      </View>
-      <Button testID="addExpenseSaveBtn" label="Add expense" disabled={!valid} onPress={save} />
+      ) : (
+        <Text testID="addExpenseLinkedNote" className="font-inter text-caption text-muted">
+          Dated like the message you are adding.
+        </Text>
+      )}
+      {error ? (
+        <Text testID="addExpenseError" className="font-inter text-caption text-warn">
+          {error}
+        </Text>
+      ) : null}
+      <Button
+        testID="addExpenseSaveBtn"
+        label="Add expense"
+        disabled={!valid || busy}
+        onPress={() => void save()}
+      />
     </Sheet>
   );
 }

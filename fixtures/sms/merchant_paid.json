@@ -1,0 +1,329 @@
+{
+  "shape": "merchant_paid",
+  "messages": [
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-1",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 10 to Merchant 090000 on your mobile money account at 202408131747. Message from sender: bread. Your new balance: GHS 8,638.32 . Fee was GHS 0.05 . Financial Transaction Id: 90001744389.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1717852667659
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001744389",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": 5,
+          "tax": null,
+          "balanceAfter": 863832,
+          "counterpartyName": null,
+          "merchantCode": "090000",
+          "counterpartyNumber": null,
+          "reference": "bread",
+          "occurredAt": {
+            "at": 1717852667659,
+            "source": "received"
+          },
+          "receivedAt": 1717852667659,
+          "androidId": "fx-merchant_paid-1",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-2",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 32 to Merchant 090000 on your mobile money account at 202412104139. Message from sender: dinumi. Your new balance: GHS 8,350.86 . Fee was GHS 0.16 . Financial Transaction Id: 90001839417.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1718188899422
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001839417",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 3200,
+          "fee": 16,
+          "tax": null,
+          "balanceAfter": 835086,
+          "counterpartyName": null,
+          "merchantCode": "090000",
+          "counterpartyNumber": null,
+          "reference": "dinumi",
+          "occurredAt": {
+            "at": 1718188899422,
+            "source": "received"
+          },
+          "receivedAt": 1718188899422,
+          "androidId": "fx-merchant_paid-2",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-3",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 10 to Merchant 090001 on your mobile money account at 202416151249. Message from sender: soup. Your new balance: GHS 8,240.26 . Fee was GHS 0.05 . Financial Transaction Id: 90001918607.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1718550769896
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001918607",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1000,
+          "fee": 5,
+          "tax": null,
+          "balanceAfter": 824026,
+          "counterpartyName": null,
+          "merchantCode": "090001",
+          "counterpartyNumber": null,
+          "reference": "soup",
+          "occurredAt": {
+            "at": 1718550769896,
+            "source": "received"
+          },
+          "receivedAt": 1718550769896,
+          "androidId": "fx-merchant_paid-3",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-4",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 9 to Merchant 090002 on your mobile money account at 202426133840. Message from sender: water. Your new balance: GHS 8,036.20 . Fee was GHS 0.04 . Financial Transaction Id: 90002148258.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1719409120077
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002148258",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 900,
+          "fee": 4,
+          "tax": null,
+          "balanceAfter": 803620,
+          "counterpartyName": null,
+          "merchantCode": "090002",
+          "counterpartyNumber": null,
+          "reference": "water",
+          "occurredAt": {
+            "at": 1719409120077,
+            "source": "received"
+          },
+          "receivedAt": 1719409120077,
+          "androidId": "fx-merchant_paid-4",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-5",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 20 to Merchant 090003 on your mobile money account at 202419223313. Message from sender: rice. Your new balance: GHS 8,192.51 . Fee was GHS 0.10 . Financial Transaction Id: 90002607560.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1721428393924
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002607560",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 2000,
+          "fee": 10,
+          "tax": null,
+          "balanceAfter": 819251,
+          "counterpartyName": null,
+          "merchantCode": "090003",
+          "counterpartyNumber": null,
+          "reference": "rice",
+          "occurredAt": {
+            "at": 1721428393924,
+            "source": "received"
+          },
+          "receivedAt": 1721428393924,
+          "androidId": "fx-merchant_paid-5",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-6",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 8 to Merchant 090002 on your mobile money account at 202502155309. Message from sender: milk. Your new balance: GHS 9,144.21 . Fee was GHS 0.04 . Financial Transaction Id: 90005988973.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1738511589800
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90005988973",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 800,
+          "fee": 4,
+          "tax": null,
+          "balanceAfter": 914421,
+          "counterpartyName": null,
+          "merchantCode": "090002",
+          "counterpartyNumber": null,
+          "reference": "milk",
+          "occurredAt": {
+            "at": 1738511589800,
+            "source": "received"
+          },
+          "receivedAt": 1738511589800,
+          "androidId": "fx-merchant_paid-6",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-7",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 41 to Merchant 090000 on your mobile money account at 202504120751. Message from sender: diminu vodike. Your new balance: GHS 8,953.94 . Fee was GHS 0.20 . Financial Transaction Id: 90006028568.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1738670871316
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006028568",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 4100,
+          "fee": 20,
+          "tax": null,
+          "balanceAfter": 895394,
+          "counterpartyName": null,
+          "merchantCode": "090000",
+          "counterpartyNumber": null,
+          "reference": "diminu vodike",
+          "occurredAt": {
+            "at": 1738670871316,
+            "source": "received"
+          },
+          "receivedAt": 1738670871316,
+          "androidId": "fx-merchant_paid-7",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "pair",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-8",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 11 to Merchant 090002 on your mobile money account at 202511223023. Message from sender: lotete. Your new balance: GHS 8,642.14 . Fee was GHS 0.05 . Financial Transaction Id: 90006163191.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1739313023861
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006163191",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 1100,
+          "fee": 5,
+          "tax": null,
+          "balanceAfter": 864214,
+          "counterpartyName": null,
+          "merchantCode": "090002",
+          "counterpartyNumber": null,
+          "reference": "lotete",
+          "occurredAt": {
+            "at": 1739313023861,
+            "source": "received"
+          },
+          "receivedAt": 1739313023861,
+          "androidId": "fx-merchant_paid-8",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-merchant_paid-9",
+        "sender": "MobileMoney",
+        "body": "Y'ello. You have Paid GHS 7.5 to Merchant 090000 on your mobile money account at 202514191251. Message from sender: egg. Your new balance: GHS 8,582.61 . Fee was GHS 0.03 . Financial Transaction Id: 90006194867.Download the MoMo App for a Faster & Easier Experience Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1739560371409
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006194867",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 750,
+          "fee": 3,
+          "tax": null,
+          "balanceAfter": 858261,
+          "counterpartyName": null,
+          "merchantCode": "090000",
+          "counterpartyNumber": null,
+          "reference": "egg",
+          "occurredAt": {
+            "at": 1739560371409,
+            "source": "received"
+          },
+          "receivedAt": 1739560371409,
+          "androidId": "fx-merchant_paid-9",
+          "template": {
+            "name": "merchant_paid",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

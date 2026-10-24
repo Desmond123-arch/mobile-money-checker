@@ -1,8 +1,32 @@
 const expo = require('eslint-config-expo/flat');
 
+// Only the scan reaches the inbox. Every no-restricted-imports block below repeats this pattern,
+// because a later block replaces an earlier one for the files both match.
+const NATIVE_SMS = {
+  group: ['**/modules/momo-sms', '**/modules/momo-sms/*'],
+  message: 'Only src/scan may import the native SMS module.',
+};
+
+// Only the Wrapped audio adapter touches expo-audio, so a build without the native module cannot crash the app.
+const EXPO_AUDIO = {
+  group: ['expo-audio', 'expo-audio/*'],
+  message: 'Only src/features/wrapped/audio.ts may import expo-audio.',
+};
+
 module.exports = [
   ...expo,
-  { ignores: ['node_modules/', 'dist/', '.expo/', 'android/', 'ios/', 'coverage/'] },
+  {
+    // Agent worktrees hold full stale copies of other branches; linting them reports files that no longer exist here.
+    ignores: [
+      'node_modules/',
+      'dist/',
+      '.expo/',
+      'android/',
+      'ios/',
+      'coverage/',
+      '.claude/worktrees/',
+    ],
+  },
   {
     // The domain is pure: no React Native, no Expo, no SQLite. This is what keeps its tests fast and its logic portable.
     files: ['src/domain/**/*.ts'],
@@ -26,11 +50,44 @@ module.exports = [
               ],
               message: 'src/domain must stay pure (no RN, Expo, SQLite or app layers).',
             },
+            NATIVE_SMS,
+            EXPO_AUDIO,
           ],
         },
       ],
       'no-console': 'error',
     },
+  },
+  {
+    // Message bodies flow through here, so nothing may log; Expo stays behind two adapters.
+    files: ['src/backup/**/*.ts'],
+    ignores: ['src/backup/expoFileSource.ts', 'src/backup/pickBackupFile.ts'],
+    rules: {
+      'no-console': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['react', 'react-native', 'expo', 'expo-*'],
+              message: 'Only expoFileSource.ts and pickBackupFile.ts may import Expo.',
+            },
+            NATIVE_SMS,
+            EXPO_AUDIO,
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}', 'scripts/**/*.ts'],
+    ignores: ['src/scan/**', 'src/domain/**', 'src/backup/**', 'src/features/wrapped/audio.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [NATIVE_SMS, EXPO_AUDIO] }] },
+  },
+  {
+    // src/scan may import the native SMS module, but not expo-audio.
+    files: ['src/scan/**/*.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: [EXPO_AUDIO] }] },
   },
   {
     files: ['src/ledger/**/*.ts', 'src/scan/**/*.ts'],

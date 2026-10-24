@@ -4,7 +4,7 @@ The Settings tab lists categories, people names and a More section with a Lock t
 
 ## Sub-features
 
-- `settings-lock-toggle` the Lock the app switch turns on and off.
+- `app-lock` the Lock the app switch cannot be turned on without a phone screen lock, and says why. With a screen lock it asks for authentication first, which `tap-id` cannot satisfy.
 
 ## How to get to it (user POV)
 

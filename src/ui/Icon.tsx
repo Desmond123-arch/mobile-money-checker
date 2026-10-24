@@ -125,6 +125,24 @@ const GLYPHS = {
       </>
     ),
   },
+  speaker: {
+    viewBox: '0 0 24 24',
+    draw: (p) => (
+      <>
+        {line('M4 9.5h3.5L12 6v12l-4.5-3.5H4z', p)}
+        {line('M15.5 9a4 4 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11', p)}
+      </>
+    ),
+  },
+  speakerOff: {
+    viewBox: '0 0 24 24',
+    draw: (p) => (
+      <>
+        {line('M4 9.5h3.5L12 6v12l-4.5-3.5H4z', p)}
+        {line('M16 9.5l5 5M21 9.5l-5 5', p)}
+      </>
+    ),
+  },
   tag: { viewBox: '0 0 24 24', draw: (p) => line('M4 12V5a1 1 0 0 1 1-1h7l8 8-8 8z', p) },
   message: {
     viewBox: '0 0 48 48',
@@ -147,6 +165,16 @@ const GLYPHS = {
           p,
         )}
         {line('M12 40L38 8', p)}
+      </>
+    ),
+  },
+  lock: {
+    viewBox: '0 0 48 48',
+    draw: (p) => (
+      <>
+        {line('M10 22h28a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V24a2 2 0 0 1 2-2z', p)}
+        {line('M15 22v-6a9 9 0 0 1 18 0v6', p)}
+        {line('M24 30v5', p)}
       </>
     ),
   },

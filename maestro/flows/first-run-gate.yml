@@ -1,0 +1,22 @@
+appId: com.momospend.app
+---
+- launchApp:
+    appId: 'com.momospend.app'
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: 'permissionScreen'
+    timeout: 120000
+- assertNotVisible:
+    id: 'homeScreen'
+- tapOn:
+    label: 'Not now lands on Home'
+    id: 'permissionNotNowBtn'
+- assertVisible:
+    id: 'homeScreen'
+- launchApp:
+    appId: 'com.momospend.app'
+- extendedWaitUntil:
+    visible:
+      id: 'homeScreen'
+    timeout: 120000

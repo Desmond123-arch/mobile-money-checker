@@ -1,50 +1,37 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
-import { ShareBar, ShareLegend, SAMPLE_SPEND } from '@/features/categories';
-import { usePeriod } from '@/features/period';
-import { useExpenses } from '@/features/expenses';
-import { pesewas } from '@/domain/money';
-import type { CategorySpend } from '@/domain/category/share';
 import { dailyAverage } from '@/domain/summary/month';
+import { relativeDay } from '@/domain/transaction/label';
+import { BudgetCard } from '@/features/budget';
+import { ShareBar, ShareLegend, useCategories } from '@/features/categories';
+import { usePeriod, useToday } from '@/features/period';
+import { useCashOutPrompts } from '@/features/transactions/useCashOutPrompts';
 import { TransactionRow } from '@/features/transactions/components/TransactionRow';
-import { SAMPLE_RECENT } from '@/features/transactions/sample';
 import { Screen, SectionHeader, TAB_BAR_CLEARANCE } from '@/ui';
 
 import { DailyChart } from './components/DailyChart';
 import { HeroSummary, TotalsRow } from './components/HeroSummary';
 import { NeedsNoteCard } from './components/NeedsNoteCard';
+import { SmsOffBanner } from './components/SmsOffBanner';
 import { HomeEmptyState } from './HomeEmptyState';
-import { summaryFor } from './sample';
+import { useHomeData } from './useHomeData';
 
 export function HomeScreen() {
   const router = useRouter();
-  const { month: selected } = usePeriod();
-  const { added } = useExpenses();
-  const base = summaryFor(selected);
-  const extras = selected.isCurrent ? added : [];
-  const extraTotal = extras.reduce((sum, a) => sum + a.row.amount, 0);
-  const month = {
-    ...base,
-    spent: pesewas(base.spent + extraTotal),
-    payments: base.payments + extras.length,
-  };
-  const spend = extras.reduce<CategorySpend[]>(
-    (all, a) => {
-      const id = a.row.categoryId ?? 'other';
-      const found = all.find((s) => s.categoryId === id);
-      return found
-        ? all.map((s) => (s === found ? { ...s, amount: pesewas(s.amount + a.row.amount) } : s))
-        : [...all, { categoryId: id, amount: a.row.amount }];
-    },
-    [...SAMPLE_SPEND],
-  );
-  const recent = [
-    ...extras.map((a) => ({ row: a.row, when: a.day === 'today' ? 'Today' : 'Yesterday' })),
-    ...SAMPLE_RECENT,
-  ].slice(0, 3);
+  const today = useToday();
+  const { month: selected, hasData, ready } = usePeriod();
+  const data = useHomeData(selected.id);
+  const cashOuts = useCashOutPrompts(selected.id);
+  useCategories();
 
-  if (month.payments === 0) return <HomeEmptyState month={month} />;
+  if (!ready || data === undefined)
+    return <View testID="homeLoading" className="flex-1 bg-ground" />;
+
+  const { summary: month, spend } = data;
+  const recent = data.recent.map(({ iso, row }) => ({ row, when: relativeDay(iso, today) }));
+
+  if (month.payments === 0) return <HomeEmptyState month={month} otherMonthsHaveData={hasData} />;
 
   return (
     <Screen testID="homeScreen" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
@@ -64,9 +51,20 @@ export function HomeScreen() {
         />
       </HeroSummary>
 
+      <SmsOffBanner />
+
       {month.needNote > 0 ? (
-        <NeedsNoteCard count={month.needNote} onPress={() => router.push('/sheets/add-note')} />
+        <NeedsNoteCard
+          count={month.needNote}
+          onPress={() => {
+            // Cash-outs come first; their sheet is the breakdown one.
+            const first = cashOuts?.[0];
+            router.push(first ? `/sheets/cash-allocations?id=${first.row.id}` : '/sheets/add-note');
+          }}
+        />
       ) : null}
+
+      <BudgetCard />
 
       <View className="px-5 pt-9">
         <View className="pb-4">

@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatPlain, pesewas } from '@/domain/money';
-import { categoryById } from '@/features/categories';
-import { useExpenses } from '@/features/expenses';
+import { groupByDay } from '@/domain/transaction/day';
+import { categoryById, useCategories } from '@/features/categories';
+import { usePeriod, useToday } from '@/features/period';
 import {
   ClearButton,
   FilterPill,
@@ -17,33 +18,48 @@ import {
 
 import { TransactionRow } from './components/TransactionRow';
 import { useTransactionFilter } from './filterContext';
-import { daysWithAdded } from './days';
+import { useCashOutLefts } from './useCashAllocations';
+import { useCashOutPrompts } from './useCashOutPrompts';
+import { useTransactions } from './useTransactions';
 
 type Direction = 'all' | 'out' | 'in';
 
 export function TransactionsScreen() {
   const router = useRouter();
   const { categoryId, setCategoryId } = useTransactionFilter();
-  const { added } = useExpenses();
   const [direction, setDirection] = useState<Direction>('all');
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
 
+  const today = useToday();
+  const { month } = usePeriod();
+  useCategories();
+
   const needle = query.trim().toLowerCase();
   const category = categoryById(categoryId);
+  // A filter on a category that has since been deleted would show nothing and cannot be seen.
+  useEffect(() => {
+    if (categoryId !== null && category === null) setCategoryId(null);
+  }, [categoryId, category, setCategoryId]);
+  const filtered = direction !== 'all' || categoryId !== null || needle !== '';
 
-  const days = daysWithAdded(added)
-    .map((day) => ({
-      ...day,
-      rows: day.rows.filter((r) => {
-        if (direction !== 'all' && r.direction !== direction) return false;
-        if (categoryId !== null && r.categoryId !== categoryId) return false;
-        if (needle === '') return true;
-        const haystack = `${r.counterparty} ${r.note ?? ''} ${categoryById(r.categoryId)?.name ?? ''}`;
-        return haystack.toLowerCase().includes(needle);
-      }),
-    }))
-    .filter((day) => day.rows.length > 0);
+  const rows = useTransactions({
+    monthId: month.id,
+    direction: direction === 'all' ? null : direction,
+    categoryId,
+    search: query,
+  });
+  const asking = new Set((useCashOutPrompts(month.id) ?? []).map((p) => p.row.id));
+  const lefts = useCashOutLefts(month.id);
+  const breakDownFor = (id: string) => {
+    const info = lefts?.get(id);
+    if (!info || info.left === 0 || !(asking.has(id) || info.allocated > 0)) return undefined;
+    return {
+      left: pesewas(info.left),
+      onPress: () => router.push(`/sheets/cash-allocations?id=${id}`),
+    };
+  };
+  const days = groupByDay(rows ?? [], today);
 
   const toggleSearch = () => {
     if (searching) setQuery('');
@@ -131,11 +147,9 @@ export function TransactionsScreen() {
       ) : null}
       <View className="px-5 pt-2">
         {days.map((day) => {
-          const total = pesewas(
-            day.rows.reduce((sum, r) => sum + (r.direction === 'in' ? r.amount : -r.amount), 0),
-          );
+          const total = day.total;
           return (
-            <View key={day.label}>
+            <View key={day.iso}>
               <View className="flex-row items-baseline justify-between pb-1 pt-5">
                 <Text className="font-inter-bold text-caption text-muted">{day.label}</Text>
                 <Text className="font-inter-medium text-caption text-muted">
@@ -148,19 +162,22 @@ export function TransactionsScreen() {
                   key={row.id}
                   row={row}
                   onPress={() => router.push(`/transaction/${row.id}`)}
-                  onAddNote={() => router.push('/sheets/add-note')}
+                  onAddNote={() => router.push(`/sheets/add-note?id=${row.id}`)}
+                  breakDown={breakDownFor(row.id)}
                 />
               ))}
             </View>
           );
         })}
-        {days.length === 0 ? (
+        {rows !== undefined && days.length === 0 ? (
           <View testID="transactionsEmpty" className="items-start gap-2 pt-10">
             <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">
-              No payments match.
+              {filtered ? 'No payments match.' : `No payments in ${month.label}.`}
             </Text>
             <Text className="font-inter text-body leading-6 text-muted">
-              Try a different word, or clear the filters.
+              {filtered
+                ? 'Try a different word, or clear the filters.'
+                : 'Pick another month on Home to see your other payments.'}
             </Text>
           </View>
         ) : null}

@@ -177,6 +177,8 @@ A labelled body is never ignored by a promo rule. Curly apostrophes are normalis
 
 ## 6. Data model
 
+> Superseded by [`data-model.md`](data-model.md) and `src/data/migrations/0001_init.ts`. The SQL below is the original sketch and no longer matches the schema.
+
 SQLite, `PRAGMA user_version` for migrations, `PRAGMA foreign_keys = ON`, WAL mode. All money INTEGER pesewas, all times INTEGER epoch milliseconds UTC. Ghana is UTC+0 with no daylight saving, so body timestamps are parsed as UTC and month boundaries are UTC.
 
 ```sql
@@ -372,6 +374,18 @@ Five things write: scan on open, the foreground observer, the manual "Check for 
 
 `deleteCategory(id)` is a ledger function, not a raw DELETE. System categories (those with a `system_key`) cannot be deleted. For a user category, in one transaction: move its transactions to Misc, delete the `overrides` rows that pointed at it (so no stale `manual` remains), delete its keywords and any recipient rules for it (after a confirmation that shows the counts, because those cascade), delete the category, then `recategorise()` the moved rows. Family and Friends name lists resolve through `system_key`, so renaming the categories does not break them.
 
+### 7.9 Backup import
+
+A second source for the first load, feeding the same `ingest(batch)` as the scan (7.2).
+
+- **Input.** The user picks an SMS Backup & Restore XML file through the system document picker (`expo-document-picker`, copied to cache and deleted after). The reader streams it in chunks, so a 2.4 MB file (or a much larger one) never sits in memory as a string, and keeps only `<sms>` elements whose `address` is `MobileMoney`. Other senders are skipped before their body is read into a message object.
+- **Fields.** `body`, `date` (epoch ms, the received time) and `address`. The export has no Android `_id`, so identity cannot be `(android_sms_id, received_at)`.
+- **Identity.** `sms_messages` has `source` (`inbox` or `backup`); `android_sms_id` is NULL for `backup` rows, which carry a `backup_key` instead: `<received_at>:<momo_txn_id>:<template_name>`, unique among backup rows. `(received_at, momo_txn_id)` alone is not enough because `sms_messages` has no txn id column and the importer builds the key from the parse result; the template name separates two fragments of one payment that share a millisecond. Re-importing the same or a newer backup hits the same keys and converges. A backup message that parses as unparsed or ignored is counted for the Importing screen but is not stored, because it has no stable identity (a CHECK keeps backup rows `parsed`). `gone_at` never applies to backup rows, `source_on_phone` is false for transactions whose fragments are all from a backup, and `unread_messages` lists inbox rows only.
+- **Overlap with the scan.** When the user later grants SMS access, the scan reads the inbox and its fragments join the same transactions by `momo_txn_id`; `mergeAll` is commutative, so the result does not depend on which source arrived first. Old messages the phone still holds simply add inbox fragments next to the backup ones.
+- **Progress.** The same events as the scan (`read`, `total`, `payments`) drive the Importing screen. The total comes from a first counting pass over the `address` attributes.
+- **Privacy.** The file is read once, no text is stored, and the cached copy is deleted when the import ends or fails. Importing never needs `READ_SMS`.
+- **After the import.** `meta.first_import_done` is set, then Home asks once for SMS access. If the user declines, new payments need a fresh import, and Home shows the "SMS access is off" banner with an "Import a newer backup" action.
+
 ## 8. Native module contract
 
 `modules/momo-sms` is a local Expo module (`create-expo-module --local`). The JS surface is small and stateless:
@@ -391,6 +405,8 @@ export function addMomoMessageListener(cb: () => void): { remove(): void };     
 
 Kotlin side: `AsyncFunction`s run off the main thread. `listMomoMessageIds` queries `content://sms/inbox` for `_id, date` with a case-insensitive selection on `address`. The by-id reads use `_id IN (…)` in chunks, re-apply the sender selection (so a reused or foreign id never leaks another sender's text), blank the body of any message starting with `<#>` (OTP, security codes) and return `isOtp = true`, and close the cursor in `use {}`. Only the allowed sender is ever read, so NFR-02 holds at the source, not just in JS. `requestPermission` uses the Expo permissions manager and distinguishes a plain denial from a permanent one so the "Permission denied" screen can send the user to phone settings.
 
+**As built (`modules/momo-sms`).** The surface differs from the sketch above in these ways. `getPermissionStatus()` replaces `hasPermission()` and returns `'granted' | 'denied' | 'blocked' | 'undetermined'`. `listMomoMessageIds()` takes no options, because the allowed sender is a constant in Kotlin. `readMessageById` is not built yet. The debounce is about 1 s in Kotlin (`ContentObserver` plus `Handler.postDelayed`), and JS starts and stops the observer through the first and last listener. The sender is matched with `LIKE`, which is ASCII case-insensitive, and checked again in Kotlin. Details and the APIs used are in `modules/momo-sms/README.md`.
+
 No keyset paging is needed now: the id list is cheap and bodies are read by id in chunks of 500, so a changing inbox cannot skip or repeat a page.
 
 ## 9. Application layer
@@ -406,11 +422,11 @@ No keyset paging is needed now: the id list is cheap and bodies are read by id i
   5. `requestPermission()` returns `blocked`: the screen explains Android 13+ "restricted settings" for APKs installed from a browser or file manager (App info → ⋮ → Allow restricted settings, then grant SMS). ADB installs are exempt, so the developer never sees this; it is a manual test (step 1 of the build order).
 - **Triggers:** cold start, `AppState` → `active`, the foreground observer and the manual button all call the same single-flight scan (7.7).
 - **Needs a reference prompts** cover only transactions with `occurred_at >= meta.first_import_at` whose resolved category is Misc (and cash-outs, for the "What was this for?" sheet). The first import would otherwise raise about 700 prompts plus 134 cash-out prompts from old history; history stays reachable through the "Needs a tag" filter.
-- **App lock (Should):** `expo-local-authentication` gate in the root layout, off by default.
+- **App lock (Should):** `expo-local-authentication` gate in the root layout, off by default. As built: `LockGate` inside `DbProvider`, a pure state machine, a 30 s grace period, `meta.app_lock_enabled`; see `handoff.md` section 5. It gates the UI only, and the database is not encrypted at rest.
 
 ## 10. Privacy and safety, enforced structurally
 
-- **No network.** The release build strips the `INTERNET` permission through a config plugin (the dev client keeps it for Metro). A build with no network permission is a stronger guarantee than a promise.
+- **No network.** The release build strips the `INTERNET` permission through `app.config.js`, keyed on the EAS build profile (the dev client keeps it for Metro). A build with no network permission is a stronger guarantee than a promise.
 - **No cloud backup.** `android:allowBackup="false"` and `dataExtractionRules` exclude the database.
 - **Narrow reads.** The sender filter lives in Kotlin, including `readMessageById`, which refuses any message not from an allowed sender.
 - **No message text is stored.** The app keeps parsed fields and message ids only. OTPs, promos and unknown messages are never copied. The "Original message" row and the unread list read the text live from the inbox and discard it. The one thing in the database that came from message text is the parsed fields (amount, counterparty name and number, the reference).
@@ -435,7 +451,7 @@ No keyset paging is needed now: the id list is cheap and bodies are read by id i
 | Native module | Manual on a real phone, plus an emulator inbox seeded from the anonymised fixtures with `adb shell content insert --uri content://sms/inbox --bind address:s:MobileMoney …` so restore, delete-newest and clock-skew cases can be scripted. Also install the release APK through a file manager on an Android 13+ phone (restricted settings) | M1 exit criterion |
 | UI | Minimal `jest-expo` render tests for the screens with logic (needs-reference list, cash-out sheet) | Not a gate for the POC |
 | Real-data check | A dev-only script runs the parser over a user-supplied XML export (the export has no `_id`, so the script assigns synthetic ids in file order and runs the messages through `Ledger.ingest` on `better-sqlite3`) and prints parse rate against messages with a transaction-id label, unparsed shapes, ignored counts and the reconciliation result | Target: ≥95% parse |
-| Fixtures | One fixture per layout variant, not per shape (two "Payment made" layouts, trailing promo text present or absent, failed, reversal, refund with lowercase `transaction ID`) | ≥5 per shape plus variants |
+| Fixtures | One fixture per layout variant, not per shape (two "Payment made" layouts, trailing promo text present or absent, failed, reversal with its lowercase `transaction ID`, refund) | ≥5 per shape plus variants |
 
 The domain package never imports `react-native` or `expo-*`, enforced by an ESLint `no-restricted-imports` rule. That is what keeps the fast tests possible.
 
@@ -472,7 +488,7 @@ The domain package never imports `react-native` or `expo-*`, enforced by an ESLi
 | 5 (M4a) | Categoriser, seed data, overrides, `recategorise`, needs-a-reference and cash-out flows | Categorisation table tests; 70% on the export |
 | 6 (M4b) | Summary and Insights queries and screens | Hand-checked month matches to the pesewa |
 | 7 | Settings: categories, words, names, unread messages, app lock | Edit a keyword and watch Home change |
-| 8 | Reversal linking, polish, release build without `INTERNET` | `aapt dump permissions` shows no network permission |
+| 8 | Reversal linking, polish, release build without `INTERNET` | `aapt dump permissions` or `npm run check:apk` shows no network permission |
 
 Each step ends in something that runs. Design screens are already done, so steps 1 to 8 are implementation only.
 

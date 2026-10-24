@@ -1,11 +1,20 @@
 import { Text, View } from 'react-native';
 
 import type { MonthSummary } from '@/domain/summary/month';
+import { useScan } from '@/features/app';
 import { Button, Screen, TAB_BAR_CLEARANCE } from '@/ui';
 
 import { HeroSummary } from './components/HeroSummary';
 
-export function HomeEmptyState({ month }: { month: MonthSummary }) {
+export function HomeEmptyState({
+  month,
+  otherMonthsHaveData,
+}: {
+  month: MonthSummary;
+  /** True when some other month has payments, so "nothing yet" would be a lie about the app. */
+  otherMonthsHaveData: boolean;
+}) {
+  const scan = useScan();
   return (
     <Screen testID="homeEmptyState" safeTop={false} bottomPad={TAB_BAR_CLEARANCE}>
       <HeroSummary monthLabel={month.label} spent={month.spent}>
@@ -17,11 +26,12 @@ export function HomeEmptyState({ month }: { month: MonthSummary }) {
       </HeroSummary>
       <View className="items-start gap-3 px-5 pt-10">
         <Text className="font-tight-extrabold text-[28px] leading-[37px] tracking-[-0.02em] text-ink">
-          Nothing here yet.
+          {otherMonthsHaveData ? `No payments in ${month.label}.` : 'Nothing here yet.'}
         </Text>
         <Text className="font-inter text-body leading-6 text-muted">
-          Make a MoMo payment and it shows up here the next time you open the app. Already paid
-          someone this month? Check for new messages.
+          {otherMonthsHaveData
+            ? 'Pick another month to see your other payments, or check for new messages.'
+            : 'Make a MoMo payment and it shows up here the next time you open the app. Already paid someone this month? Check for new messages.'}
         </Text>
         <View className="mt-3">
           <Button
@@ -30,6 +40,7 @@ export function HomeEmptyState({ month }: { month: MonthSummary }) {
             size="md"
             variant="signal"
             block={false}
+            onPress={() => void scan.scan()}
           />
         </View>
       </View>

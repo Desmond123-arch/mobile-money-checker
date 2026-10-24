@@ -1,0 +1,19 @@
+appId: com.momospend.app
+# Biometric and PIN prompts are system UI that Maestro cannot satisfy, so this flow covers only
+# what is visible without them. Run it on an emulator with NO screen lock set. The enabled path
+# (switch on, kill, reopen, lockScreen, unlockBtn) is the manual checklist in docs/handoff.md.
+---
+- runFlow: ../setupApp.yml
+- tapOn:
+    id: 'tabBarSettingsBtn'
+- scrollUntilVisible:
+    element:
+      id: 'settingsLockToggle'
+- assertVisible: 'Set a screen lock in your phone’s settings first'
+- tapOn:
+    id: 'settingsLockToggle'
+- assertVisible:
+    id: 'settingsLockToggle'
+    checked: false
+- assertNotVisible:
+    id: 'lockScreen'

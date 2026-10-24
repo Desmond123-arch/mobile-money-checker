@@ -16,3 +16,4 @@ export { FixedScreen, Screen, TAB_BAR_CLEARANCE } from './Screen';
 export { MonthPill } from './MonthPill';
 export { Sheet, SheetTitle } from './Sheet';
 export { TabBar } from './TabBar';
+export { useBottomInset } from './useBottomInset';

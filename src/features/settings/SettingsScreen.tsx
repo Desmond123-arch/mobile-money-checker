@@ -1,16 +1,25 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { SEED_CATEGORIES } from '@/domain/category/seed';
+import { getMeta } from '@/data/meta';
+import { useAppLock, useDb, useNavBar, useRequestSms, useScan } from '@/features/app';
+import { settingsSubtitle, useFeaturedPlan } from '@/features/budget';
+import { useCategories } from '@/features/categories';
+import { useKeywordCounts } from '@/features/categories/useCategoryWords';
+import { useToday } from '@/features/period';
+import { isoDate } from '@/domain/calendar/week';
 import { Icon, Screen, ScreenTitle, TAB_BAR_CLEARANCE, Toggle, hardShadow } from '@/ui';
 
+import { checkRowSubtitle, type CheckState } from './checkRowSubtitle';
+import { importRowSubtitle } from './importRowSubtitle';
+import { lockRowSubtitle, lockToggleDisabled } from './lockRowSubtitle';
 import { NameList } from './components/NameList';
 import { Row } from './components/Row';
-import { CATEGORY_WORD_COUNTS, FAMILY_NAMES, FRIEND_NAMES, UNREAD_MESSAGES } from './sample';
+import { useNameLists, useUnreadMessages } from './useSettingsData';
 
-const LISTED = SEED_CATEGORIES.filter((c) => c.id in CATEGORY_WORD_COUNTS);
-const HIDDEN = SEED_CATEGORIES.filter((c) => !(c.id in CATEGORY_WORD_COUNTS));
+const NAME_LISTED = ['family', 'friends'];
+const wordsLabel = (n: number) => `${n} ${n === 1 ? 'word' : 'words'}`;
 
 function Heading({ children }: { children: string }) {
   return (
@@ -22,8 +31,63 @@ function Heading({ children }: { children: string }) {
 
 export function SettingsScreen() {
   const router = useRouter();
-  const [locked, setLocked] = useState(false);
+  const lock = useAppLock();
+  const navBar = useNavBar();
+  const [lockBusy, setLockBusy] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const db = useDb();
+  const categories = useCategories();
+  const names = useNameLists();
+  const unread = useUnreadMessages();
+  const counts = useKeywordCounts() ?? {};
+  // Categories with words, the two that use names, and every one the user made come first.
+  const isListed = (id: string) =>
+    NAME_LISTED.includes(id) || (counts[id] ?? 0) > 0 || /^\d+$/.test(id);
+  const listed = categories.filter((c) => isListed(c.id));
+  const hidden = categories.filter((c) => !isListed(c.id));
+  const asideOf = (id: string) =>
+    NAME_LISTED.includes(id) ? 'uses names' : wordsLabel(counts[id] ?? 0);
+  const [lastImportAt, setLastImportAt] = useState<string | null>(null);
+  const budget = useFeaturedPlan();
+  const todayIso = isoDate(useToday());
+  const scan = useScan();
+  const requestSms = useRequestSms();
+  const [check, setCheck] = useState<CheckState>({ kind: 'idle' });
+
+  const changeLock = async (next: boolean) => {
+    setLockBusy(true);
+    try {
+      await lock.change(next);
+    } finally {
+      setLockBusy(false);
+    }
+  };
+
+  const checkMessages = async () => {
+    if (scan.permission !== null && scan.permission !== 'granted') {
+      const status = await requestSms();
+      if (status === 'blocked')
+        router.push({ pathname: '/permission-denied', params: { state: 'blocked' } });
+      else if (status === 'denied' || status === 'undetermined') router.push('/permission-denied');
+      return;
+    }
+    setCheck({ kind: 'checking' });
+    const outcome = await scan.scan();
+    setCheck({ kind: 'done', outcome });
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      let live = true;
+      (async () =>
+        (await getMeta(db, 'last_import_at')) ?? (await getMeta(db, 'first_import_at')))()
+        .then((value) => live && setLastImportAt(value))
+        .catch(() => undefined);
+      return () => {
+        live = false;
+      };
+    }, [db]),
+  );
 
   return (
     <Screen testID="settingsScreen" bottomPad={TAB_BAR_CLEARANCE}>
@@ -34,18 +98,18 @@ export function SettingsScreen() {
         <Text className="pb-2 pt-1 font-inter text-[14px] leading-5 text-muted">
           Open one to add the words that file a payment under it.
         </Text>
-        {LISTED.map((c) => (
+        {listed.map((c) => (
           <Row
             key={c.id}
             testID={`categoryRow-${c.id}`}
             swatch={c.color}
             title={c.name}
-            aside={CATEGORY_WORD_COUNTS[c.id]}
+            aside={asideOf(c.id)}
             onPress={() => router.push(`/category/${c.id}`)}
           />
         ))}
         {showAll
-          ? HIDDEN.map((c) => (
+          ? hidden.map((c) => (
               <Row
                 key={c.id}
                 testID={`categoryRow-${c.id}`}
@@ -56,16 +120,17 @@ export function SettingsScreen() {
               />
             ))
           : null}
-        <Row
-          testID="settingsMoreCategoriesRow"
-          title={showAll ? 'Show fewer' : `Health, Education and ${HIDDEN.length - 2} more`}
-          chevron={false}
-          last
-          trailing={
-            <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
-          }
-          onPress={() => setShowAll(!showAll)}
-        />
+        {hidden.length > 0 ? (
+          <Row
+            testID="settingsMoreCategoriesRow"
+            title={showAll ? 'Show fewer' : `${hidden.length} more without words`}
+            chevron={false}
+            trailing={
+              <Icon name={showAll ? 'chevronDown' : 'chevronRight'} size={16} strokeWidth={1.75} />
+            }
+            onPress={() => setShowAll(!showAll)}
+          />
+        ) : null}
         <Pressable
           testID="settingsNewCategoryBtn"
           accessibilityRole="button"
@@ -86,9 +151,9 @@ export function SettingsScreen() {
           When a note has one of these names, the payment is filed under it.
         </Text>
         <Text className="pt-1 font-inter-bold text-[14px] leading-[19px] text-ink">Family</Text>
-        <NameList idPrefix="family" initial={FAMILY_NAMES} tint="#FBEBC4" />
+        <NameList kind="family" idPrefix="family" names={names?.family ?? []} tint="#FBEBC4" />
         <Text className="pt-2 font-inter-bold text-[14px] leading-[19px] text-ink">Friends</Text>
-        <NameList idPrefix="friend" initial={FRIEND_NAMES} tint="#D9E8FA" />
+        <NameList kind="friend" idPrefix="friend" names={names?.friend ?? []} tint="#D9E8FA" />
       </View>
 
       <View className="px-5 pt-10">
@@ -96,21 +161,57 @@ export function SettingsScreen() {
           <Heading>More</Heading>
         </View>
         <Row
+          testID="settingsBudgetRow"
+          title="Budget"
+          subtitle={settingsSubtitle(budget?.featured ?? null, todayIso)}
+          onPress={() => router.push('/budget')}
+        />
+        <Row
+          testID="settingsImportBackupRow"
+          title="Import a backup file"
+          subtitle={importRowSubtitle(lastImportAt)}
+          onPress={() => router.push('/sheets/import-steps')}
+        />
+        <Row
+          testID="settingsCheckMessagesRow"
+          title="Check for new messages"
+          subtitle={checkRowSubtitle(scan.permission, check)}
+          onPress={() => void checkMessages()}
+        />
+        <Row
           testID="settingsUnreadRow"
           title="Messages we couldn't read"
-          subtitle={`${UNREAD_MESSAGES.length} messages`}
+          subtitle={
+            unread === undefined || unread.length === 0
+              ? 'None to review'
+              : `${unread.length} ${unread.length === 1 ? 'message' : 'messages'}`
+          }
           onPress={() => router.push('/unread-messages')}
         />
         <Row
           testID="settingsLockRow"
           title="Lock the app"
-          subtitle="Fingerprint or PIN to open"
+          subtitle={lockRowSubtitle(lock.available, lock.enabled)}
           trailing={
             <Toggle
               testID="settingsLockToggle"
               label="Lock the app"
-              value={locked}
-              onChange={setLocked}
+              value={lock.enabled}
+              disabled={lockToggleDisabled(lock.available, lock.enabled) || lockBusy}
+              onChange={(next) => void changeLock(next)}
+            />
+          }
+        />
+        <Row
+          testID="settingsNavBarRow"
+          title="Hide the navigation bar"
+          subtitle="Swipe up from the bottom edge to bring it back"
+          trailing={
+            <Toggle
+              testID="settingsNavBarToggle"
+              label="Hide the navigation bar"
+              value={navBar.hidden}
+              onChange={navBar.setHidden}
             />
           }
         />
@@ -118,7 +219,6 @@ export function SettingsScreen() {
           testID="settingsPrivacyRow"
           title="Privacy"
           subtitle="Everything stays on this phone"
-          last
           onPress={() => router.push('/privacy')}
         />
       </View>

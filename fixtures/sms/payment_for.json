@@ -1,0 +1,293 @@
+{
+  "shape": "payment_for",
+  "messages": [
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-1",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS2.99 to MTNBUNDLE ..Current Balance: GHS 7,866.43. Transaction Id: 90001007922. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1714361930889
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001007922",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 299,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 786643,
+          "counterpartyName": "MTNBUNDLE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1714361930889,
+            "source": "received"
+          },
+          "receivedAt": 1714361930889,
+          "androidId": "fx-payment_for-1",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-2",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS3.00 to Just4u  .Current Balance: GHS 7,785.23. Transaction Id: 90001332601. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1716018398178
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001332601",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 300,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 778523,
+          "counterpartyName": "Just4u",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1716018398178,
+            "source": "received"
+          },
+          "receivedAt": 1716018398178,
+          "androidId": "fx-payment_for-2",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-3",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS1.10 to Other Networks  .Current Balance: GHS 7,865.13. Transaction Id: 90001467224. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1716629270871
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001467224",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 110,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 786513,
+          "counterpartyName": "Other Networks",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1716629270871,
+            "source": "received"
+          },
+          "receivedAt": 1716629270871,
+          "androidId": "fx-payment_for-3",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-4",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS79.50 to Paystack Ghana Limited .Current Balance: GHS 7,782.63. Transaction Id: 90001483062. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1716636443492
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001483062",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 7950,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 778263,
+          "counterpartyName": "Paystack Ghana Limited",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1716636443492,
+            "source": "received"
+          },
+          "receivedAt": 1716636443492,
+          "androidId": "fx-payment_for-4",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-5",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS3.00 to MTN BUNDLE.Current Balance: GHS 8,146.12. Transaction Id: 90002053230. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1719221047346
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002053230",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 300,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 814612,
+          "counterpartyName": "MTN BUNDLE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1719221047346,
+            "source": "received"
+          },
+          "receivedAt": 1719221047346,
+          "androidId": "fx-payment_for-5",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-6",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS2.00 to MTN  ..Current Balance: GHS 7,776.44. Transaction Id: 90002346233. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1720228886393
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002346233",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 200,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 777644,
+          "counterpartyName": "MTN",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1720228886393,
+            "source": "received"
+          },
+          "receivedAt": 1720228886393,
+          "androidId": "fx-payment_for-6",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-7",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS54.00 to LOZUMI CONSULT LIMITED .Current Balance: GHS 8,333.61. Transaction Id: 90002829292. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: http://mtnghana.app.link/nsBnhItDoob",
+        "receivedAt": 1722003050107
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90002829292",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 5400,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 833361,
+          "counterpartyName": "LOZUMI CONSULT LIMITED",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1722003050107,
+            "source": "received"
+          },
+          "receivedAt": 1722003050107,
+          "androidId": "fx-payment_for-7",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-payment_for-8",
+        "sender": "MobileMoney",
+        "body": "Payment for GHS58.84 to Bills.INV ..Current Balance: GHS 8,797.50. Transaction Id: 90010661183. Fee charged: GHS0.00,Tax Charged 0.Download the MoMo App for a Faster & Easier Experience. Click here: https://bit.ly/downloadMyMoMo",
+        "receivedAt": 1761490054490
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010661183",
+          "kind": "payment_out",
+          "direction": "out",
+          "amount": 5884,
+          "fee": 0,
+          "tax": 0,
+          "balanceAfter": 879750,
+          "counterpartyName": "Bills.INV",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1761490054490,
+            "source": "received"
+          },
+          "receivedAt": 1761490054490,
+          "androidId": "fx-payment_for-8",
+          "template": {
+            "name": "payment_for",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

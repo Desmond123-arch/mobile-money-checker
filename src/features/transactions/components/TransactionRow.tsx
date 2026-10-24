@@ -1,10 +1,10 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { formatPlain } from '@/domain/money';
+import { formatGhs, formatPlain, type Pesewas } from '@/domain/money';
 import type { TransactionRow as Row } from '@/domain/transaction/transaction';
 import { Icon } from '@/ui';
 
-import { categoryById, categoryIcon } from '@/features/categories';
+import { categoryById, categoryIcon, useCategories } from '@/features/categories';
 
 interface Props {
   row: Row;
@@ -12,12 +12,31 @@ interface Props {
   padding?: 'py-3' | 'py-[14px]';
   onPress?: () => void;
   onAddNote?: () => void;
+  /** A cash-out with something left to break down: opens the allocations sheet. */
+  breakDown?: { left: Pesewas; onPress: () => void } | undefined;
 }
 
-export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote }: Props) {
+export function TransactionRow({
+  row,
+  when,
+  padding = 'py-3',
+  onPress,
+  onAddNote,
+  breakDown,
+}: Props) {
+  useCategories();
   const category = categoryById(row.categoryId);
   const incoming = row.direction === 'in';
-  const needsNote = row.note === null;
+  // Same rule as Home's "What were these for?" card: a payment out that no category claimed.
+  const needsNote =
+    row.note === null &&
+    !incoming &&
+    !row.manual &&
+    (row.categoryId === null || row.categoryId === 'other');
+
+  // The caller passes `breakDown` only for a cash-out that is still asking (`cashOutPrompts`) or
+  // already partly broken down, and that has something left.
+  const asksCashUse = breakDown !== undefined && !incoming;
 
   const disc = needsNote
     ? { bg: '#F5B800', icon: 'exclaim' as const, stroke: '#14110F', width: 2 }
@@ -51,7 +70,15 @@ export function TransactionRow({ row, when, padding = 'py-3', onPress, onAddNote
         <Text numberOfLines={1} className="font-inter-semibold text-body leading-[22px] text-ink">
           {row.counterparty}
         </Text>
-        {needsNote ? (
+        {asksCashUse ? (
+          <Text
+            testID={`cashAllocLink-${row.id}`}
+            onPress={breakDown.onPress}
+            className="font-inter-semibold text-[13px] leading-[18px] text-ink underline"
+          >
+            Break it down · {formatGhs(breakDown.left)} left
+          </Text>
+        ) : needsNote ? (
           <Text
             testID={`addNoteLink-${row.id}`}
             onPress={onAddNote}

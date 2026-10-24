@@ -15,6 +15,8 @@ The app is Android only. This skill drives it on the emulator with `adb` and rea
 
 If the user is already running Metro and the app, skip the launch and go to Doctor. Never kill a Metro you did not start.
 
+After a fresh install or `adb shell pm clear` the app opens on Permission, not Home. Tap `Not now` first (`tap-id permissionNotNowBtn`); it saves the choice and lands on Home. The ready check above only holds after that. Under Expo Go the database lives in Expo Go's storage, so reset with `adb shell pm clear host.exp.exponent`.
+
 ## Doctor
 
 `python3 -I .claude/skills/verify-momo-spend/scripts/momo.py doctor` is read-only apart from refreshing `adb reverse`. It prints the device, whether Expo Go is installed, Metro's `/status`, and the foreground window. Drive only when the device is present, Metro says `packager-status:running`, and the foreground is `host.exp.exponent`.

@@ -6,6 +6,8 @@ appId: com.momospend.app
     clearState: true
     permissions:
       notifications: allow
+- runFlow:
+    file: flows/_skipOnboarding.yml
 - extendedWaitUntil:
     visible:
       id: 'homeScreen'

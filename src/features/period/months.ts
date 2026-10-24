@@ -1,6 +1,8 @@
+import { monthLabel, monthShort } from '@/domain/calendar/month';
 import { pesewas, type Pesewas } from '@/domain/money';
 
 export interface MonthOption {
+  /** `YYYY-MM`, UTC. */
   id: string;
   label: string;
   short: string;
@@ -9,33 +11,44 @@ export interface MonthOption {
   moneyIn: Pesewas;
 }
 
-const month = (
-  id: string,
-  label: string,
-  short: string,
-  out: number,
-  inn: number,
-  isCurrent = false,
-): MonthOption => ({
-  id,
-  label,
-  short,
-  isCurrent,
-  spent: pesewas(out),
-  moneyIn: pesewas(inn),
-});
-
-export const MONTH_OPTIONS: readonly MonthOption[] = [
-  month('2026-05', 'May 2026', 'May', 118000, 96000),
-  month('2026-06', 'June 2026', 'Jun', 133000, 106000),
-  month('2026-07', 'July 2026', 'Jul', 145000, 81000),
-  month('2026-08', 'August 2026', 'Aug', 161000, 127000),
-  month('2026-09', 'September 2026', 'Sep', 157000, 99000),
-  month('2026-10', 'October 2026', 'Oct', 124050, 80000, true),
-];
-
-export const CURRENT_MONTH = MONTH_OPTIONS[MONTH_OPTIONS.length - 1] as MonthOption;
-
-export function monthOfIso(iso: string): MonthOption | undefined {
-  return MONTH_OPTIONS.find((m) => m.id === iso.slice(0, 7));
+export interface MonthTotalsInput {
+  monthId: string;
+  spent: Pesewas;
+  moneyIn: Pesewas;
 }
+
+export function monthOption(
+  id: string,
+  currentId: string,
+  totals?: Omit<MonthTotalsInput, 'monthId'>,
+): MonthOption {
+  return {
+    id,
+    label: monthLabel(id),
+    short: monthShort(id),
+    isCurrent: id === currentId,
+    spent: totals?.spent ?? pesewas(0),
+    moneyIn: totals?.moneyIn ?? pesewas(0),
+  };
+}
+
+/** The months with data (oldest first), plus the current month even when it has none. */
+export function buildMonthOptions(
+  totals: readonly MonthTotalsInput[],
+  currentId: string,
+): MonthOption[] {
+  const options = totals.map((t) => monthOption(t.monthId, currentId, t));
+  if (!options.some((o) => o.isCurrent)) options.push(monthOption(currentId, currentId));
+  return options.sort((a, b) => (a.id < b.id ? -1 : 1));
+}
+
+/**
+ * The month to open on. The current month when it has data or nothing has data at all; otherwise
+ * the latest month that does, because a backup export is usually older than today.
+ */
+export function defaultMonthId(dataMonthIds: readonly string[], currentId: string): string {
+  if (dataMonthIds.length === 0 || dataMonthIds.includes(currentId)) return currentId;
+  return [...dataMonthIds].sort().at(-1)!;
+}
+
+export const monthIdOfIso = (iso: string): string => iso.slice(0, 7);

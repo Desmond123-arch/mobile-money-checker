@@ -1,0 +1,293 @@
+{
+  "shape": "cash_out",
+  "messages": [
+    {
+      "layout": "v2",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-1",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS50.00 to BALOMI VENTURES. Current Balance: GHS8,523.82 Financial Transaction Id: 90001799822. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS0.50.",
+        "receivedAt": 1718019116913
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001799822",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 5000,
+          "fee": 50,
+          "tax": null,
+          "balanceAfter": 852382,
+          "counterpartyName": "BALOMI VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1718019116913,
+            "source": "received"
+          },
+          "receivedAt": 1718019116913,
+          "androidId": "fx-cash_out-1",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v8",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-2",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS30.00 to D O KEGUKE'S  VENTURES. Current Balance: GHS8,295.36 Financial Transaction Id: 90001863174. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS0.50.",
+        "receivedAt": 1718298578706
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90001863174",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 3000,
+          "fee": 50,
+          "tax": null,
+          "balanceAfter": 829536,
+          "counterpartyName": "D O KEGUKE'S VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1718298578706,
+            "source": "received"
+          },
+          "receivedAt": 1718298578706,
+          "androidId": "fx-cash_out-2",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v5",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-3",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS100.00 to KESALO COMPANY LIMITED. Current Balance: GHS9,087.56 Financial Transaction Id: 90005395048. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS1.00.",
+        "receivedAt": 1733222013043
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90005395048",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 10000,
+          "fee": 100,
+          "tax": null,
+          "balanceAfter": 908756,
+          "counterpartyName": "KESALO COMPANY LIMITED",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1733222013043,
+            "source": "received"
+          },
+          "receivedAt": 1733222013043,
+          "androidId": "fx-cash_out-3",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v4",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-4",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS50.00 to KEVONU ENTERPRISE. Current Balance: GHS8,532.11 Financial Transaction Id: 90006202786. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS0.50.",
+        "receivedAt": 1739628480203
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90006202786",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 5000,
+          "fee": 50,
+          "tax": null,
+          "balanceAfter": 853211,
+          "counterpartyName": "KEVONU ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1739628480203,
+            "source": "received"
+          },
+          "receivedAt": 1739628480203,
+          "androidId": "fx-cash_out-4",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v6",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-5",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS250.00 to MITEBA FATEKE TRADING ENTERPRISE. Current Balance: GHS7,875.61 Financial Transaction Id: 90007857857. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS2.50.",
+        "receivedAt": 1746903056831
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90007857857",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 25000,
+          "fee": 250,
+          "tax": null,
+          "balanceAfter": 787561,
+          "counterpartyName": "MITEBA FATEKE TRADING ENTERPRISE",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1746903056831,
+            "source": "received"
+          },
+          "receivedAt": 1746903056831,
+          "androidId": "fx-cash_out-5",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v3",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-6",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS500.00 to NUKESA VOGUBA BABAMI. Current Balance: GHS7,962.77 Financial Transaction Id: 90010288990. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS5.00.",
+        "receivedAt": 1758904548226
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010288990",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 50000,
+          "fee": 500,
+          "tax": null,
+          "balanceAfter": 796277,
+          "counterpartyName": "NUKESA VOGUBA BABAMI",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1758904548226,
+            "source": "received"
+          },
+          "receivedAt": 1758904548226,
+          "androidId": "fx-cash_out-6",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v1",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-7",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS50.00 to BASAKE MIKENU LIMITED. Current Balance: GHS7,945.71 Financial Transaction Id: 90010431532. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS0.50.",
+        "receivedAt": 1759692393507
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010431532",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 5000,
+          "fee": 50,
+          "tax": null,
+          "balanceAfter": 794571,
+          "counterpartyName": "BASAKE MIKENU LIMITED",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1759692393507,
+            "source": "received"
+          },
+          "receivedAt": 1759692393507,
+          "androidId": "fx-cash_out-7",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    },
+    {
+      "layout": "v7",
+      "synthetic": false,
+      "sms": {
+        "androidId": "fx-cash_out-8",
+        "sender": "MobileMoney",
+        "body": "Cash Out made for GHS50.00 to D-A GUFAKE'S FASALO VENTURES. Current Balance: GHS7,928.33 Financial Transaction Id: 90010510722. Cash-out fee is charged automatically from your MTN MoMo wallet. Please do not pay any fees to the Agent. Thank you for using MTN MobileMoney. Fee charged: GHS0.50.",
+        "receivedAt": 1760636404867
+      },
+      "expected": {
+        "status": "parsed",
+        "fragment": {
+          "momoTxnId": "90010510722",
+          "kind": "cash_out",
+          "direction": "out",
+          "amount": 5000,
+          "fee": 50,
+          "tax": null,
+          "balanceAfter": 792833,
+          "counterpartyName": "D-A GUFAKE'S FASALO VENTURES",
+          "merchantCode": null,
+          "counterpartyNumber": null,
+          "reference": null,
+          "occurredAt": {
+            "at": 1760636404867,
+            "source": "received"
+          },
+          "receivedAt": 1760636404867,
+          "androidId": "fx-cash_out-8",
+          "template": {
+            "name": "cash_out",
+            "version": 1
+          }
+        }
+      }
+    }
+  ]
+}

@@ -10,7 +10,6 @@ interface RowProps {
   aside?: string | undefined;
   trailing?: ReactNode;
   chevron?: boolean;
-  last?: boolean;
   onPress?: () => void;
   testID?: string;
 }
@@ -22,7 +21,6 @@ export function Row({
   aside,
   trailing,
   chevron = true,
-  last = false,
   onPress,
   testID,
 }: RowProps) {
@@ -31,7 +29,7 @@ export function Row({
       testID={testID}
       accessibilityRole="button"
       onPress={onPress}
-      className={`flex-row items-center gap-3 border-t border-hairline py-[14px] ${last ? 'border-b' : ''}`}
+      className="flex-row items-center gap-3 py-[14px]"
     >
       {swatch ? (
         <View className="size-3 rounded-[3px]" style={{ backgroundColor: swatch }} />

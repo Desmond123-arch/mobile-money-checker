@@ -1,10 +1,12 @@
 import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { allocate } from '@/domain/category/share';
-import { dayState, longDate, shortDate, weekdayLabel, weekdayName } from '@/domain/calendar/week';
+import { dayState, longDate, shortDate, weekdayName } from '@/domain/calendar/week';
+import type { CategorySpend } from '@/domain/category/share';
 import { formatGhs, pesewas } from '@/domain/money';
-import { SAMPLE_SPEND, ShareBar, ShareLegend } from '@/features/categories';
+import { monthBars, trendHeading } from '@/domain/summary/trend';
+import { ShareBar, ShareLegend } from '@/features/categories';
+import { useCategorySpend } from '@/features/categories/useCategorySpend';
 import { usePeriod, useToday } from '@/features/period';
 import {
   ClearButton,
@@ -16,26 +18,27 @@ import {
 } from '@/ui';
 
 import { Legend, MonthlyChart } from './components/BarCharts';
-import { MONTHS, WEEKDAYS, daySpend, weekdaySpend } from './sample';
-
-const SAMPLE_WEIGHTS = Object.fromEntries(SAMPLE_SPEND.map((s) => [s.categoryId, s.amount]));
-
-function Notice({ testID, title, body }: { testID: string; title: string; body: string }) {
-  return (
-    <View testID={testID} className="items-start gap-2 pt-4">
-      <Text className="font-tight-extrabold text-[22px] leading-[29px] text-ink">{title}</Text>
-      <Text className="font-inter text-body leading-6 text-muted">{body}</Text>
-    </View>
-  );
-}
+import { Notice } from './components/Notice';
+import { AllTimeView } from './AllTimeView';
+import { YearView } from './YearView';
+import { useDaySpend, useMonthlyFlows, useWeekdayAverage } from './useInsights';
 
 export function InsightsScreen() {
   const router = useRouter();
   const today = useToday();
-  const { period, month, selectMonth } = usePeriod();
+  const { period, scope, month, selectMonth } = usePeriod();
+  const flows = useMonthlyFlows(month.id);
 
   const openCalendar = () => router.push('/sheets/calendar');
-  const label = period.kind === 'day' ? shortDate(period.iso) : month.label;
+  const label =
+    scope.kind === 'year'
+      ? String(scope.year)
+      : scope.kind === 'all'
+        ? 'All time'
+        : period.kind === 'day'
+          ? shortDate(period.iso)
+          : month.label;
+  const heading = flows ? trendHeading(flows) : null;
 
   return (
     <Screen testID="insightsScreen" bottomPad={TAB_BAR_CLEARANCE}>
@@ -51,54 +54,63 @@ export function InsightsScreen() {
         }
       />
 
-      <View testID="insightsWhereItWent" className="px-5 pt-9">
-        {period.kind === 'month' ? (
-          <MonthContent
-            spend={allocate(month.spent, SAMPLE_WEIGHTS)}
-            categories={Object.keys(SAMPLE_WEIGHTS).length}
-          />
-        ) : (
-          <DayContent
-            iso={period.iso}
-            state={dayState(period.iso, today)}
-            onWholeMonth={() => selectMonth(month.id)}
-          />
-        )}
-      </View>
+      {scope.kind === 'year' || scope.kind === 'all' ? (
+        <View className="px-5 pt-9">
+          {scope.kind === 'year' ? <YearView year={scope.year} /> : <AllTimeView />}
+        </View>
+      ) : (
+        <View testID="insightsWhereItWent" className="px-5 pt-9">
+          {period.kind === 'month' ? (
+            <MonthContent monthId={month.id} monthLabel={month.label} />
+          ) : (
+            <DayContent
+              iso={period.iso}
+              state={dayState(period.iso, today)}
+              onWholeMonth={() => selectMonth(month.id)}
+            />
+          )}
+        </View>
+      )}
 
-      <View className="gap-1 px-5 pt-10">
-        <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">
-          August was your biggest month
-        </Text>
-        <Text className="font-inter text-[14px] leading-5 text-muted">
-          Money out and in, May to October
-        </Text>
-        <Legend
-          items={[
-            { label: 'Out', color: '#14110F' },
-            { label: 'In', color: '#CFCFCF' },
-          ]}
-        />
-        <MonthlyChart months={MONTHS} />
-      </View>
+      {(scope.kind === 'day' || scope.kind === 'month') && flows && heading ? (
+        <View className="gap-1 px-5 pt-10">
+          <Text className="font-tight-extrabold text-title tracking-[-0.02em] text-ink">
+            {heading.title}
+          </Text>
+          <Text className="font-inter text-[14px] leading-5 text-muted">{heading.subtitle}</Text>
+          <Legend
+            items={[
+              { label: 'Out', color: '#14110F' },
+              { label: 'In', color: '#CFCFCF' },
+            ]}
+          />
+          <MonthlyChart months={monthBars(flows)} />
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
-function MonthContent({
-  spend,
-  categories,
-}: {
-  spend: ReturnType<typeof allocate>;
-  categories: number;
-}) {
+function MonthContent({ monthId, monthLabel }: { monthId: string; monthLabel: string }) {
+  const spend = useCategorySpend({ kind: 'month', monthId });
+  if (spend === undefined) return null;
   return (
     <>
       <View className="pb-4">
-        <SectionHeader title="Where it went" link={`${categories} categories`} />
+        <SectionHeader title="Where it went" link={`${spend.length} categories`} />
       </View>
-      <ShareBar spend={spend} />
-      <ShareLegend spend={spend} />
+      {spend.length === 0 ? (
+        <Notice
+          testID="insightsMonthEmpty"
+          title="No payments this month."
+          body={`Nothing was spent in ${monthLabel}.`}
+        />
+      ) : (
+        <>
+          <ShareBar spend={spend} />
+          <ShareLegend spend={spend} />
+        </>
+      )}
     </>
   );
 }
@@ -112,9 +124,11 @@ function DayContent({
   state: ReturnType<typeof dayState>;
   onWholeMonth: () => void;
 }) {
-  const { total, spend } = daySpend(iso);
+  const day = useDaySpend(iso, state !== 'future');
   const name = weekdayName(iso);
-  const typical = WEEKDAYS.find((d) => d.label === weekdayLabel(iso));
+  const typical = useWeekdayAverage(new Date(`${iso}T00:00:00Z`).getUTCDay(), state === 'future');
+  const total = day?.total ?? pesewas(0);
+  const spend: CategorySpend[] = day?.spend ?? [];
 
   return (
     <>
@@ -137,18 +151,19 @@ function DayContent({
             title="This day has not happened yet."
             body={`${longDate(iso)} is still ahead. Here is what an average ${name} looks like.`}
           />
-          <View className="pt-6">
-            <SectionHeader
-              title={`An average ${name}`}
-              link={typical ? formatGhs(pesewas(typical.cedis * 100)) : ''}
-            />
-          </View>
-          <View className="pt-4">
-            <ShareBar spend={weekdaySpend(weekdayLabel(iso))} />
-            <ShareLegend spend={weekdaySpend(weekdayLabel(iso))} />
-          </View>
+          {typical && typical.spend.length > 0 ? (
+            <>
+              <View className="pt-6">
+                <SectionHeader title={`An average ${name}`} link={formatGhs(typical.total)} />
+              </View>
+              <View className="pt-4">
+                <ShareBar spend={typical.spend} />
+                <ShareLegend spend={typical.spend} />
+              </View>
+            </>
+          ) : null}
         </>
-      ) : total === 0 ? (
+      ) : day === undefined ? null : total === 0 ? (
         <Notice
           testID="insightsDayEmpty"
           title="No payments this day."

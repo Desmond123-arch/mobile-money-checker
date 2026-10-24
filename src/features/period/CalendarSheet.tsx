@@ -3,40 +3,40 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { dayState, monthGrid } from '@/domain/calendar/week';
-import { FilterPill, Icon, Sheet, SheetTitle } from '@/ui';
+import { Button, FilterPill, Icon, Sheet, SheetTitle } from '@/ui';
 
-import { MONTH_OPTIONS } from './months';
 import { usePeriod } from './PeriodProvider';
 import { useToday } from './useToday';
 
-type Mode = 'day' | 'month';
+type Mode = 'day' | 'month' | 'year' | 'all';
 
 const HEADINGS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function CalendarSheet() {
   const router = useRouter();
   const today = useToday();
-  const { period, month, selectDay, selectMonth } = usePeriod();
-  const [mode, setMode] = useState<Mode>(period.kind);
+  const { scope, month, months, years, selectDay, selectMonth, selectYear, selectAllTime } =
+    usePeriod();
+  const [mode, setMode] = useState<Mode>(scope.kind);
   const [shownId, setShownId] = useState(month.id);
 
   const shownIndex = Math.max(
     0,
-    MONTH_OPTIONS.findIndex((m) => m.id === shownId),
+    months.findIndex((m) => m.id === shownId),
   );
-  const shown = MONTH_OPTIONS[shownIndex] ?? month;
+  const shown = months[shownIndex] ?? month;
   const [year = 2026, monthNumber = 1] = shown.id.split('-').map(Number);
   const rows = monthGrid(year, monthNumber - 1);
 
   const step = (delta: number) => {
-    const next = MONTH_OPTIONS[shownIndex + delta];
+    const next = months[shownIndex + delta];
     if (next) setShownId(next.id);
   };
 
   return (
     <Sheet testID="calendarSheet">
-      <SheetTitle title="Pick a day or a month" body="Insights show what you choose." />
-      <View className="flex-row gap-2">
+      <SheetTitle title="Pick a day, month or year" body="Insights show what you choose." />
+      <View className="flex-row flex-wrap gap-2">
         <FilterPill
           testID="calendarModeDay"
           label="Day"
@@ -48,6 +48,18 @@ export function CalendarSheet() {
           label="Month"
           active={mode === 'month'}
           onPress={() => setMode('month')}
+        />
+        <FilterPill
+          testID="calendarModeYear"
+          label="Year"
+          active={mode === 'year'}
+          onPress={() => setMode('year')}
+        />
+        <FilterPill
+          testID="calendarModeAll"
+          label="All time"
+          active={mode === 'all'}
+          onPress={() => setMode('all')}
         />
       </View>
 
@@ -71,9 +83,9 @@ export function CalendarSheet() {
               testID="calendarNext"
               accessibilityRole="button"
               accessibilityLabel="Next month"
-              disabled={shownIndex === MONTH_OPTIONS.length - 1}
+              disabled={shownIndex === months.length - 1}
               onPress={() => step(1)}
-              className={`size-11 items-center justify-center rounded-[22px] border-hard border-ink ${shownIndex === MONTH_OPTIONS.length - 1 ? 'opacity-30' : ''}`}
+              className={`size-11 items-center justify-center rounded-[22px] border-hard border-ink ${shownIndex === months.length - 1 ? 'opacity-30' : ''}`}
             >
               <View style={{ transform: [{ rotate: '180deg' }] }}>
                 <Icon name="back" size={20} strokeWidth={2} />
@@ -94,7 +106,7 @@ export function CalendarSheet() {
             <View key={`row-${r}`} className="flex-row">
               {row.map((cell, c) => {
                 if (cell === null) return <View key={`gap-${r}-${c}`} className="h-11 flex-1" />;
-                const selected = period.kind === 'day' && period.iso === cell.iso;
+                const selected = scope.kind === 'day' && scope.iso === cell.iso;
                 const state = dayState(cell.iso, today);
                 return (
                   <View key={cell.iso} className="h-11 flex-1 items-center justify-center">
@@ -134,10 +146,56 @@ export function CalendarSheet() {
             </Text>
           </Pressable>
         </View>
+      ) : mode === 'year' ? (
+        <View testID="calendarYears" className="flex-row flex-wrap gap-2">
+          {years.length === 0 ? (
+            <Text className="font-inter text-body leading-6 text-muted">
+              No year has payments yet.
+            </Text>
+          ) : null}
+          {years.map((year) => {
+            const selected = scope.kind === 'year' && scope.year === year;
+            return (
+              <Pressable
+                key={year}
+                testID={`calendarYear-${year}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => {
+                  selectYear(year);
+                  router.back();
+                }}
+                className={`w-[31%] items-center rounded-chip border-hard border-ink py-4 ${selected ? 'bg-ink' : 'bg-ground'}`}
+              >
+                <Text
+                  className={`font-tight-extrabold text-[18px] leading-6 ${selected ? 'text-ground' : 'text-ink'}`}
+                >
+                  {year}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : mode === 'all' ? (
+        <View testID="calendarAll" className="gap-4">
+          <Text className="font-inter text-body leading-6 text-muted">
+            Everything since your first payment, in one view.
+          </Text>
+          <Button
+            testID="calendarAllConfirm"
+            label="Show all time"
+            block
+            disabled={years.length === 0}
+            onPress={() => {
+              selectAllTime();
+              router.back();
+            }}
+          />
+        </View>
       ) : (
         <View testID="calendarMonths" className="flex-row flex-wrap gap-2">
-          {MONTH_OPTIONS.map((option) => {
-            const selected = period.kind === 'month' && period.month.id === option.id;
+          {months.map((option) => {
+            const selected = scope.kind === 'month' && scope.month.id === option.id;
             return (
               <Pressable
                 key={option.id}
